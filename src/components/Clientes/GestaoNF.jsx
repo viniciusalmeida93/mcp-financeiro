@@ -4,6 +4,7 @@ import Button from '../UI/Button'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
 import { getNotasFiscais, updateNotaFiscal, gerarNFParaCliente } from '../../services/database'
+import { enviarLembreteNF } from '../../services/email'
 import { formatCurrency, formatDate, getCurrentMes, getLastNMeses, formatMesAno } from '../../utils/formatters'
 
 export default function GestaoNF({ clientes }) {
@@ -51,6 +52,15 @@ export default function GestaoNF({ clientes }) {
   const handleMarcarPago = async (nf) => {
     await updateNotaFiscal(nf.id, { status: 'pago' })
     fetchNFs()
+  }
+
+  const handleEnviarLembrete = async (nf) => {
+    try {
+      await enviarLembreteNF(nf, nf.clientes?.nome ?? '')
+      alert('Lembrete enviado!')
+    } catch (err) {
+      alert('Erro ao enviar: ' + err.message)
+    }
   }
 
   const totalBruto = nfs.reduce((s, nf) => s + Number(nf.valor_bruto), 0)
@@ -130,6 +140,9 @@ export default function GestaoNF({ clientes }) {
 
               {nf.status !== 'pago' && (
                 <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
+                  <Button variant="secondary" size="sm" full onClick={() => handleEnviarLembrete(nf)}>
+                    ✉️ Enviar Lembrete
+                  </Button>
                   {nf.status === 'pendente' && (
                     <Button variant="secondary" size="sm" full onClick={() => handleRegistrarEmissao(nf)}>
                       📄 Registrar Emissão

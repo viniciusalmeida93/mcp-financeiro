@@ -4,6 +4,7 @@ import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import { deleteCliente, createLancamento, gerarNFParaCliente } from '../../services/database'
+import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
 import { toDateString } from '../../utils/dateHelpers'
 
@@ -39,6 +40,20 @@ export default function ListaClientes({ clientes, loading, refresh }) {
       refresh()
     } catch (err) {
       alert('Erro: ' + err.message)
+    }
+  }
+
+  const handleCobrar = async (cliente) => {
+    if (!cliente.email_cobranca) {
+      alert('Este cliente não tem email de cobrança cadastrado.')
+      return
+    }
+    if (!confirm(`Enviar cobrança para ${cliente.nome}?`)) return
+    try {
+      await enviarCobranca(cliente)
+      alert('Email de cobrança enviado!')
+    } catch (err) {
+      alert('Erro ao enviar: ' + err.message)
     }
   }
 
@@ -83,6 +98,7 @@ export default function ListaClientes({ clientes, loading, refresh }) {
               onMarcarPago={handleMarcarPago}
               onGerarNF={handleGerarNF}
               onEdit={handleEdit}
+              onCobrar={handleCobrar}
             />
           ))}
         </div>
