@@ -107,3 +107,99 @@ export async function deleteGrupoParcelas(grupoParcela_id) {
     .eq('id', grupoParcela_id)
   if (ge) throw ge
 }
+
+// ================================
+// CLIENTES
+// ================================
+
+export async function getClientes({ status } = {}) {
+  let query = supabase.from('clientes').select('*').order('nome')
+  if (status) query = query.eq('status', status)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function createCliente(cliente) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .insert([cliente])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateCliente(id, updates) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteCliente(id) {
+  const { error } = await supabase.from('clientes').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ================================
+// NOTAS FISCAIS
+// ================================
+
+export async function getNotasFiscais({ clienteId, mes, status } = {}) {
+  let query = supabase
+    .from('notas_fiscais')
+    .select('*, clientes(nome, email_cobranca)')
+    .order('data_vencimento', { ascending: true })
+  if (clienteId) query = query.eq('cliente_id', clienteId)
+  if (mes) query = query.eq('mes_referencia', mes)
+  if (status) query = query.eq('status', status)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function createNotaFiscal(nf) {
+  const { data, error } = await supabase
+    .from('notas_fiscais')
+    .insert([nf])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateNotaFiscal(id, updates) {
+  const { data, error } = await supabase
+    .from('notas_fiscais')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function gerarNFParaCliente(cliente, mesReferencia) {
+  const { calcularNF } = await import('./calculations.js')
+  const { bruto, imposto, liquido } = calcularNF(cliente.valor, cliente.aliquota_imposto ?? 5)
+
+  // Due date = client's payment day in the given month
+  const [ano, mes] = mesReferencia.split('-')
+  const dataVencimento = `${ano}-${mes}-${String(cliente.dia_vencimento).padStart(2, '0')}`
+
+  return createNotaFiscal({
+    cliente_id: cliente.id,
+    mes_referencia: mesReferencia,
+    valor_bruto: bruto,
+    aliquota_imposto: cliente.aliquota_imposto ?? 5,
+    valor_imposto: imposto,
+    valor_liquido: liquido,
+    data_vencimento: dataVencimento,
+    status: 'pendente',
+  })
+}
