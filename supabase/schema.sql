@@ -68,6 +68,11 @@ CREATE TABLE IF NOT EXISTS lancamentos (
   parcela_total INTEGER,
   valor_parcela DECIMAL(10,2),
   grupo_parcela_id UUID REFERENCES grupos_parcelas(id) ON DELETE SET NULL,
+  CONSTRAINT chk_parcela_lancamentos CHECK (
+    (parcelado = false AND parcela_atual IS NULL AND parcela_total IS NULL)
+    OR
+    (parcelado = true AND parcela_atual > 0 AND parcela_total > 0 AND parcela_atual <= parcela_total)
+  ),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -82,6 +87,11 @@ CREATE TABLE IF NOT EXISTS despesas_fixas (
   recorrencia TEXT NOT NULL CHECK (recorrencia IN ('mensal', 'parcela')),
   parcela_atual INTEGER,
   parcela_total INTEGER,
+  CONSTRAINT chk_parcela_despesas CHECK (
+    (recorrencia = 'mensal' AND parcela_atual IS NULL AND parcela_total IS NULL)
+    OR
+    (recorrencia = 'parcela' AND parcela_atual > 0 AND parcela_total > 0 AND parcela_atual <= parcela_total)
+  ),
   categoria TEXT NOT NULL,
   subcategoria TEXT,
   forma_pagamento TEXT NOT NULL,
@@ -132,7 +142,7 @@ CREATE TABLE IF NOT EXISTS emails_enviados (
 -- ================================
 CREATE TABLE IF NOT EXISTS historico_mensal (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  mes TEXT NOT NULL UNIQUE,
+  mes TEXT NOT NULL UNIQUE CHECK (mes ~ '^\d{4}-\d{2}$'), -- Format: YYYY-MM
   receitas_clientes DECIMAL(10,2) DEFAULT 0,
   receitas_projetos DECIMAL(10,2) DEFAULT 0,
   receitas_total DECIMAL(10,2) DEFAULT 0,
