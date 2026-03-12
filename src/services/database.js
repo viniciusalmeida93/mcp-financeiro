@@ -203,3 +203,47 @@ export async function gerarNFParaCliente(cliente, mesReferencia) {
     status: 'pendente',
   })
 }
+
+// ================================
+// DESPESAS FIXAS
+// ================================
+
+export async function getDespesasFixas({ contexto, status } = {}) {
+  let query = supabase
+    .from('despesas_fixas')
+    .select('*')
+    .order('dia_vencimento', { ascending: true })
+
+  if (contexto && contexto !== 'todos') query = query.eq('contexto', contexto)
+  if (status) query = query.eq('status', status)
+
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function createDespesaFixa(despesa) {
+  const { data, error } = await supabase
+    .from('despesas_fixas')
+    .insert([despesa])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateDespesaFixa(id, updates) {
+  const { data, error } = await supabase
+    .from('despesas_fixas')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteDespesaFixa(id) {
+  const { error } = await supabase.from('despesas_fixas').delete().eq('id', id)
+  if (error) throw error
+}
