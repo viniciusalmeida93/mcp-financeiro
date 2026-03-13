@@ -1,4 +1,7 @@
 import { supabase } from './supabase'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { getProximoVencimento } from '../utils/dateHelpers'
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`
 
@@ -29,9 +32,8 @@ async function callSendEmail({ to, subject, html, tipo, cliente_id }) {
  * Send a payment reminder to a client
  */
 export async function enviarCobranca(cliente) {
-  const dataVenc = new Date()
-  dataVenc.setDate(cliente.dia_vencimento)
-  const dataFormatada = dataVenc.toLocaleDateString('pt-BR')
+  const dataVenc = getProximoVencimento(cliente.dia_vencimento)
+  const dataFormatada = format(dataVenc, 'dd/MM/yyyy', { locale: ptBR })
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

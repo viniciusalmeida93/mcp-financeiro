@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom'
 const NAV_ITEMS = [
   { path: '/', icon: '🏠', label: 'Início', exact: true },
   { path: '/lancamentos', icon: '📝', label: 'Lançamentos' },
-  { path: '/clientes', icon: '👥', label: 'Clientes' },
-  { path: '/contas', icon: '💳', label: 'Contas' },
-  { path: '/relatorios', icon: '📊', label: 'Relatórios' },
+  { path: '/clientes', icon: '👥', label: 'Receitas' },
+  { path: '/contas', icon: '📋', label: 'Despesas' },
+  { path: '/cartoes', icon: '💳', label: 'Cartões' },
 ]
 
 export default function BottomNav() {

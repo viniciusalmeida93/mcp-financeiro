@@ -1,5 +1,10 @@
 import { supabase } from './supabase'
-import { format, addMonths } from 'date-fns'
+import { format, addMonths, getDaysInMonth } from 'date-fns'
+
+function getLastDayOfMes(mes) {
+  const [year, month] = mes.split('-').map(Number)
+  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
+}
 
 // ================================
 // LANCAMENTOS
@@ -12,7 +17,7 @@ export async function getLancamentos({ mes, contexto, tipo, categoria, search } 
     .order('data', { ascending: false })
 
   if (mes) {
-    query = query.gte('data', `${mes}-01`).lte('data', `${mes}-31`)
+    query = query.gte('data', `${mes}-01`).lte('data', getLastDayOfMes(mes))
   }
   if (contexto && contexto !== 'todos') {
     query = query.eq('contexto', contexto)
@@ -113,7 +118,7 @@ export async function deleteGrupoParcelas(grupoParcela_id) {
 // ================================
 
 export async function getClientes({ status } = {}) {
-  let query = supabase.from('clientes').select('*').order('nome')
+  let query = supabase.from('clientes').select('*').order('dia_vencimento', { ascending: true })
   if (status) query = query.eq('status', status)
   const { data, error } = await query
   if (error) throw error
@@ -245,5 +250,85 @@ export async function updateDespesaFixa(id, updates) {
 
 export async function deleteDespesaFixa(id) {
   const { error } = await supabase.from('despesas_fixas').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ================================
+// CARTÕES
+// ================================
+
+export async function getCartoes({ contexto } = {}) {
+  let query = supabase
+    .from('cartoes')
+    .select('*')
+    .order('nome', { ascending: true })
+  if (contexto && contexto !== 'todos') query = query.eq('contexto', contexto)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function createCartao(cartao) {
+  const { data, error } = await supabase
+    .from('cartoes')
+    .insert([cartao])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateCartao(id, updates) {
+  const { data, error } = await supabase
+    .from('cartoes')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteCartao(id) {
+  const { error } = await supabase.from('cartoes').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ================================
+// CATEGORIAS CUSTOMIZADAS
+// ================================
+
+export async function getCategoriasCustomizadas() {
+  const { data, error } = await supabase
+    .from('categorias_customizadas')
+    .select('*')
+    .order('nome', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export async function createCategoriaCustomizada(categoria) {
+  const { data, error } = await supabase
+    .from('categorias_customizadas')
+    .insert([categoria])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateCategoriaCustomizada(id, updates) {
+  const { data, error } = await supabase
+    .from('categorias_customizadas')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteCategoriaCustomizada(id) {
+  const { error } = await supabase.from('categorias_customizadas').delete().eq('id', id)
   if (error) throw error
 }

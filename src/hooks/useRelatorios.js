@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import { getCurrentMes, getLastNMeses } from '../utils/formatters'
+import { getDaysInMonth } from 'date-fns'
+
+function getLastDayOfMes(mes) {
+  const [year, month] = mes.split('-').map(Number)
+  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
+}
 
 export function useFluxoMensal(mes) {
   const [data, setData] = useState(null)
@@ -13,7 +19,7 @@ export function useFluxoMensal(mes) {
     setError(null)
     try {
       const [lancRes, despRes] = await Promise.all([
-        supabase.from('lancamentos').select('*').gte('data', `${mes}-01`).lte('data', `${mes}-31`),
+        supabase.from('lancamentos').select('*').gte('data', `${mes}-01`).lte('data', getLastDayOfMes(mes)),
         supabase.from('despesas_fixas').select('*').eq('status', 'ativo'),
       ])
 
@@ -70,7 +76,7 @@ export function useHistoricoMensal() {
           .from('lancamentos')
           .select('tipo, valor, contexto')
           .gte('data', `${mes}-01`)
-          .lte('data', `${mes}-31`)
+          .lte('data', getLastDayOfMes(mes))
 
         if (lancs) {
           const receitas = lancs.filter(l => l.tipo === 'entrada').reduce((s, l) => s + Number(l.valor), 0)

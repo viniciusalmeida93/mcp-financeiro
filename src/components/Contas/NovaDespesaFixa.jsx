@@ -3,60 +3,75 @@ import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
 import Select from '../UI/Select'
-import ContextToggle from '../UI/ContextToggle'
-import { FORMAS_PAGAMENTO } from '../../constants/formasPagamento'
-import { getCategoriasByContexto } from '../../constants/categorias'
-import { createDespesaFixa, updateDespesaFixa } from '../../services/database'
+import { buildFormasPagamento } from '../../constants/formasPagamento'
+import { createDespesaFixa, updateDespesaFixa, getCategoriasCustomizadas, createCategoriaCustomizada, getCartoes } from '../../services/database'
 
 const RECORRENCIAS = [
   { value: 'mensal', label: 'Mensal' },
   { value: 'parcela', label: 'Parcela' },
 ]
 
+const EMPTY_FORM = {
+  nome: '',
+  valor: '',
+  dia_vencimento: '',
+  recorrencia: 'mensal',
+  parcela_atual: '',
+  parcela_total: '',
+  categoria: '',
+  forma_pagamento: 'pix',
+  contexto: 'empresa',
+  data_termino: '',
+}
+
 export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdit }) {
   const isEditing = !!despesaEdit
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
-    nome: '',
-    valor: '',
-    dia_vencimento: '',
-    recorrencia: 'mensal',
-    parcela_atual: '',
-    parcela_total: '',
-    categoria: '',
-    forma_pagamento: 'pix',
-    contexto: 'empresa',
-    data_termino: '',
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
 
+  const [categorias, setCategorias] = useState([])
+  const [showAddCat, setShowAddCat] = useState(false)
+  const [novaCategoria, setNovaCategoria] = useState('')
+  const [savingCat, setSavingCat] = useState(false)
+  const [cartoes, setCartoes] = useState([])
+
   useEffect(() => {
-    if (despesaEdit) {
-      setForm({
-        nome: despesaEdit.nome,
-        valor: despesaEdit.valor,
-        dia_vencimento: despesaEdit.dia_vencimento,
-        recorrencia: despesaEdit.recorrencia,
-        parcela_atual: despesaEdit.parcela_atual ?? '',
-        parcela_total: despesaEdit.parcela_total ?? '',
-        categoria: despesaEdit.categoria,
-        forma_pagamento: despesaEdit.forma_pagamento,
-        contexto: despesaEdit.contexto,
-        data_termino: despesaEdit.data_termino ?? '',
-      })
+    getCategoriasCustomizadas().then(data => setCategorias(data)).catch(() => {})
+    getCartoes({}).then(data => setCartoes(data)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      setErrors({})
+      if (despesaEdit) {
+        setForm({
+          nome: despesaEdit.nome,
+          valor: despesaEdit.valor,
+          dia_vencimento: despesaEdit.dia_vencimento,
+          recorrencia: despesaEdit.recorrencia,
+          parcela_atual: despesaEdit.parcela_atual ?? '',
+          parcela_total: despesaEdit.parcela_total ?? '',
+          categoria: despesaEdit.categoria,
+          forma_pagamento: despesaEdit.forma_pagamento,
+          contexto: despesaEdit.contexto,
+          data_termino: despesaEdit.data_termino ?? '',
+        })
+      } else {
+        setForm(EMPTY_FORM)
+      }
     }
-  }, [despesaEdit])
+  }, [isOpen, despesaEdit])
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
 
   const validate = () => {
     const errs = {}
-    if (!form.nome.trim()) errs.nome = 'Nome obrigatório'
-    if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor obrigatório'
+    if (!form.nome.trim() || form.nome.trim().length < 2) errs.nome = 'Nome deve ter pelo menos 2 caracteres'
+    if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
     if (!form.dia_vencimento || Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31) {
       errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
     }
-    if (!form.categoria) errs.categoria = 'Categoria obrigatória'
     if (form.recorrencia === 'parcela') {
       if (!form.parcela_atual || !form.parcela_total) errs.parcelas = 'Informe parcela atual e total'
     }
@@ -76,7 +91,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         recorrencia: form.recorrencia,
         parcela_atual: form.recorrencia === 'parcela' ? Number(form.parcela_atual) : null,
         parcela_total: form.recorrencia === 'parcela' ? Number(form.parcela_total) : null,
-        categoria: form.categoria,
+        categoria: form.categoria || null,
         forma_pagamento: form.forma_pagamento,
         contexto: form.contexto,
         status: 'ativo',
@@ -99,16 +114,46 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     }
   }
 
-  const categorias = getCategoriasByContexto(form.contexto)
+  const handleAddCategoria = async () => {
+    if (!novaCategoria.trim()) return
+    setSavingCat(true)
+    try {
+      const criada = await createCategoriaCustomizada({ nome: novaCategoria.trim(), tipo: 'despesa', cor: '#1f507a' })
+      const data = await getCategoriasCustomizadas()
+      setCategorias(data)
+      set('categoria', criada.nome)
+      setNovaCategoria('')
+      setShowAddCat(false)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setSavingCat(false)
+    }
+  }
+
+  const categoriasDespesa = categorias.filter(c => c.tipo === 'despesa')
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Despesa' : 'Nova Despesa Fixa'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Despesa' : 'Nova Despesa'}>
+
+      {/* Contexto */}
       <div className="form-group">
-        <label className="form-label">Contexto</label>
-        <ContextToggle
-          value={form.contexto}
-          onChange={v => { if (v !== 'todos') { set('contexto', v); set('categoria', '') } }}
-        />
+        <label className="form-label">Tipo de Despesa</label>
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
+          {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
+            <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: form.contexto === opt.value ? 600 : 400 }}>
+              <input
+                type="radio"
+                name="contexto_despesa"
+                value={opt.value}
+                checked={form.contexto === opt.value}
+                onChange={() => set('contexto', opt.value)}
+                style={{ accentColor: 'var(--color-empresa-primary)' }}
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       <Input
@@ -161,6 +206,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
             placeholder="Ex: 2"
             value={form.parcela_atual}
             onChange={e => set('parcela_atual', e.target.value)}
+            error={errors.parcelas}
           />
           <Input
             label="Total de Parcelas"
@@ -169,23 +215,68 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
             placeholder="Ex: 12"
             value={form.parcela_total}
             onChange={e => set('parcela_total', e.target.value)}
+            error={errors.parcelas}
           />
         </div>
       )}
 
-      <Select
-        label="Categoria"
-        required
-        placeholder="Selecione..."
-        options={categorias}
-        value={form.categoria}
-        onChange={e => set('categoria', e.target.value)}
-        error={errors.categoria}
-      />
+      {/* Categoria — somente despesas */}
+      <div className="form-group">
+        <label className="form-label">Categoria</label>
+        <select
+          className="select"
+          value={form.categoria || ''}
+          onChange={e => {
+            if (e.target.value === '__add__') {
+              setShowAddCat(true)
+            } else {
+              set('categoria', e.target.value)
+              setShowAddCat(false)
+            }
+          }}
+        >
+          <option value="">Selecione uma categoria...</option>
+          {categoriasDespesa.map(c => (
+            <option key={c.id} value={c.nome}>{c.nome}</option>
+          ))}
+          <option value="__add__">+ Adicionar nova categoria</option>
+        </select>
+
+        {showAddCat && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <input
+              className="input"
+              placeholder="Nome da categoria"
+              value={novaCategoria}
+              onChange={e => setNovaCategoria(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
+              autoFocus
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={handleAddCategoria}
+              disabled={savingCat}
+              style={{ flexShrink: 0 }}
+            >
+              {savingCat ? '...' : 'Salvar'}
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => { setShowAddCat(false); setNovaCategoria('') }}
+              style={{ flexShrink: 0 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
 
       <Select
         label="Forma de Pagamento"
-        options={FORMAS_PAGAMENTO}
+        options={buildFormasPagamento(cartoes)}
         value={form.forma_pagamento}
         onChange={e => set('forma_pagamento', e.target.value)}
       />
@@ -199,7 +290,6 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         />
       )}
 
-      {errors.parcelas && <div className="form-error">{errors.parcelas}</div>}
       {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
 
       <div className="form-actions">

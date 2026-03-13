@@ -5,6 +5,8 @@ import LancamentosPage from './pages/LancamentosPage'
 import ClientesPage from './pages/ClientesPage'
 import ContasPage from './pages/ContasPage'
 import RelatoriosPage from './pages/RelatoriosPage'
+import CartoesPage from './pages/CartoesPage'
+import CategoriasPage from './pages/CategoriasPage'
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
           <Route path="/lancamentos" element={<LancamentosPage />} />
           <Route path="/clientes" element={<ClientesPage />} />
           <Route path="/contas" element={<ContasPage />} />
+          <Route path="/cartoes" element={<CartoesPage />} />
+          <Route path="/categorias" element={<CategoriasPage />} />
           <Route path="/relatorios" element={<RelatoriosPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

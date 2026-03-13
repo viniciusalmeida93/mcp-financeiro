@@ -1,42 +1,74 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
-import { deleteCliente, createLancamento, gerarNFParaCliente } from '../../services/database'
+import { createLancamento, deleteLancamento, gerarNFParaCliente, createCliente } from '../../services/database'
 import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
 import { toDateString } from '../../utils/dateHelpers'
+import { supabase } from '../../services/supabase'
+import { getDaysInMonth } from 'date-fns'
 
-const STATUS_FILTER = [
+function getLastDayOfMes(mes) {
+  const [year, month] = mes.split('-').map(Number)
+  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
+}
+
+const TIPO_FILTER = [
   { value: 'todos', label: 'Todos' },
-  { value: 'ativo', label: 'Ativos' },
-  { value: 'inativo', label: 'Inativos' },
+  { value: 'mensal', label: 'Recorrente' },
+  { value: 'pontual', label: 'Pontual' },
 ]
 
 export default function ListaClientes({ clientes, loading, refresh }) {
-  const [statusFilter, setStatusFilter] = useState('ativo')
+  const [tipoFilter, setTipoFilter] = useState('todos')
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
+  const [pagosIds, setPagosIds] = useState(new Set())
+  const [lancamentosMap, setLancamentosMap] = useState({}) // cliente_id → lancamento_id
 
-  const filtered = statusFilter === 'todos'
-    ? clientes
-    : clientes.filter(c => c.status === statusFilter)
-
-  const handleMarcarPago = async (cliente) => {
-    if (!confirm(`Registrar recebimento de ${cliente.nome}?`)) return
-    try {
-      await createLancamento({
-        tipo: 'entrada',
-        valor: cliente.valor,
-        descricao: cliente.nome,
-        categoria: 'cliente',
-        forma_pagamento: 'pix',
-        data: toDateString(new Date()),
-        contexto: 'empresa',
-        cliente_id: cliente.id,
+  useEffect(() => {
+    const mes = getCurrentMes()
+    supabase
+      .from('lancamentos')
+      .select('id, cliente_id')
+      .eq('tipo', 'entrada')
+      .not('cliente_id', 'is', null)
+      .gte('data', `${mes}-01`)
+      .lte('data', getLastDayOfMes(mes))
+      .then(({ data }) => {
+        if (data) {
+          setPagosIds(new Set(data.map(l => l.cliente_id)))
+          const map = {}
+          data.forEach(l => { map[l.cliente_id] = l.id })
+          setLancamentosMap(map)
+        }
       })
-      alert('Recebimento registrado!')
+  }, [clientes])
+
+  const filtered = tipoFilter === 'todos'
+    ? clientes
+    : clientes.filter(c => c.tipo === tipoFilter)
+
+  const handleTogglePago = async (cliente) => {
+    const isPago = pagosIds.has(cliente.id)
+    try {
+      if (isPago) {
+        const lancId = lancamentosMap[cliente.id]
+        if (lancId) await deleteLancamento(lancId)
+      } else {
+        await createLancamento({
+          tipo: 'entrada',
+          valor: cliente.valor,
+          descricao: cliente.nome,
+          categoria: 'cliente',
+          forma_pagamento: 'pix',
+          data: toDateString(new Date()),
+          contexto: cliente.contexto || 'empresa',
+          cliente_id: cliente.id,
+        })
+      }
       refresh()
     } catch (err) {
       alert('Erro: ' + err.message)
@@ -71,14 +103,24 @@ export default function ListaClientes({ clientes, loading, refresh }) {
     setShowForm(true)
   }
 
+  const handleDuplicate = async (cliente) => {
+    try {
+      const { id, created_at, ...rest } = cliente
+      await createCliente(rest)
+      refresh()
+    } catch (err) {
+      alert('Erro ao duplicar: ' + err.message)
+    }
+  }
+
   return (
     <div>
       <div className="filter-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
-        {STATUS_FILTER.map(f => (
+        {TIPO_FILTER.map(f => (
           <button
             key={f.value}
-            className={`filter-chip${statusFilter === f.value ? ' active' : ''}`}
-            onClick={() => setStatusFilter(f.value)}
+            className={`filter-chip${tipoFilter === f.value ? ' active' : ''}`}
+            onClick={() => setTipoFilter(f.value)}
           >
             {f.label}
           </button>
@@ -95,10 +137,12 @@ export default function ListaClientes({ clientes, loading, refresh }) {
             <ClienteItem
               key={c.id}
               cliente={c}
-              onMarcarPago={handleMarcarPago}
+              onTogglePago={handleTogglePago}
               onGerarNF={handleGerarNF}
               onEdit={handleEdit}
+              onDuplicate={handleDuplicate}
               onCobrar={handleCobrar}
+              isPago={pagosIds.has(c.id)}
             />
           ))}
         </div>

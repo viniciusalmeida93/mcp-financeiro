@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
 import Select from '../UI/Select'
 import ContextToggle from '../UI/ContextToggle'
-import { FORMAS_PAGAMENTO } from '../../constants/formasPagamento'
+import { buildFormasPagamento } from '../../constants/formasPagamento'
 import { getCategoriasByContexto } from '../../constants/categorias'
-import { createLancamento, createLancamentosParcelados } from '../../services/database'
+import { createLancamento, createLancamentosParcelados, getCartoes } from '../../services/database'
 import { toDateString } from '../../utils/dateHelpers'
 
 const TIPOS = [
@@ -14,29 +14,44 @@ const TIPOS = [
   { value: 'entrada', label: '💰 Entrada' },
 ]
 
+const FORM_INICIAL = {
+  contexto: 'empresa',
+  tipo: 'saida',
+  valor: '',
+  descricao: '',
+  categoria: '',
+  forma_pagamento: 'pix',
+  data: toDateString(new Date()),
+  parcelado: false,
+  numeroParcelas: 2,
+}
+
 export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
-    contexto: 'empresa',
-    tipo: 'saida',
-    valor: '',
-    descricao: '',
-    categoria: '',
-    forma_pagamento: 'pix',
-    data: toDateString(new Date()),
-    parcelado: false,
-    numeroParcelas: 2,
-  })
+  const [form, setForm] = useState(FORM_INICIAL)
   const [errors, setErrors] = useState({})
+  const [cartoes, setCartoes] = useState([])
+
+  useEffect(() => {
+    getCartoes({}).then(data => setCartoes(data)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      setErrors({})
+      setForm({ ...FORM_INICIAL, data: toDateString(new Date()) })
+    }
+  }, [isOpen])
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
 
   const validate = () => {
     const errs = {}
-    if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor obrigatório'
-    if (!form.descricao.trim()) errs.descricao = 'Descrição obrigatória'
+    if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
+    if (!form.descricao.trim() || form.descricao.trim().length < 2) errs.descricao = 'Descrição deve ter pelo menos 2 caracteres'
     if (!form.categoria) errs.categoria = 'Categoria obrigatória'
     if (!form.data) errs.data = 'Data obrigatória'
+    if (!form.contexto || form.contexto === 'todos') errs.contexto = 'Selecione empresa ou pessoal'
     return errs
   }
 
@@ -145,7 +160,7 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
 
       <Select
         label="Forma de Pagamento"
-        options={FORMAS_PAGAMENTO}
+        options={buildFormasPagamento(cartoes)}
         value={form.forma_pagamento}
         onChange={e => set('forma_pagamento', e.target.value)}
       />

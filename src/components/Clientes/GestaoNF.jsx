@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Card from '../UI/Card'
 import Button from '../UI/Button'
 import LoadingScreen from '../UI/LoadingScreen'
@@ -10,10 +10,11 @@ import { formatCurrency, formatDate, getCurrentMes, getLastNMeses, formatMesAno 
 export default function GestaoNF({ clientes }) {
   const [nfs, setNfs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
   const [mes, setMes] = useState(getCurrentMes())
   const meses = getLastNMeses(6)
 
-  const fetchNFs = async () => {
+  const fetchNFs = useCallback(async () => {
     setLoading(true)
     try {
       const data = await getNotasFiscais({ mes })
@@ -23,19 +24,25 @@ export default function GestaoNF({ clientes }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [mes])
 
-  useEffect(() => { fetchNFs() }, [mes])
+  useEffect(() => { fetchNFs() }, [fetchNFs])
 
   const handleGerarNFs = async () => {
     const clientesNF = clientes.filter(c => c.precisa_nf && c.status === 'ativo')
-    for (const cliente of clientesNF) {
-      const jaExiste = nfs.some(nf => nf.cliente_id === cliente.id && nf.mes_referencia === mes)
-      if (!jaExiste) {
-        await gerarNFParaCliente(cliente, mes)
-      }
+    setGenerating(true)
+    try {
+      await Promise.all(
+        clientesNF
+          .filter(c => !nfs.some(nf => nf.cliente_id === c.id && nf.mes_referencia === mes))
+          .map(c => gerarNFParaCliente(c, mes))
+      )
+      await fetchNFs()
+    } catch (err) {
+      alert('Erro ao gerar NFs: ' + err.message)
+    } finally {
+      setGenerating(false)
     }
-    fetchNFs()
   }
 
   const handleRegistrarEmissao = async (nf) => {
@@ -80,8 +87,8 @@ export default function GestaoNF({ clientes }) {
         >
           {meses.map(m => <option key={m} value={m}>{formatMesAno(m)}</option>)}
         </select>
-        <Button variant="secondary" size="sm" onClick={handleGerarNFs}>
-          Gerar NFs do Mês
+        <Button variant="secondary" size="sm" onClick={handleGerarNFs} disabled={generating}>
+          {generating ? 'Gerando...' : 'Gerar NFs do Mês'}
         </Button>
       </div>
 

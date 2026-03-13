@@ -3,7 +3,7 @@ import Badge from '../UI/Badge'
 import { formatCurrency, formatDateShort } from '../../utils/formatters'
 import EmptyState from '../UI/EmptyState'
 
-export default function ClientesReceberCard({ clientesAReceber, loading }) {
+export default function ClientesReceberCard({ clientesAReceber, loading, pagosClienteIds = new Set(), onReceber }) {
   const total = clientesAReceber.reduce((s, c) => s + Number(c.valor), 0)
 
   return (
@@ -18,23 +18,32 @@ export default function ClientesReceberCard({ clientesAReceber, loading }) {
         <EmptyState icon="💸" text="Nenhum recebimento nos próximos 7 dias" />
       ) : (
         <>
-          {clientesAReceber.map(cliente => (
-            <div key={cliente.id} className="list-item list-item--empresa">
-              <div className="list-item__body">
-                <div className="list-item__title">{cliente.nome}</div>
-                <div className="list-item__subtitle">
-                  {formatDateShort(cliente.proximoVencimento)}
-                  {cliente.precisa_nf && (
-                    <Badge variant="warning" style={{ marginLeft: 4 }}>📋 NF</Badge>
-                  )}
+          {clientesAReceber.map(cliente => {
+            const recebido = pagosClienteIds.has(cliente.id)
+            return (
+              <div key={cliente.id} className={`dashboard-check-item list-item list-item--empresa ${recebido ? 'dashboard-check-item--pago' : ''}`}>
+                <button
+                  className={`dashboard-checkbox ${recebido ? 'dashboard-checkbox--checked' : ''}`}
+                  onClick={() => !recebido && onReceber && onReceber(cliente)}
+                  title={recebido ? 'Já recebido' : 'Marcar como recebido'}
+                >
+                  {recebido ? '✓' : ''}
+                </button>
+                <div className="list-item__body">
+                  <div className="list-item__title">{cliente.nome}</div>
+                  <div className="list-item__subtitle">
+                    {formatDateShort(cliente.proximoVencimento)}
+                    {cliente.precisa_nf && (
+                      <Badge variant="warning" style={{ marginLeft: 4 }}>📋 NF</Badge>
+                    )}
+                  </div>
+                </div>
+                <div className={`list-item__value ${recebido ? 'amount--positive' : 'list-item__value--positive'}`}>
+                  {formatCurrency(cliente.valor)}
                 </div>
               </div>
-              <div className="list-item__value list-item__value--positive">
-                {formatCurrency(cliente.valor)}
-                {cliente.precisa_nf && ' 📋'}
-              </div>
-            </div>
-          ))}
+            )
+          })}
 
           <div className="card__divider" />
           <div className="summary-row summary-row--total">

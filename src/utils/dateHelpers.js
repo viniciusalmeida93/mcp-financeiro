@@ -6,7 +6,7 @@ import { format, getDaysInMonth, differenceInDays, parseISO, isWithinInterval } 
 export const getDiasRestantesNoMes = () => {
   const today = new Date()
   const lastDay = getDaysInMonth(today)
-  return lastDay - today.getDate()
+  return lastDay - today.getDate() + 1
 }
 
 /**

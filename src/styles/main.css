@@ -1,39 +1,39 @@
 /* ================================================================
    VA Studio Financeiro — Design System
-   Dark theme, mobile-first
+   Light theme, mobile-first (Stitch style)
 ================================================================ */
 
 /* ================================
    CSS VARIABLES
 ================================ */
 :root {
-  /* Empresa (Company) — Cyan */
-  --color-empresa-primary: #00D9FF;
-  --color-empresa-bg: #001D2E;
-  --color-empresa-border: #00D9FF;
+  /* Empresa (Company) — Blue (Stitch primary) */
+  --color-empresa-primary: #1f507a;
+  --color-empresa-bg: #e8f0f9;
+  --color-empresa-border: #1f507a;
 
   /* Pessoal (Personal) — Orange */
   --color-pessoal-primary: #FF6B35;
-  --color-pessoal-bg: #2E1D00;
+  --color-pessoal-bg: #fff3ee;
   --color-pessoal-border: #FF6B35;
 
-  /* Base */
-  --color-bg: #000000;
-  --color-bg-secondary: #0A0A0A;
-  --color-card-bg: #1A1A1A;
-  --color-text: #FFFFFF;
-  --color-text-secondary: #CCCCCC;
-  --color-text-muted: #888888;
+  /* Base — Light theme */
+  --color-bg: #f6f7f8;
+  --color-bg-secondary: #eef0f2;
+  --color-card-bg: #ffffff;
+  --color-text: #13191f;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
 
   /* Status */
   --color-success: #70AD47;
   --color-warning: #FF6B35;
   --color-danger: #C00000;
-  --color-info: #00D9FF;
+  --color-info: #1f507a;
 
   /* Border */
-  --color-border: #333333;
-  --color-border-light: #2A2A2A;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -44,7 +44,7 @@
   --spacing-2xl: 48px;
 
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-size-xs: 11px;
   --font-size-sm: 13px;
   --font-size-base: 15px;
@@ -66,9 +66,9 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   /* Touch targets */
   --touch-target: 44px;
@@ -127,18 +127,19 @@ input, select, textarea {
   font-family: inherit;
   font-size: var(--font-size-base);
   color: var(--color-text);
-  background: var(--color-bg-secondary);
+  background: var(--color-card-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0 var(--spacing-md);
   height: var(--input-height);
   width: 100%;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-empresa-primary);
+  box-shadow: 0 0 0 3px rgba(31, 80, 122, 0.1);
 }
 
 input::placeholder {
@@ -172,8 +173,7 @@ ul, ol {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: var(--max-width);
-  margin: 0 auto;
+  width: 100%;
   background-color: var(--color-bg-secondary);
 }
 
@@ -334,7 +334,7 @@ ul, ol {
 
 .btn--primary {
   background-color: var(--color-empresa-primary);
-  color: #000;
+  color: #ffffff;
 }
 
 .btn--primary:hover:not(:disabled) { opacity: 0.85; }
@@ -400,9 +400,9 @@ ul, ol {
 }
 
 .badge--empresa {
-  background-color: rgba(0, 217, 255, 0.15);
+  background-color: rgba(31, 80, 122, 0.1);
   color: var(--color-empresa-primary);
-  border: 1px solid rgba(0, 217, 255, 0.3);
+  border: 1px solid rgba(31, 80, 122, 0.25);
 }
 
 .badge--pessoal {
@@ -436,7 +436,7 @@ ul, ol {
 ================================ */
 .context-toggle {
   display: flex;
-  background: var(--color-bg);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 3px;
@@ -545,36 +545,33 @@ ul, ol {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 0;
+  padding: var(--spacing-md);
 }
 
 .modal {
   background: var(--color-card-bg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg);
   padding: var(--spacing-lg) var(--spacing-md);
   width: 100%;
-  max-width: var(--max-width);
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideUp 0.2s ease-out;
+  animation: fadeInScale 0.2s ease-out;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modal__handle {
-  width: 40px;
-  height: 4px;
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-  margin: 0 auto var(--spacing-md);
+  display: none;
 }
 
 .modal__header {
@@ -626,6 +623,7 @@ ul, ol {
   font-size: var(--font-size-xs);
   color: var(--color-danger);
   margin-top: var(--spacing-xs);
+  display: block;
 }
 
 .form-row {
@@ -781,14 +779,14 @@ ul, ol {
   white-space: nowrap;
   cursor: pointer;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-card-bg);
   color: var(--color-text-muted);
   transition: all 0.15s;
 }
 
 .filter-chip.active {
   border-color: var(--color-empresa-primary);
-  background: rgba(0, 217, 255, 0.1);
+  background: rgba(31, 80, 122, 0.1);
   color: var(--color-empresa-primary);
 }
 
@@ -840,7 +838,7 @@ ul, ol {
   height: 56px;
   border-radius: 50%;
   background-color: var(--color-empresa-primary);
-  color: #000;
+  color: #ffffff;
   font-size: 24px;
   display: flex;
   align-items: center;
@@ -921,26 +919,477 @@ ul, ol {
 }
 
 /* ================================
-   RESPONSIVE — Tablet / Desktop
+   SKELETON LOADING
+================================ */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary) 25%, #e0e2e5 50%, var(--color-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-text--lg {
+  height: 1.5em;
+}
+
+.skeleton-amount {
+  height: 2rem;
+  width: 120px;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl) 0;
+}
+
+/* ================================
+   SALDO GRID (Dashboard 3 cards)
+================================ */
+.saldo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.saldo-mini-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-sm);
+  text-align: center;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.saldo-mini-card--empresa {
+  border-top: 3px solid var(--color-empresa-primary);
+}
+
+.saldo-mini-card--pessoal {
+  border-top: 3px solid var(--color-pessoal-primary);
+}
+
+.saldo-mini-card--total {
+  border-top: 3px solid var(--color-success);
+}
+
+.saldo-mini-card__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.saldo-mini-card__value {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+/* ================================
+   DASHBOARD CHECKBOX ITEMS
+================================ */
+.dashboard-check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dashboard-check-item--pago {
+  opacity: 0.5;
+}
+
+.dashboard-check-item--pago .list-item__title {
+  text-decoration: line-through;
+}
+
+.dashboard-checkbox {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: transparent;
+  color: var(--color-success);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dashboard-checkbox:hover:not(.dashboard-checkbox--checked) {
+  border-color: var(--color-success);
+}
+
+.dashboard-checkbox--checked {
+  border-color: var(--color-success);
+  background: rgba(112, 173, 71, 0.15);
+  cursor: default;
+}
+
+/* ================================
+   FORM VALIDATION
+================================ */
+.input--error {
+  border-color: var(--color-danger) !important;
+}
+
+
+/* ================================
+   SIDEBAR (desktop only)
+================================ */
+.sidebar {
+  display: none;
+}
+
+/* ================================
+   RESPONSIVE — Tablet
 ================================ */
 @media (min-width: 768px) {
+  .app-wrapper {
+    max-width: 100%;
+  }
+
   .app-content {
     padding: var(--spacing-lg);
-    padding-bottom: calc(var(--bottom-nav-height) + var(--spacing-lg));
+    padding-bottom: calc(var(--bottom-nav-height) + var(--spacing-xl));
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
   }
 }
 
+/* ================================
+   RESPONSIVE — Desktop
+================================ */
 @media (min-width: 1024px) {
-  .bottom-nav {
-    display: none;
+  body {
+    background: var(--color-bg-secondary);
   }
 
+  .app-wrapper {
+    flex-direction: row;
+    align-items: flex-start;
+    max-width: 100%;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    min-width: 220px;
+    min-height: 100vh;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    padding: var(--spacing-lg) 0;
+    gap: var(--spacing-xl);
+  }
+
+  .sidebar__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0 var(--spacing-lg);
+  }
+
+  .sidebar__logo {
+    font-size: var(--font-size-xl);
+  }
+
+  .sidebar__title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+  }
+
+  .sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    padding-left: calc(var(--spacing-md) + 3px);
+    border-radius: var(--radius-md);
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    transition: background-color 0.15s, color 0.15s;
+    min-height: var(--touch-target);
+  }
+
+  .sidebar__item:hover {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
+  .sidebar__item.active {
+    background-color: rgba(31, 80, 122, 0.1);
+    color: var(--color-empresa-primary);
+    border-left: 3px solid var(--color-empresa-primary);
+  }
+
+  .sidebar__icon {
+    font-size: var(--font-size-lg);
+    width: 28px;
+    text-align: center;
+  }
+
+  /* Content area */
   .app-content {
-    padding-bottom: var(--spacing-lg);
+    flex: 1;
+    padding: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+    min-width: 0;
+  }
+
+  .bottom-nav {
+    display: none;
   }
 
   .fab {
     bottom: var(--spacing-xl);
     right: var(--spacing-xl);
+  }
+}
+
+/* ================================
+   CARTÕES
+================================ */
+.cartao-card {
+  background: linear-gradient(135deg, var(--color-empresa-primary) 0%, #2d6fa3 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cartao-card--pessoal {
+  background: linear-gradient(135deg, #FF6B35 0%, #e8531f 100%);
+}
+
+.cartao-card__chip {
+  font-size: 24px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.cartao-card__numero {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.15em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cartao-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.cartao-card__label {
+  font-size: var(--font-size-xs);
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cartao-card__nome {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.cartao-card__validade {
+  text-align: right;
+}
+
+.cartao-card__bandeira {
+  font-size: var(--font-size-xl);
+}
+
+.cartao-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.cartao-stat {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.cartao-stat__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.cartao-stat__value {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.cartao-stat__value--danger { color: var(--color-danger); }
+.cartao-stat__value--success { color: var(--color-success); }
+
+.cartao-utilizacao {
+  margin-top: var(--spacing-sm);
+}
+
+.cartao-utilizacao__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+/* ================================
+   CARTÃO ITEM (list)
+================================ */
+.cartao-item {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--spacing-md);
+}
+
+.cartao-item__header {
+  padding: var(--spacing-md);
+}
+
+.cartao-item__body {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+}
+
+.cartao-item__actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-secondary);
+}
+
+/* ================================
+   METRICAS DASHBOARD (4 cards)
+================================ */
+.metricas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.metrica-card {
+  padding: var(--spacing-md);
+}
+
+.metrica-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.metrica-card__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metrica-card__icon {
+  font-size: var(--font-size-base);
+}
+
+.metrica-card__value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  margin-bottom: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metrica-card__sublabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ================================
+   DASHBOARD MID ROW (chart + categories)
+================================ */
+.dashboard-mid-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Desktop: side by side */
+@media (min-width: 768px) {
+  .metricas-grid {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+
+  .dashboard-mid-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .dashboard-mid-row > *:first-child {
+    flex: 1.5;
+  }
+
+  .dashboard-mid-row > *:last-child {
+    flex: 1;
   }
 }

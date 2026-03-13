@@ -3,11 +3,13 @@ export default function Select({
   error,
   required,
   id,
+  className,
   options = [],
   placeholder,
   ...props
 }) {
   const selectId = id || `select-${label?.toLowerCase().replace(/\s+/g, '-')}`
+  const selectClassName = [className, error ? 'input--error' : ''].filter(Boolean).join(' ') || undefined
   return (
     <div className="form-group">
       {label && (
@@ -18,7 +20,7 @@ export default function Select({
           {label}
         </label>
       )}
-      <select id={selectId} {...props}>
+      <select id={selectId} className={selectClassName} {...props}>
         {placeholder && <option value="">{placeholder}</option>}
         {options.map(opt => (
           <option key={opt.value} value={opt.value}>
