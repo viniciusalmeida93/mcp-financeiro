@@ -207,7 +207,7 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
 
       <div className="form-actions">
         <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+        <Button variant="default" onClick={handleSubmit} disabled={loading}>
           {loading ? 'Salvando...' : 'Salvar'}
         </Button>
       </div>

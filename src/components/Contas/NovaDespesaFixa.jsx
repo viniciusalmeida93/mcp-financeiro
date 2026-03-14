@@ -294,7 +294,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
 
       <div className="form-actions">
         <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+        <Button variant="default" onClick={handleSubmit} disabled={loading}>
           {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>

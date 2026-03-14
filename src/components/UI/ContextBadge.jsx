@@ -1,12 +1,10 @@
-export default function ContextBadge({ contexto }) {
-  const config = {
-    empresa: { icon: '💼', label: 'Empresa' },
-    pessoal: { icon: '🏠', label: 'Pessoal' },
-  }
-  const { icon, label } = config[contexto] ?? { icon: '?', label: contexto }
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+
+export default function ContextBadge({ contexto, className }) {
   return (
-    <span className={`badge badge--${contexto}`}>
-      {icon} {label}
-    </span>
+    <Badge variant="secondary" className={cn(className)}>
+      {contexto === 'empresa' ? '💼 Empresa' : '🏠 Pessoal'}
+    </Badge>
   )
 }

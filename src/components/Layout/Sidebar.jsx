@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import ContextToggle from '@/components/UI/ContextToggle'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -54,9 +55,9 @@ export default function Sidebar() {
       </nav>
 
       <Separator />
-      {/* Context Toggle placeholder — will be added in Task 19 when ContextToggle is rebuilt */}
+      {/* Context toggle — switches global empresa/pessoal theme */}
       <div className="p-4">
-        <p className="text-xs text-muted-foreground text-center">Tema: Empresa / Pessoal</p>
+        <ContextToggle />
       </div>
     </aside>
   )
