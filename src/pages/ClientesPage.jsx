@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Header from '../components/Layout/Header'
 import ListaClientes from '../components/Clientes/ListaClientes'
 import NovoCliente from '../components/Clientes/NovoCliente'
 import { useClientes } from '../hooks/useClientes'
@@ -22,8 +21,6 @@ export default function ClientesPage() {
 
   return (
     <>
-      <Header title="Receitas" />
-
       {/* Metric cards */}
       <div className="metricas-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
         <div className="metrica-card">

@@ -1,4 +1,3 @@
-import Header from '../components/Layout/Header'
 import MetricasDashboard from '../components/Dashboard/MetricasDashboard'
 import EvolucaoGastosCard from '../components/Dashboard/EvolucaoGastosCard'
 import ProximosVencimentosCard from '../components/Dashboard/ProximosVencimentosCard'
@@ -10,15 +9,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Header
-        title="Dashboard"
-        rightAction={
-          <button className="btn btn--ghost btn--sm" onClick={dashboard.refresh} title="Atualizar">
-            🔄
-          </button>
-        }
-      />
-
       {dashboard.error && (
         <div className="card" style={{ borderColor: 'var(--color-danger)', marginBottom: 16 }}>
           <p style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>Erro: {dashboard.error}</p>

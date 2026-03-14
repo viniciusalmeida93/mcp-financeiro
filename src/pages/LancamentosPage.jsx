@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import Header from '../components/Layout/Header'
 import ListaLancamentos from '../components/Lancamentos/ListaLancamentos'
 import NovoLancamento from '../components/Lancamentos/NovoLancamento'
-import Button from '../components/UI/Button'
 import { useLancamentos } from '../hooks/useLancamentos'
 
 export default function LancamentosPage() {
@@ -11,15 +9,6 @@ export default function LancamentosPage() {
 
   return (
     <>
-      <Header
-        title="Lançamentos"
-        rightAction={
-          <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
-            + Novo
-          </Button>
-        }
-      />
-
       {error && (
         <div className="card" style={{ borderColor: 'var(--color-danger)', marginBottom: 16 }}>
           <p style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>Erro: {error}</p>

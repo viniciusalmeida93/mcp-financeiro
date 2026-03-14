@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import Header from '../components/Layout/Header'
 import CartaoItem from '../components/Cartoes/CartaoItem'
 import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
@@ -11,7 +10,7 @@ export default function CartoesPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCartao, setEditingCartao] = useState(null)
-  const [contexto, setContexto] = useState('todos')
+  const [contexto, setContexto] = useState('ambos')
   const [cartaoFilter, setCartaoFilter] = useState('todos')
 
   const fetchCartoes = useCallback(async () => {
@@ -64,7 +63,7 @@ export default function CartoesPage() {
   }
 
   const filtered = cartoes.filter(c => {
-    const matchContexto = contexto === 'todos' ||
+    const matchContexto = contexto === 'ambos' ||
       c.contexto === contexto ||
       c.contexto === 'ambos'
     const matchCartao = cartaoFilter === 'todos' || c.id === cartaoFilter
@@ -77,8 +76,6 @@ export default function CartoesPage() {
 
   return (
     <>
-      <Header title="Cartões" />
-
       {/* Resumo geral */}
       {cartoes.length > 0 && (
         <div className="saldo-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -104,10 +101,9 @@ export default function CartoesPage() {
       {/* Filtro contexto */}
       <div className="context-toggle" style={{ marginBottom: 'var(--spacing-sm)' }}>
         {[
-          { value: 'todos', label: 'Todos' },
+          { value: 'ambos', label: '🔄 Ambos' },
           { value: 'empresa', label: '💼 Empresa' },
           { value: 'pessoal', label: '🏠 Pessoal' },
-          { value: 'ambos', label: '🔄 Ambos' },
         ].map(c => (
           <button key={c.value}
             className={`context-toggle__btn ${contexto === c.value ? `active--${c.value}` : ''}`}

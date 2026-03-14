@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
-import Header from '../components/Layout/Header'
 import NovaCategoria from '../components/Categorias/NovaCategoria'
 import { formatCurrency, formatMesAno, getCurrentMes, getLastNMeses } from '../utils/formatters'
 import { getCategoriaLabel } from '../constants/categorias'
@@ -191,8 +190,6 @@ export default function CategoriasPage() {
 
   return (
     <>
-      <Header title="Categorias" />
-
       {/* Month selector + filters */}
       <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap' }}>
         <select value={mes} onChange={e => setMes(e.target.value)}

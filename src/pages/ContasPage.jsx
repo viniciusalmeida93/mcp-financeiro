@@ -1,4 +1,3 @@
-import Header from '../components/Layout/Header'
 import ListaDespesasFixas from '../components/Contas/ListaDespesasFixas'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
 import { useDespesasFixas } from '../hooks/useDespesasFixas'
@@ -21,8 +20,6 @@ export default function ContasPage() {
 
   return (
     <>
-      <Header title="Despesas" />
-
       {/* Metric cards */}
       <div className="metricas-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
         <div className="metrica-card">

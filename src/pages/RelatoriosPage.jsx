@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Header from '../components/Layout/Header'
 import FluxoMensal from '../components/Relatorios/FluxoMensal'
 import HistoricoCompleto from '../components/Relatorios/HistoricoCompleto'
 import GastosPorCategoria from '../components/Relatorios/GastosPorCategoria'
@@ -17,8 +16,6 @@ export default function RelatoriosPage() {
 
   return (
     <>
-      <Header title="Relatórios" />
-
       <div className="filter-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
         {TABS.map(t => (
           <button
