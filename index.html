@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+  (function() {
+    var ctx = localStorage.getItem('va-contexto') || 'empresa';
+    document.documentElement.setAttribute('data-theme', ctx);
+  })();
+</script>
     <title>VA Studio Financeiro</title>
   </head>
   <body>

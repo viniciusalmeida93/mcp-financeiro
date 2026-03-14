@@ -60,10 +60,10 @@
   --line-height-normal: 1.5;
 
   /* Border radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --va-radius-sm: 6px;
+  --va-radius-md: 10px;
+  --va-radius-lg: 16px;
+  --va-radius-full: 9999px;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -72,7 +72,7 @@
 
   /* Touch targets */
   --touch-target: 44px;
-  --input-height: 48px;
+  --va-input-height: 48px;
   --list-item-height: 60px;
 
   /* App layout */
@@ -129,9 +129,9 @@ input, select, textarea {
   color: var(--color-text);
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   padding: 0 var(--spacing-md);
-  height: var(--input-height);
+  height: var(--va-input-height);
   width: 100%;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -221,11 +221,18 @@ ul, ol {
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
   z-index: 100;
 }
 
+.bottom-nav::-webkit-scrollbar {
+  display: none;
+}
+
 .bottom-nav__item {
-  flex: 1;
+  flex: 0 0 auto;
+  min-width: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -257,7 +264,7 @@ ul, ol {
 ================================ */
 .card {
   background: var(--color-card-bg);
-  border-radius: var(--radius-lg);
+  border-radius: var(--va-radius-lg);
   padding: var(--spacing-md);
   border: 1px solid var(--color-border-light);
 }
@@ -318,7 +325,7 @@ ul, ol {
   gap: var(--spacing-sm);
   min-height: var(--touch-target);
   padding: 0 var(--spacing-md);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
@@ -382,7 +389,7 @@ ul, ol {
 .btn--icon {
   width: var(--touch-target);
   padding: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
 }
 
 /* ================================
@@ -393,7 +400,7 @@ ul, ol {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: var(--radius-full);
+  border-radius: var(--va-radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
@@ -438,7 +445,7 @@ ul, ol {
   display: flex;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   padding: 3px;
   gap: 2px;
 }
@@ -447,7 +454,7 @@ ul, ol {
   flex: 1;
   min-height: 34px;
   padding: 0 var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  border-radius: var(--va-radius-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
@@ -555,7 +562,7 @@ ul, ol {
 
 .modal {
   background: var(--color-card-bg);
-  border-radius: var(--radius-lg);
+  border-radius: var(--va-radius-lg);
   padding: var(--spacing-lg) var(--spacing-md);
   width: 100%;
   max-width: 480px;
@@ -592,7 +599,7 @@ ul, ol {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   color: var(--color-text-muted);
   font-size: 20px;
 }
@@ -651,8 +658,8 @@ ul, ol {
 }
 
 .type-toggle__btn {
-  min-height: var(--input-height);
-  border-radius: var(--radius-md);
+  min-height: var(--va-input-height);
+  border-radius: var(--va-radius-md);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   border: 2px solid var(--color-border);
@@ -773,7 +780,7 @@ ul, ol {
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border-radius: var(--radius-full);
+  border-radius: var(--va-radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
@@ -859,13 +866,13 @@ ul, ol {
 .progress-bar {
   height: 6px;
   background: var(--color-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--va-radius-full);
   overflow: hidden;
 }
 
 .progress-bar__fill {
   height: 100%;
-  border-radius: var(--radius-full);
+  border-radius: var(--va-radius-full);
   transition: width 0.3s ease;
 }
 
@@ -884,7 +891,7 @@ ul, ol {
   transform: translateX(-50%);
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -925,7 +932,7 @@ ul, ol {
   background: linear-gradient(90deg, var(--color-bg-secondary) 25%, #e0e2e5 50%, var(--color-bg-secondary) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
-  border-radius: var(--radius-sm);
+  border-radius: var(--va-radius-sm);
 }
 
 @keyframes skeleton-loading {
@@ -967,7 +974,7 @@ ul, ol {
 .saldo-mini-card {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   padding: var(--spacing-md) var(--spacing-sm);
   text-align: center;
   min-height: 80px;
@@ -1144,7 +1151,7 @@ ul, ol {
     gap: var(--spacing-md);
     padding: var(--spacing-sm) var(--spacing-md);
     padding-left: calc(var(--spacing-md) + 3px);
-    border-radius: var(--radius-md);
+    border-radius: var(--va-radius-md);
     border-left: 3px solid transparent;
     text-decoration: none;
     color: var(--color-text-secondary);
@@ -1194,7 +1201,7 @@ ul, ol {
 ================================ */
 .cartao-card {
   background: linear-gradient(135deg, var(--color-empresa-primary) 0%, #2d6fa3 100%);
-  border-radius: var(--radius-lg);
+  border-radius: var(--va-radius-lg);
   padding: var(--spacing-lg);
   color: #ffffff;
   position: relative;
@@ -1257,7 +1264,7 @@ ul, ol {
 .cartao-stat {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--va-radius-md);
   padding: var(--spacing-md);
   text-align: center;
 }
@@ -1297,7 +1304,7 @@ ul, ol {
 .cartao-item {
   background: var(--color-card-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--va-radius-lg);
   overflow: hidden;
   margin-bottom: var(--spacing-md);
 }

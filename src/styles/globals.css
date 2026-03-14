@@ -1,0 +1,90 @@
+/* src/styles/globals.css */
+/* IMPORTANTE: deve ser o primeiro CSS importado em main.jsx */
+@import "tailwindcss";
+
+/* Variáveis sempre disponíveis — independente do tema */
+:root {
+  --background: 0 0% 97%;
+  --foreground: 213 22% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 213 22% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 213 22% 10%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --radius: 0.5rem;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 8% 46%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Fallback tema empresa (evita flash antes de data-theme ser aplicado) */
+  --primary: 210 60% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 60% 95%;
+  --secondary-foreground: 210 60% 30%;
+  --accent: 210 60% 95%;
+  --accent-foreground: 210 60% 30%;
+  --ring: 210 60% 30%;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 213 22% 10%;
+  --sidebar-primary: 210 60% 30%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 60% 95%;
+  --sidebar-accent-foreground: 210 60% 30%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 210 60% 30%;
+}
+
+/* Tema Empresa — azul */
+[data-theme="empresa"] {
+  --primary: 210 60% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 60% 95%;
+  --secondary-foreground: 210 60% 30%;
+  --accent: 210 60% 95%;
+  --accent-foreground: 210 60% 30%;
+  --ring: 210 60% 30%;
+  --sidebar-primary: 210 60% 30%;
+  --sidebar-accent: 210 60% 95%;
+  --sidebar-ring: 210 60% 30%;
+}
+
+/* Tema Pessoal — laranja */
+[data-theme="pessoal"] {
+  --primary: 18 100% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 18 100% 97%;
+  --secondary-foreground: 18 100% 60%;
+  --accent: 18 100% 97%;
+  --accent-foreground: 18 100% 60%;
+  --ring: 18 100% 60%;
+  --sidebar-primary: 18 100% 60%;
+  --sidebar-accent: 18 100% 97%;
+  --sidebar-ring: 18 100% 60%;
+}
+
+/* Tailwind v4: registrar as cores customizadas de sidebar como utilities */
+/* Sem isso, classes como bg-sidebar, text-sidebar-foreground não geram CSS */
+@theme {
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+/* Base styles */
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: Inter, system-ui, sans-serif;
+}
