@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import Modal from '../UI/Modal'
+import Input from '../UI/Input'
+import Button from '../UI/Button'
 
 const CORES = [
   '#1f507a', '#70AD47', '#FF6B35', '#C00000', '#7030A0',
@@ -41,76 +44,70 @@ export default function NovaCategoria({ onSave, onClose, categoriaEdit }) {
   const isEditing = !!categoriaEdit
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal__handle" />
-        <div className="modal__header">
-          <h2 className="modal__title">{isEditing ? 'Editar Categoria' : 'Nova Categoria'}</h2>
-          <button className="modal__close btn btn--ghost" onClick={onClose}>✕</button>
+    <Modal isOpen={true} onClose={onClose} title={isEditing ? 'Editar Categoria' : 'Nova Categoria'}>
+      <form onSubmit={handleSubmit}>
+        <Input
+          label="Nome"
+          required
+          placeholder="Ex: Alimentação"
+          value={nome}
+          onChange={e => { setNome(e.target.value); setError('') }}
+          error={error}
+          autoFocus
+        />
+
+        <div className="form-group">
+          <label className="form-label">Tipo</label>
+          <div className="flex gap-4 mt-1">
+            {[{ value: 'despesa', label: '↓ Despesa' }, { value: 'receita', label: '↑ Receita' }].map(opt => (
+              <label
+                key={opt.value}
+                className={`flex items-center gap-2 cursor-pointer text-sm ${tipo === opt.value ? 'font-semibold' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="tipo_cat"
+                  value={opt.value}
+                  checked={tipo === opt.value}
+                  onChange={() => setTipo(opt.value)}
+                  className="accent-primary"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label form-label--required">Nome</label>
-            <input
-              value={nome}
-              onChange={e => { setNome(e.target.value); setError('') }}
-              placeholder="Ex: Alimentação"
-              autoFocus
-            />
-            {error && <span className="form-error">{error}</span>}
+        <div className="form-group">
+          <label className="form-label">Cor</label>
+          <div className="flex gap-2 flex-wrap mt-1">
+            {CORES.map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCor(c)}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: c,
+                  border: cor === c ? '3px solid hsl(var(--foreground))' : '3px solid transparent',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
           </div>
+        </div>
 
-          <div className="form-group">
-            <label className="form-label form-label--required">Tipo</label>
-            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
-              {[{ value: 'despesa', label: '↓ Despesa' }, { value: 'receita', label: '↑ Receita' }].map(opt => (
-                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: tipo === opt.value ? 600 : 400 }}>
-                  <input
-                    type="radio"
-                    name="tipo_cat"
-                    value={opt.value}
-                    checked={tipo === opt.value}
-                    onChange={() => setTipo(opt.value)}
-                    style={{ accentColor: 'var(--color-empresa-primary)' }}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Cor</label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-              {CORES.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCor(c)}
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: c,
-                    border: cor === c ? '3px solid var(--color-text)' : '3px solid transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    flexShrink: 0,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="button" className="btn btn--secondary" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn btn--primary" disabled={saving}>
-              {saving ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar' : 'Criar')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="form-actions">
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? (isEditing ? 'Salvando...' : 'Criando...') : (isEditing ? 'Salvar' : 'Criar')}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

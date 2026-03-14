@@ -3,6 +3,7 @@ import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
+import { Tabs, TabsList, TabsTrigger } from '../UI/tabs'
 import { createLancamento, deleteLancamento, gerarNFParaCliente, createCliente } from '../../services/database'
 import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
@@ -115,17 +116,14 @@ export default function ListaClientes({ clientes, loading, refresh }) {
 
   return (
     <div>
-      <div className="filter-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
-        {TIPO_FILTER.map(f => (
-          <button
-            key={f.value}
-            className={`filter-chip${tipoFilter === f.value ? ' active' : ''}`}
-            onClick={() => setTipoFilter(f.value)}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      {/* Tipo filter with Tabs */}
+      <Tabs value={tipoFilter} onValueChange={setTipoFilter} className="mb-4">
+        <TabsList>
+          {TIPO_FILTER.map(f => (
+            <TabsTrigger key={f.value} value={f.value}>{f.label}</TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {loading ? (
         <LoadingScreen />

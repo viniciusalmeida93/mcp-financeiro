@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import Modal from '../UI/Modal'
+import Input from '../UI/Input'
+import Select from '../UI/Select'
+import Button from '../UI/Button'
 
 const BANDEIRAS = ['Visa', 'Mastercard', 'Elo', 'Amex', 'Hipercard', 'Outro']
 const COR_OPTIONS = [
@@ -74,111 +78,121 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal__handle" />
-        <div className="modal__header">
-          <h2 className="modal__title">{cartao ? 'Editar Cartão' : 'Novo Cartão'}</h2>
-          <button className="modal__close btn btn--ghost" onClick={onClose}>✕</button>
+    <Modal isOpen={true} onClose={onClose} title={cartao ? 'Editar Cartão' : 'Novo Cartão'}>
+      <form onSubmit={handleSubmit}>
+        <Input
+          label="Apelido / Banco"
+          required
+          placeholder="Ex: Nubank, Itaú Gold"
+          value={form.nome}
+          onChange={e => set('nome', e.target.value)}
+          error={errors.nome}
+        />
+
+        <div className="form-row">
+          <Select
+            label="Bandeira"
+            options={BANDEIRAS.map(b => ({ value: b, label: b }))}
+            value={form.bandeira}
+            onChange={e => set('bandeira', e.target.value)}
+          />
+          <Input
+            label="4 últimos dígitos"
+            required
+            placeholder="0000"
+            maxLength={4}
+            value={form.numero_final}
+            onChange={e => set('numero_final', e.target.value.replace(/\D/g, '').slice(0, 4))}
+            error={errors.numero_final}
+          />
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <div className="form-row">
+          <Input
+            label="Limite (R$)"
+            required
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="5000.00"
+            value={form.limite}
+            onChange={e => set('limite', e.target.value)}
+            error={errors.limite}
+          />
+          <Input
+            label="Fatura Atual (R$)"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            value={form.fatura_atual}
+            onChange={e => set('fatura_atual', e.target.value)}
+          />
+        </div>
+
+        <div className="form-row">
+          <Input
+            label="Dia vencimento fatura"
+            required
+            type="number"
+            min="1"
+            max="31"
+            placeholder="10"
+            value={form.vencimento_fatura}
+            onChange={e => set('vencimento_fatura', e.target.value)}
+            error={errors.vencimento_fatura}
+          />
           <div className="form-group">
-            <label className="form-label form-label--required">Apelido / Banco</label>
-            <input value={form.nome} onChange={e => set('nome', e.target.value)}
-              placeholder="Ex: Nubank, Itaú Gold" />
-            {errors.nome && <span className="form-error">{errors.nome}</span>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label form-label--required">Bandeira</label>
-              <select value={form.bandeira} onChange={e => set('bandeira', e.target.value)}>
-                {BANDEIRAS.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label form-label--required">4 últimos dígitos</label>
-              <input value={form.numero_final}
-                onChange={e => set('numero_final', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="0000" maxLength={4} />
-              {errors.numero_final && <span className="form-error">{errors.numero_final}</span>}
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label form-label--required">Limite (R$)</label>
-              <input type="number" min="0" step="0.01" value={form.limite}
-                onChange={e => set('limite', e.target.value)} placeholder="5000.00" />
-              {errors.limite && <span className="form-error">{errors.limite}</span>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Fatura Atual (R$)</label>
-              <input type="number" min="0" step="0.01" value={form.fatura_atual}
-                onChange={e => set('fatura_atual', e.target.value)} placeholder="0.00" />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label form-label--required">Dia vencimento fatura</label>
-              <input type="number" min="1" max="31" value={form.vencimento_fatura}
-                onChange={e => set('vencimento_fatura', e.target.value)} placeholder="10" />
-              {errors.vencimento_fatura && <span className="form-error">{errors.vencimento_fatura}</span>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Contexto</label>
-              <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
-                {[
-                  { value: 'empresa', label: '💼 Empresa' },
-                  { value: 'pessoal', label: '🏠 Pessoal' },
-                  { value: 'ambos', label: '🔄 Ambos' },
-                ].map(opt => (
-                  <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: form.contexto === opt.value ? 600 : 400 }}>
-                    <input
-                      type="radio"
-                      name="contexto_cartao"
-                      value={opt.value}
-                      checked={form.contexto === opt.value}
-                      onChange={() => set('contexto', opt.value)}
-                      style={{ accentColor: 'var(--color-empresa-primary)' }}
-                    />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Cor do cartão</label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {COR_OPTIONS.map(opt => (
-                <button key={opt.value} type="button"
-                  onClick={() => set('cor', opt.value)}
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: opt.value,
-                    border: form.cor === opt.value ? '3px solid var(--color-text)' : '3px solid transparent',
-                    cursor: 'pointer',
-                  }}
-                  title={opt.label}
-                />
+            <label className="form-label">Contexto</label>
+            <div className="flex gap-4 mt-1">
+              {[
+                { value: 'empresa', label: '💼 Empresa' },
+                { value: 'pessoal', label: '🏠 Pessoal' },
+                { value: 'ambos', label: '🔄 Ambos' },
+              ].map(opt => (
+                <label key={opt.value} className={`flex items-center gap-1.5 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
+                  <input
+                    type="radio"
+                    name="contexto_cartao"
+                    value={opt.value}
+                    checked={form.contexto === opt.value}
+                    onChange={() => set('contexto', opt.value)}
+                    className="accent-primary"
+                  />
+                  {opt.label}
+                </label>
               ))}
             </div>
           </div>
+        </div>
 
-          {errors.submit && <p className="form-error" style={{ marginBottom: 12 }}>{errors.submit}</p>}
-
-          <div className="form-actions">
-            <button type="button" className="btn btn--secondary" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn--primary" disabled={saving}>
-              {saving ? 'Salvando...' : cartao ? 'Salvar' : 'Adicionar'}
-            </button>
+        <div className="form-group">
+          <label className="form-label">Cor do cartão</label>
+          <div className="flex gap-2 flex-wrap mt-1">
+            {COR_OPTIONS.map(opt => (
+              <button key={opt.value} type="button"
+                onClick={() => set('cor', opt.value)}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: opt.value,
+                  border: form.cor === opt.value ? '3px solid hsl(var(--foreground))' : '3px solid transparent',
+                  cursor: 'pointer',
+                }}
+                title={opt.label}
+              />
+            ))}
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        {errors.submit && <p className="text-destructive text-sm mb-3">{errors.submit}</p>}
+
+        <div className="form-actions">
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Salvando...' : cartao ? 'Salvar' : 'Adicionar'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

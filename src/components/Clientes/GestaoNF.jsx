@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import Card from '../UI/Card'
+import { Card, CardContent } from '../UI/Card'
 import Button from '../UI/Button'
+import Badge from '../UI/Badge'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../UI/tabs'
 import { getNotasFiscais, updateNotaFiscal, gerarNFParaCliente } from '../../services/database'
 import { enviarLembreteNF } from '../../services/email'
 import { formatCurrency, formatDate, getCurrentMes, getLastNMeses, formatMesAno } from '../../utils/formatters'
@@ -12,6 +14,7 @@ export default function GestaoNF({ clientes }) {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [mes, setMes] = useState(getCurrentMes())
+  const [nfTab, setNfTab] = useState('todas')
   const meses = getLastNMeses(6)
 
   const fetchNFs = useCallback(async () => {
@@ -75,15 +78,67 @@ export default function GestaoNF({ clientes }) {
   const totalLiquido = nfs.reduce((s, nf) => s + Number(nf.valor_liquido), 0)
 
   const STATUS_LABEL = { pendente: '⏳ Pendente', emitida: '📄 Emitida', pago: '✅ Pago' }
-  const STATUS_VARIANT = { pendente: 'warning', emitida: 'neutral', pago: 'success' }
+  const STATUS_BADGE_VARIANT = { pendente: 'outline', emitida: 'secondary', pago: 'default' }
+
+  const filteredNfs = nfTab === 'todas' ? nfs : nfs.filter(nf => nf.status === nfTab)
+
+  const renderNFCard = (nf) => (
+    <Card key={nf.id} className="mb-3">
+      <CardContent className="pt-4">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <div className="font-semibold text-sm">{nf.clientes?.nome}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Vence: {formatDate(nf.data_vencimento)}
+              {nf.numero_nf && ` · NF ${nf.numero_nf}`}
+            </div>
+          </div>
+          <Badge variant={STATUS_BADGE_VARIANT[nf.status]}>
+            {STATUS_LABEL[nf.status]}
+          </Badge>
+        </div>
+
+        <div className="space-y-1.5 text-sm mb-3">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Bruto</span>
+            <span>{formatCurrency(nf.valor_bruto)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Imposto ({nf.aliquota_imposto}%)</span>
+            <span className="text-destructive">-{formatCurrency(nf.valor_imposto)}</span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span className="text-muted-foreground">Líquido</span>
+            <span className="text-green-600">{formatCurrency(nf.valor_liquido)}</span>
+          </div>
+        </div>
+
+        {nf.status !== 'pago' && (
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleEnviarLembrete(nf)}>
+              ✉️ Enviar Lembrete
+            </Button>
+            {nf.status === 'pendente' && (
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleRegistrarEmissao(nf)}>
+                📄 Registrar Emissão
+              </Button>
+            )}
+            <Button variant="default" size="sm" className="flex-1" onClick={() => handleMarcarPago(nf)}>
+              ✓ Marcar como Pago
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', alignItems: 'center' }}>
+      <div className="flex gap-2 mb-4 items-center">
         <select
           value={mes}
           onChange={e => setMes(e.target.value)}
-          style={{ flex: 1, height: 36 }}
+          className="flex-1 h-9 text-sm px-2 rounded-md border border-input bg-background"
         >
           {meses.map(m => <option key={m} value={m}>{formatMesAno(m)}</option>)}
         </select>
@@ -100,68 +155,47 @@ export default function GestaoNF({ clientes }) {
         />
       ) : (
         <>
-          <Card>
-            <div className="summary-row">
-              <span className="summary-row__label">Total Bruto</span>
-              <span className="summary-row__value">{formatCurrency(totalBruto)}</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Total Impostos</span>
-              <span className="summary-row__value" style={{ color: 'var(--color-danger)' }}>
-                -{formatCurrency(totalImposto)}
-              </span>
-            </div>
-            <div className="summary-row summary-row--total">
-              <span className="summary-row__label">Total Líquido</span>
-              <span className="summary-row__value amount--positive">{formatCurrency(totalLiquido)}</span>
-            </div>
+          {/* Summary totals */}
+          <Card className="mb-4">
+            <CardContent className="pt-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Bruto</span>
+                  <span className="font-semibold">{formatCurrency(totalBruto)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Impostos</span>
+                  <span className="text-destructive font-semibold">-{formatCurrency(totalImposto)}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2 mt-2">
+                  <span className="font-bold">Total Líquido</span>
+                  <span className="font-bold text-green-600">{formatCurrency(totalLiquido)}</span>
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
-          {nfs.map(nf => (
-            <Card key={nf.id}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{nf.clientes?.nome}</div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
-                    Vence: {formatDate(nf.data_vencimento)}
-                    {nf.numero_nf && ` · NF ${nf.numero_nf}`}
-                  </div>
-                </div>
-                <span className={`badge badge--${STATUS_VARIANT[nf.status]}`}>
-                  {STATUS_LABEL[nf.status]}
-                </span>
-              </div>
+          {/* Tabs by status */}
+          <Tabs value={nfTab} onValueChange={setNfTab} className="mb-4">
+            <TabsList>
+              <TabsTrigger value="todas">Todas ({nfs.length})</TabsTrigger>
+              <TabsTrigger value="pendente">
+                ⏳ Pendente ({nfs.filter(n => n.status === 'pendente').length})
+              </TabsTrigger>
+              <TabsTrigger value="emitida">
+                📄 Emitida ({nfs.filter(n => n.status === 'emitida').length})
+              </TabsTrigger>
+              <TabsTrigger value="pago">
+                ✅ Pago ({nfs.filter(n => n.status === 'pago').length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-              <div className="summary-row">
-                <span className="summary-row__label">Bruto</span>
-                <span>{formatCurrency(nf.valor_bruto)}</span>
-              </div>
-              <div className="summary-row">
-                <span className="summary-row__label">Imposto ({nf.aliquota_imposto}%)</span>
-                <span style={{ color: 'var(--color-danger)' }}>-{formatCurrency(nf.valor_imposto)}</span>
-              </div>
-              <div className="summary-row">
-                <span className="summary-row__label">Líquido</span>
-                <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{formatCurrency(nf.valor_liquido)}</span>
-              </div>
-
-              {nf.status !== 'pago' && (
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-                  <Button variant="secondary" size="sm" full onClick={() => handleEnviarLembrete(nf)}>
-                    ✉️ Enviar Lembrete
-                  </Button>
-                  {nf.status === 'pendente' && (
-                    <Button variant="secondary" size="sm" full onClick={() => handleRegistrarEmissao(nf)}>
-                      📄 Registrar Emissão
-                    </Button>
-                  )}
-                  <Button variant="success" size="sm" full onClick={() => handleMarcarPago(nf)}>
-                    ✓ Marcar como Pago
-                  </Button>
-                </div>
-              )}
-            </Card>
-          ))}
+          {filteredNfs.length === 0 ? (
+            <EmptyState icon="📋" text="Nenhuma NF nesta categoria" />
+          ) : (
+            filteredNfs.map(renderNFCard)
+          )}
         </>
       )}
     </div>

@@ -29,7 +29,7 @@ export default function ContaItem({ conta, onEdit, onDelete, onTogglePago, onDup
         <div className="list-item__title">
           {conta.nome}
           {conta.recorrencia === 'parcela' && conta.parcela_atual && (
-            <Badge variant="neutral" style={{ marginLeft: 6 }}>
+            <Badge variant="secondary" className="ml-1.5 text-xs">
               {conta.parcela_atual}/{conta.parcela_total}
             </Badge>
           )}

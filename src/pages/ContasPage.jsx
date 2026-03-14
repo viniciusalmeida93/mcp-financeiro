@@ -3,6 +3,7 @@ import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
 import { useDespesasFixas } from '../hooks/useDespesasFixas'
 import { useState } from 'react'
 import { formatCurrency } from '../utils/formatters'
+import Button from '../components/UI/Button'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
@@ -21,30 +22,30 @@ export default function ContasPage() {
   return (
     <>
       {/* Metric cards */}
-      <div className="metricas-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <div className="metrica-card">
-          <div className="metrica-card__label">💸 Gasto Mensal</div>
-          <div className="metrica-card__value amount--negative">
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">💸 Gasto Mensal</div>
+          <div className="text-lg font-semibold text-destructive">
             {loading ? '...' : formatCurrency(gastoMensalTotal)}
           </div>
         </div>
-        <div className="metrica-card">
-          <div className="metrica-card__label">💼 Empresa</div>
-          <div className="metrica-card__value amount--negative">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">💼 Empresa</div>
+          <div className="text-lg font-semibold text-destructive">
             {loading ? '...' : formatCurrency(gastoMensalEmpresa)}
           </div>
         </div>
-        <div className="metrica-card">
-          <div className="metrica-card__label">🏠 Pessoal</div>
-          <div className="metrica-card__value amount--negative">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">🏠 Pessoal</div>
+          <div className="text-lg font-semibold text-destructive">
             {loading ? '...' : formatCurrency(gastoMensalPessoal)}
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="card" style={{ borderColor: 'var(--color-danger)', marginBottom: 16 }}>
-          <p style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>Erro: {error}</p>
+        <div className="rounded-lg border border-destructive p-3 mb-4">
+          <p className="text-destructive text-sm">Erro: {error}</p>
         </div>
       )}
 

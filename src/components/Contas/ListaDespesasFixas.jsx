@@ -4,7 +4,8 @@ import NovaDespesaFixa from './NovaDespesaFixa'
 import ContextToggle from '../UI/ContextToggle'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
-import Card from '../UI/Card'
+import { Card, CardHeader, CardContent, CardTitle } from '../UI/Card'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../UI/table'
 import { formatCurrency, getCurrentMes } from '../../utils/formatters'
 import { deleteDespesaFixa, deleteLancamento, createLancamento, createDespesaFixa } from '../../services/database'
 import { supabase } from '../../services/supabase'
@@ -97,28 +98,40 @@ export default function ListaDespesasFixas({ despesas, allDespesas, loading, con
     <div>
       {/* Summary */}
       {!loading && (
-        <Card style={{ marginBottom: 'var(--spacing-md)' }}>
-          <div className="summary-row">
-            <span className="summary-row__label">💼 Empresa</span>
-            <span className="summary-row__value" style={{ color: 'var(--color-empresa-primary)' }}>
-              {formatCurrency(totalEmpresa)}/mês
-            </span>
-          </div>
-          <div className="summary-row">
-            <span className="summary-row__label">🏠 Pessoal</span>
-            <span className="summary-row__value" style={{ color: 'var(--color-pessoal-primary)' }}>
-              {formatCurrency(totalPessoal)}/mês
-            </span>
-          </div>
-          <div className="summary-row summary-row--total">
-            <span className="summary-row__label">Total Fixo</span>
-            <span className="summary-row__value">{formatCurrency(totalEmpresa + totalPessoal)}/mês</span>
-          </div>
+        <Card className="mb-4">
+          <CardContent className="pt-4 pb-4">
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="py-2 px-0 font-medium text-sm">
+                    <span className="text-muted-foreground">💼 Empresa</span>
+                  </TableCell>
+                  <TableCell className="py-2 px-0 text-right font-semibold text-sm text-primary">
+                    {formatCurrency(totalEmpresa)}/mês
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="py-2 px-0 font-medium text-sm">
+                    <span className="text-muted-foreground">🏠 Pessoal</span>
+                  </TableCell>
+                  <TableCell className="py-2 px-0 text-right font-semibold text-sm" style={{ color: 'var(--color-pessoal-primary)' }}>
+                    {formatCurrency(totalPessoal)}/mês
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-t-2">
+                  <TableCell className="py-2 px-0 font-bold text-sm">Total Fixo</TableCell>
+                  <TableCell className="py-2 px-0 text-right font-bold text-sm">
+                    {formatCurrency(totalEmpresa + totalPessoal)}/mês
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
         </Card>
       )}
 
       <ContextToggle value={contextoFilter} onChange={setContextoFilter} />
-      <div style={{ height: 'var(--spacing-md)' }} />
+      <div className="h-4" />
 
       {loading ? (
         <LoadingScreen />

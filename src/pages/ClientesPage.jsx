@@ -3,6 +3,7 @@ import ListaClientes from '../components/Clientes/ListaClientes'
 import NovoCliente from '../components/Clientes/NovoCliente'
 import { useClientes } from '../hooks/useClientes'
 import { formatCurrency } from '../utils/formatters'
+import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
 
 export default function ClientesPage() {
   const [contexto, setContexto] = useState('todos')
@@ -22,47 +23,39 @@ export default function ClientesPage() {
   return (
     <>
       {/* Metric cards */}
-      <div className="metricas-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <div className="metrica-card">
-          <div className="metrica-card__label">💰 Receita Mensal</div>
-          <div className="metrica-card__value amount--positive">
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">💰 Receita Mensal</div>
+          <div className="text-lg font-semibold text-green-600">
             {loading ? '...' : formatCurrency(totalReceitas)}
           </div>
         </div>
-        <div className="metrica-card">
-          <div className="metrica-card__label">📈 Projeção Anual</div>
-          <div className="metrica-card__value amount--positive">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">📈 Projeção Anual</div>
+          <div className="text-lg font-semibold text-green-600">
             {loading ? '...' : formatCurrency(projecaoAnual)}
           </div>
         </div>
-        <div className="metrica-card">
-          <div className="metrica-card__label">👥 Clientes Ativos</div>
-          <div className="metrica-card__value" style={{ color: 'var(--color-text)' }}>
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="text-xs text-muted-foreground mb-1">👥 Clientes Ativos</div>
+          <div className="text-lg font-semibold">
             {loading ? '...' : totalClientes}
           </div>
         </div>
       </div>
 
-      {/* Filtro contexto */}
-      <div className="context-toggle" style={{ marginBottom: 'var(--spacing-md)' }}>
-        {[
-          { key: 'todos', label: 'Tudo' },
-          { key: 'empresa', label: '💼 Empresa' },
-          { key: 'pessoal', label: '🏠 Pessoal' },
-        ].map(t => (
-          <button
-            key={t.key}
-            className={`context-toggle__btn ${contexto === t.key ? `active--${t.key}` : ''}`}
-            onClick={() => setContexto(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Filtro contexto com Tabs */}
+      <Tabs value={contexto} onValueChange={setContexto} className="mb-4">
+        <TabsList>
+          <TabsTrigger value="todos">Tudo</TabsTrigger>
+          <TabsTrigger value="empresa">💼 Empresa</TabsTrigger>
+          <TabsTrigger value="pessoal">🏠 Pessoal</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {error && (
-        <div className="card" style={{ borderColor: 'var(--color-danger)', marginBottom: 16 }}>
-          <p style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>Erro: {error}</p>
+        <div className="rounded-lg border border-destructive p-3 mb-4">
+          <p className="text-destructive text-sm">Erro: {error}</p>
         </div>
       )}
 

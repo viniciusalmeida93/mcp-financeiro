@@ -33,14 +33,14 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
       <div className="list-item__body">
         <div className="list-item__title">
           {cliente.nome}
-          <Badge variant={isPontual ? 'neutral' : 'info'} style={{ marginLeft: 6 }}>
+          <Badge variant={isPontual ? 'secondary' : 'default'} className="ml-1.5 text-xs">
             {isPontual ? 'Pontual' : 'Recorrente'}
           </Badge>
           {cliente.precisa_nf && (
-            <Badge variant="warning" style={{ marginLeft: 4 }}>📋 NF</Badge>
+            <Badge variant="outline" className="ml-1 text-xs">📋 NF</Badge>
           )}
           {!isAtivo && (
-            <Badge variant="neutral" style={{ marginLeft: 4 }}>Inativo</Badge>
+            <Badge variant="secondary" className="ml-1 text-xs">Inativo</Badge>
           )}
         </div>
         <div className="list-item__subtitle" style={{ color: isPago ? 'var(--color-success)' : undefined }}>

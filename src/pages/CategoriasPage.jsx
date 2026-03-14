@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import NovaCategoria from '../components/Categorias/NovaCategoria'
+import Button from '../components/UI/Button'
+import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
+import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
 import { formatCurrency, formatMesAno, getCurrentMes, getLastNMeses } from '../utils/formatters'
 import { getCategoriaLabel } from '../constants/categorias'
 import { createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
@@ -125,94 +128,76 @@ export default function CategoriasPage() {
     setShowForm(true)
   }
 
-  const FILTROS = [
-    { key: 'todas', label: 'Todas' },
-    { key: 'despesas', label: 'Despesas' },
-    { key: 'receitas', label: 'Receitas' },
-  ]
-
   const renderSection = (titulo, categorias, total, tipo) => {
     if (categorias.length === 0) return null
-    const corBarra = tipo === 'despesas' ? 'empresa' : 'success'
-    const corValor = tipo === 'despesas' ? 'amount--negative' : 'amount--positive'
+    const progressColor = tipo === 'despesas' ? 'bg-primary' : 'bg-green-500'
+    const valueColor = tipo === 'despesas' ? 'text-destructive' : 'text-green-600'
 
     return (
-      <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <div className="card__header">
-          <span className="card__title" style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text)' }}>
-            {titulo}
-          </span>
-          <span className={`card__value ${corValor}`} style={{ fontSize: 'var(--font-size-md)' }}>
-            {formatCurrency(total)}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          {categorias.map((cat, i) => (
-            <div key={cat.categoria} style={{
-              padding: 'var(--spacing-md) 0',
-              borderBottom: i < categorias.length - 1 ? '1px solid var(--color-border-light)' : 'none',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: tipo === 'despesas' ? 'rgba(31,80,122,0.1)' : 'rgba(112,173,71,0.12)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
-                  }}>
-                    {CATEGORIA_ICONS[cat.categoria] || '📋'}
+      <Card className="mb-4">
+        <CardHeader className="pb-2 pt-4 px-4 flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base font-bold">{titulo}</CardTitle>
+          <span className={`text-base font-semibold ${valueColor}`}>{formatCurrency(total)}</span>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="flex flex-col">
+            {categorias.map((cat, i) => (
+              <div
+                key={cat.categoria}
+                className={`py-3 ${i < categorias.length - 1 ? 'border-b border-border/50' : ''}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${tipo === 'despesas' ? 'bg-primary/10' : 'bg-green-500/10'}`}>
+                      {CATEGORIA_ICONS[cat.categoria] || '📋'}
+                    </div>
+                    <span className="font-medium text-sm">{cat.label}</span>
                   </div>
-                  <span style={{ fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-base)', color: 'var(--color-text)' }}>
-                    {cat.label}
-                  </span>
-                </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-base)', color: 'var(--color-text)' }}>
-                    {formatCurrency(cat.valor)}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                    {cat.percentual.toFixed(1)}%
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-semibold text-sm">{formatCurrency(cat.valor)}</div>
+                    <div className="text-xs text-muted-foreground">{cat.percentual.toFixed(1)}%</div>
                   </div>
                 </div>
+                <div className="h-1 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${progressColor}`}
+                    style={{ width: `${Math.min(cat.percentual, 100)}%` }}
+                  />
+                </div>
               </div>
-              <div className="progress-bar" style={{ height: 4 }}>
-                <div
-                  className={`progress-bar__fill progress-bar__fill--${corBarra}`}
-                  style={{ width: `${Math.min(cat.percentual, 100)}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
     <>
       {/* Month selector + filters */}
-      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap' }}>
-        <select value={mes} onChange={e => setMes(e.target.value)}
-          style={{ height: 36, width: 'auto', fontSize: 'var(--font-size-sm)', paddingRight: 'var(--spacing-lg)' }}>
+      <div className="flex gap-2 items-center mb-4 flex-wrap">
+        <select
+          value={mes}
+          onChange={e => setMes(e.target.value)}
+          className="h-9 text-sm px-2 rounded-md border border-input bg-background"
+          style={{ width: 'auto', paddingRight: '1.5rem' }}
+        >
           {meses.map(m => (
             <option key={m} value={m}>{formatMesAno(m)}</option>
           ))}
         </select>
 
-        <div className="filter-bar" style={{ overflow: 'visible', paddingBottom: 0 }}>
-          {FILTROS.map(f => (
-            <button key={f.key}
-              className={`filter-chip ${filtro === f.key ? 'active' : ''}`}
-              onClick={() => setFiltro(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <Tabs value={filtro} onValueChange={setFiltro}>
+          <TabsList>
+            <TabsTrigger value="todas">Todas</TabsTrigger>
+            <TabsTrigger value="despesas">Despesas</TabsTrigger>
+            <TabsTrigger value="receitas">Receitas</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {loading ? (
-        <div className="loading-center"><div className="spinner" /></div>
+        <div className="flex justify-center py-8"><div className="spinner" /></div>
       ) : (
         <>
           {(filtro === 'todas' || filtro === 'despesas') &&
@@ -221,9 +206,9 @@ export default function CategoriasPage() {
             renderSection('Receitas', receitasCats, totais.receitas, 'receitas')}
 
           {despesasCats.length === 0 && receitasCats.length === 0 && (
-            <div className="empty-state">
-              <div className="empty-state__icon">📊</div>
-              <div className="empty-state__text">Nenhum lançamento em {formatMesAno(mes)}</div>
+            <div className="flex flex-col items-center py-12 text-muted-foreground">
+              <div className="text-4xl mb-2">📊</div>
+              <div className="text-sm">Nenhum lançamento em {formatMesAno(mes)}</div>
             </div>
           )}
         </>
@@ -231,32 +216,31 @@ export default function CategoriasPage() {
 
       {/* Categorias cadastradas */}
       {categoriasCustom.length > 0 && (
-        <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
-          <div className="card__header">
-            <span className="card__title" style={{ fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
-              Categorias Cadastradas
-            </span>
-          </div>
-          {categoriasCustom.map((cat, i) => (
-            <div key={cat.id} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: 'var(--spacing-sm) 0',
-              borderBottom: i < categoriasCustom.length - 1 ? '1px solid var(--color-border-light)' : 'none',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: cat.cor || '#808080', flexShrink: 0 }} />
-                <span style={{ fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-sm)' }}>{cat.nome}</span>
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>
-                  {cat.tipo === 'receita' ? '↑ Receita' : '↓ Despesa'}
-                </span>
+        <Card className="mb-4">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-base font-bold">Categorias Cadastradas</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 pt-0">
+            {categoriasCustom.map((cat, i) => (
+              <div
+                key={cat.id}
+                className={`flex items-center justify-between py-2 ${i < categoriasCustom.length - 1 ? 'border-b border-border/50' : ''}`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-6 h-6 rounded-full flex-shrink-0" style={{ background: cat.cor || '#808080' }} />
+                  <span className="font-medium text-sm">{cat.nome}</span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {cat.tipo === 'receita' ? '↑ Receita' : '↓ Despesa'}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditCategoria(cat)} title="Editar">✏️</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCategoria(cat)} title="Excluir" className="text-destructive hover:text-destructive">🗑️</Button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button className="btn btn--ghost btn--sm" onClick={() => handleEditCategoria(cat)} title="Editar">✏️</button>
-                <button className="btn btn--ghost btn--sm" onClick={() => handleDeleteCategoria(cat)} title="Excluir" style={{ color: 'var(--color-danger)' }}>🗑️</button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
 
       {/* FAB */}

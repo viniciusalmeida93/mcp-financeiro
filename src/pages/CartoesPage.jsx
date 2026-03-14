@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import CartaoItem from '../components/Cartoes/CartaoItem'
 import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
+import Button from '../components/UI/Button'
+import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
 import { getCartoes, createCartao, updateCartao, deleteCartao } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
 
@@ -78,65 +80,60 @@ export default function CartoesPage() {
     <>
       {/* Resumo geral */}
       {cartoes.length > 0 && (
-        <div className="saldo-grid" style={{ marginBottom: 'var(--spacing-md)' }}>
-          <div className="saldo-mini-card saldo-mini-card--total">
-            <div className="saldo-mini-card__label">💳 Limite Total</div>
-            <div className="saldo-mini-card__value">{formatCurrency(totalLimite)}</div>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="text-xs text-muted-foreground mb-1">💳 Limite Total</div>
+            <div className="text-lg font-semibold">{formatCurrency(totalLimite)}</div>
           </div>
-          <div className="saldo-mini-card saldo-mini-card--empresa">
-            <div className="saldo-mini-card__label">📄 Fatura Total</div>
-            <div className={`saldo-mini-card__value ${utilizacaoGeral >= 80 ? 'amount--negative' : ''}`}>
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="text-xs text-muted-foreground mb-1">📄 Fatura Total</div>
+            <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : ''}`}>
               {formatCurrency(totalFatura)}
             </div>
           </div>
-          <div className="saldo-mini-card" style={{ borderTop: '3px solid var(--color-text-muted)' }}>
-            <div className="saldo-mini-card__label">📊 Utilização</div>
-            <div className={`saldo-mini-card__value ${utilizacaoGeral >= 80 ? 'amount--negative' : utilizacaoGeral >= 60 ? '' : 'amount--positive'}`}>
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="text-xs text-muted-foreground mb-1">📊 Utilização</div>
+            <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : utilizacaoGeral >= 60 ? 'text-yellow-600' : 'text-green-600'}`}>
               {utilizacaoGeral}%
             </div>
           </div>
         </div>
       )}
 
-      {/* Filtro contexto */}
-      <div className="context-toggle" style={{ marginBottom: 'var(--spacing-sm)' }}>
-        {[
-          { value: 'ambos', label: '🔄 Ambos' },
-          { value: 'empresa', label: '💼 Empresa' },
-          { value: 'pessoal', label: '🏠 Pessoal' },
-        ].map(c => (
-          <button key={c.value}
-            className={`context-toggle__btn ${contexto === c.value ? `active--${c.value}` : ''}`}
-            onClick={() => { setContexto(c.value); setCartaoFilter('todos') }}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      {/* Filtro contexto com Tabs */}
+      <Tabs value={contexto} onValueChange={(v) => { setContexto(v); setCartaoFilter('todos') }} className="mb-3">
+        <TabsList>
+          <TabsTrigger value="ambos">🔄 Ambos</TabsTrigger>
+          <TabsTrigger value="empresa">💼 Empresa</TabsTrigger>
+          <TabsTrigger value="pessoal">🏠 Pessoal</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Filtro por cartão individual */}
       {cartoes.length > 0 && (
-        <div className="filter-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
-          <button
-            className={`filter-chip${cartaoFilter === 'todos' ? ' active' : ''}`}
+        <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-1">
+          <Button
+            variant={cartaoFilter === 'todos' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setCartaoFilter('todos')}
           >
             Todos
-          </button>
+          </Button>
           {cartoes.map(c => (
-            <button
+            <Button
               key={c.id}
-              className={`filter-chip${cartaoFilter === c.id ? ' active' : ''}`}
+              variant={cartaoFilter === c.id ? 'default' : 'outline'}
+              size="sm"
               onClick={() => setCartaoFilter(c.id)}
             >
               {c.nome} ****{c.numero_final}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
       {loading ? (
-        <div className="loading-center"><div className="spinner" /></div>
+        <div className="flex justify-center py-8"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon="💳"
@@ -144,7 +141,7 @@ export default function CartoesPage() {
           subtext="Adicione seus cartões de crédito e débito para acompanhar a fatura"
         />
       ) : (
-        <div>
+        <div className="flex flex-col gap-3">
           {filtered.map(c => (
             <CartaoItem key={c.id} cartao={c} onEdit={handleEdit} onDelete={handleDelete} onDuplicate={handleDuplicate} />
           ))}
