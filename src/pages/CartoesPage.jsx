@@ -133,7 +133,7 @@ export default function CartoesPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-8"><div className="spinner" /></div>
+        <div className="flex justify-center py-8"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon="💳"
@@ -149,7 +149,11 @@ export default function CartoesPage() {
       )}
 
       {/* FAB mobile */}
-      <button className="fab" onClick={() => setShowForm(true)} title="Novo cartão">+</button>
+      <button
+        className="fixed bottom-20 right-4 md:relative md:bottom-auto md:right-auto z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        onClick={() => setShowForm(true)}
+        title="Novo cartão"
+      >+</button>
 
       {showForm && (
         <NovoCartao

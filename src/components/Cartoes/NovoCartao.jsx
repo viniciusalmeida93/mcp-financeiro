@@ -89,7 +89,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           error={errors.nome}
         />
 
-        <div className="form-row">
+        <div className="grid grid-cols-2 gap-3">
           <Select
             label="Bandeira"
             options={BANDEIRAS.map(b => ({ value: b, label: b }))}
@@ -107,7 +107,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           />
         </div>
 
-        <div className="form-row">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             label="Limite (R$)"
             required
@@ -130,7 +130,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           />
         </div>
 
-        <div className="form-row">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             label="Dia vencimento fatura"
             required
@@ -142,8 +142,8 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
             onChange={e => set('vencimento_fatura', e.target.value)}
             error={errors.vencimento_fatura}
           />
-          <div className="form-group">
-            <label className="form-label">Contexto</label>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Contexto</label>
             <div className="flex gap-4 mt-1">
               {[
                 { value: 'empresa', label: '💼 Empresa' },
@@ -166,8 +166,8 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Cor do cartão</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Cor do cartão</label>
           <div className="flex gap-2 flex-wrap mt-1">
             {COR_OPTIONS.map(opt => (
               <button key={opt.value} type="button"
@@ -186,7 +186,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
 
         {errors.submit && <p className="text-destructive text-sm mb-3">{errors.submit}</p>}
 
-        <div className="form-actions">
+        <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit" disabled={saving}>
             {saving ? 'Salvando...' : cartao ? 'Salvar' : 'Adicionar'}

@@ -61,7 +61,11 @@ export default function ClientesPage() {
 
       <ListaClientes clientes={filtered} loading={loading} refresh={refresh} />
 
-      <button className="fab" onClick={() => setShowForm(true)} title="Novo cliente">+</button>
+      <button
+        className="fixed bottom-20 right-4 md:relative md:bottom-auto md:right-auto z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        onClick={() => setShowForm(true)}
+        title="Novo cliente"
+      >+</button>
       <NovoCliente
         isOpen={showForm}
         onClose={() => setShowForm(false)}

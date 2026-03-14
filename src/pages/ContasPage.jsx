@@ -58,7 +58,11 @@ export default function ContasPage() {
         refresh={refresh}
       />
 
-      <button className="fab" onClick={() => setShowForm(true)} title="Nova despesa">+</button>
+      <button
+        className="fixed bottom-20 right-4 md:relative md:bottom-auto md:right-auto z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        onClick={() => setShowForm(true)}
+        title="Nova despesa"
+      >+</button>
 
       <NovaDespesaFixa
         isOpen={showForm}

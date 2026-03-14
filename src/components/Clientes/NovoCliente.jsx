@@ -192,8 +192,8 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
     <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Cliente' : 'Novo Cliente'}>
 
       {/* Contexto */}
-      <div className="form-group">
-        <label className="form-label">Contexto</label>
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Contexto</label>
         <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
           {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
             <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: form.contexto === opt.value ? 600 : 400 }}>
@@ -229,7 +229,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         error={errors.email_cobranca}
       />
 
-      <div className="form-row">
+      <div className="grid grid-cols-2 gap-3">
         <Select
           label="Tipo"
           options={TIPOS}
@@ -244,7 +244,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         />
       </div>
 
-      <div className="form-row">
+      <div className="grid grid-cols-2 gap-3">
         <Input
           label={isPontual ? 'Valor Total do Projeto (R$)' : 'Valor Mensal (R$)'}
           required
@@ -277,7 +277,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
             Parcelamento
           </div>
 
-          <div className="form-row">
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label="Valor de Entrada (R$)"
               type="number"
@@ -333,8 +333,8 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
       )}
 
       {/* Categoria dropdown — somente receitas */}
-      <div className="form-group">
-        <label className="form-label">Categoria</label>
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Categoria</label>
         <select
           className="select"
           value={form.servico || ''}
@@ -386,14 +386,15 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         )}
       </div>
 
-      <div className="checkbox-group">
+      <div className="flex items-center gap-2 py-1">
         <input
           type="checkbox"
           id="precisa_nf"
           checked={form.precisa_nf}
           onChange={e => set('precisa_nf', e.target.checked)}
+          className="accent-primary"
         />
-        <label htmlFor="precisa_nf">Precisa de Nota Fiscal</label>
+        <label htmlFor="precisa_nf" className="text-sm cursor-pointer">Precisa de Nota Fiscal</label>
       </div>
 
       {form.precisa_nf && (
@@ -410,7 +411,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
 
       {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
 
-      <div className="form-actions">
+      <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onClose}>Cancelar</Button>
         <Button variant="default" onClick={handleSubmit} disabled={loading}>
           {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}

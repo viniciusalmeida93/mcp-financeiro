@@ -56,8 +56,8 @@ export default function NovaCategoria({ onSave, onClose, categoriaEdit }) {
           autoFocus
         />
 
-        <div className="form-group">
-          <label className="form-label">Tipo</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Tipo</label>
           <div className="flex gap-4 mt-1">
             {[{ value: 'despesa', label: '↓ Despesa' }, { value: 'receita', label: '↑ Receita' }].map(opt => (
               <label
@@ -78,8 +78,8 @@ export default function NovaCategoria({ onSave, onClose, categoriaEdit }) {
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Cor</label>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Cor</label>
           <div className="flex gap-2 flex-wrap mt-1">
             {CORES.map(c => (
               <button
@@ -99,7 +99,7 @@ export default function NovaCategoria({ onSave, onClose, categoriaEdit }) {
           </div>
         </div>
 
-        <div className="form-actions">
+        <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
