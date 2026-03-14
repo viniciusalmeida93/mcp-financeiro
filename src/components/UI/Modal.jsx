@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog'
+} from '@/components/UI/dialog'
 
 // Matches old Modal.jsx props: isOpen, onClose, title, children
 // Added: optional footer prop

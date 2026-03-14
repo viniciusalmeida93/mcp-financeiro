@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/UI/badge'
 import { cn } from '@/lib/utils'
 
 export default function ContextBadge({ contexto, className }) {

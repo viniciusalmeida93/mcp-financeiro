@@ -8,7 +8,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+import { Separator } from '@/components/UI/separator'
 import { cn } from '@/lib/utils'
 import ContextToggle from '@/components/UI/ContextToggle'
 

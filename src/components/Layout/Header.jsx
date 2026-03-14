@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { Separator } from '@/components/ui/separator'
+import { Separator } from '@/components/UI/separator'
 
 const pageTitles = {
   '/': 'Dashboard',

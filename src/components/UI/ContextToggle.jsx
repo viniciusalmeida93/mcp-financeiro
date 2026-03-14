@@ -1,4 +1,4 @@
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { ToggleGroup, ToggleGroupItem } from '@/components/UI/toggle-group'
 import { Building2, User, LayoutList } from 'lucide-react'
 import { useContexto } from '@/contexts/ContextoContext'
 
