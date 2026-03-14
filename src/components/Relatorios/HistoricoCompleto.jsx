@@ -1,4 +1,4 @@
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
 import { formatCurrency, formatMesAno, formatPercent } from '../../utils/formatters'
@@ -26,48 +26,52 @@ export default function HistoricoCompleto() {
   const pior = [...historico].sort((a, b) => a.saldo - b.saldo)[0]
 
   return (
-    <div>
+    <div className="space-y-4 mt-2">
       <Card>
-        <div className="card__header">
-          <span className="card__title">📈 Últimos 12 meses</span>
-        </div>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-            <XAxis dataKey="mes" tick={{ fill: '#888', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#888', fontSize: 10 }} />
-            <Tooltip
-              contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }}
-              labelStyle={{ color: '#ccc' }}
-              formatter={(v) => formatCurrency(v)}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="Receitas" fill="#70AD47" radius={[3,3,0,0]} />
-            <Bar dataKey="Despesas" fill="#C00000" radius={[3,3,0,0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">📈 Últimos 12 meses</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis dataKey="mes" tick={{ fill: '#888', fontSize: 11 }} />
+              <YAxis tick={{ fill: '#888', fontSize: 10 }} />
+              <Tooltip
+                contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }}
+                labelStyle={{ color: '#ccc' }}
+                formatter={(v) => formatCurrency(v)}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="Receitas" fill="#70AD47" radius={[3,3,0,0]} />
+              <Bar dataKey="Despesas" fill="#C00000" radius={[3,3,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
       </Card>
 
       <Card>
-        <div className="summary-row"><span className="summary-row__label">Média Receitas</span><span className="summary-row__value amount--positive">{formatCurrency(mediaReceitas)}</span></div>
-        <div className="summary-row"><span className="summary-row__label">Média Despesas</span><span className="summary-row__value amount--negative">{formatCurrency(mediaDespesas)}</span></div>
-        <div className="summary-row summary-row--total"><span className="summary-row__label">Melhor mês</span><span className="summary-row__value amount--positive">{formatMesAno(melhor.mes)}</span></div>
-        <div className="summary-row"><span className="summary-row__label">Pior mês</span><span className="summary-row__value amount--negative">{formatMesAno(pior.mes)}</span></div>
+        <CardContent className="space-y-2 pt-4">
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Receitas</span><span className="font-semibold text-green-500">{formatCurrency(mediaReceitas)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Despesas</span><span className="font-semibold text-red-500">{formatCurrency(mediaDespesas)}</span></div>
+          <div className="flex justify-between text-sm font-semibold border-t pt-2"><span>Melhor mês</span><span className="text-green-500">{formatMesAno(melhor.mes)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Pior mês</span><span className="text-red-500">{formatMesAno(pior.mes)}</span></div>
+        </CardContent>
       </Card>
 
       {historico.slice().reverse().map(h => (
         <Card key={h.mes}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <CardContent className="py-3 flex justify-between items-center">
             <div>
-              <div style={{ fontWeight: 600 }}>{formatMesAno(h.mes)}</div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+              <div className="font-semibold text-sm">{formatMesAno(h.mes)}</div>
+              <div className="text-xs text-muted-foreground">
                 ↑ {formatCurrency(h.receitas)} · ↓ {formatCurrency(h.despesas)}
               </div>
             </div>
-            <div className={`card__value ${h.saldo >= 0 ? 'card__value--positive' : 'card__value--negative'}`} style={{ fontSize: 'var(--font-size-md)' }}>
+            <div className={`font-bold text-sm ${h.saldo >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {formatCurrency(h.saldo)}
             </div>
-          </div>
+          </CardContent>
         </Card>
       ))}
     </div>

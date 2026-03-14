@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import ContextToggle from '../UI/ContextToggle'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
+import Select from '../UI/Select'
 import { supabase } from '../../services/supabase'
 import { formatCurrency, formatPercent, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
 import { getCategoriaLabel } from '../../constants/categorias'
@@ -48,45 +49,57 @@ export default function GastosPorCategoria() {
   const pieData = categorias.map(c => ({ name: getCategoriaLabel(c.cat), value: c.valor }))
 
   return (
-    <div>
-      <div className="month-selector" style={{ marginBottom: 'var(--spacing-sm)' }}>
-        <select value={mes} onChange={e => setMes(e.target.value)} style={{ flex: 1 }}>
-          {meses.map(m => <option key={m} value={m}>{formatMesAno(m)}</option>)}
-        </select>
-      </div>
+    <div className="space-y-4 mt-2">
+      <Select
+        options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
+        value={mes}
+        onChange={e => setMes(e.target.value)}
+      />
 
       <ContextToggle value={contexto} onChange={setContexto} />
-      <div style={{ height: 'var(--spacing-md)' }} />
 
       {loading ? <LoadingScreen /> : categorias.length === 0 ? (
         <EmptyState icon="📊" text="Sem gastos neste período" />
       ) : (
         <>
           <Card>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Distribuição</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                    {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
           </Card>
 
           <Card>
-            {categorias.map((c, i) => (
-              <div key={c.cat} className="summary-row">
-                <span className="summary-row__label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 2, background: COLORS[i % COLORS.length], display: 'inline-block' }} />
-                  {getCategoriaLabel(c.cat)}
-                </span>
-                <span className="summary-row__value">{formatCurrency(c.valor)} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400, fontSize: 'var(--font-size-xs)' }}>({formatPercent(c.pct)})</span></span>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Por Categoria</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {categorias.map((c, i) => (
+                <div key={c.cat} className="flex justify-between items-center text-sm">
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: COLORS[i % COLORS.length], display: 'inline-block', flexShrink: 0 }} />
+                    {getCategoriaLabel(c.cat)}
+                  </span>
+                  <span className="font-medium">
+                    {formatCurrency(c.valor)}{' '}
+                    <span className="text-muted-foreground font-normal text-xs">({formatPercent(c.pct)})</span>
+                  </span>
+                </div>
+              ))}
+              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
               </div>
-            ))}
-            <div className="summary-row summary-row--total">
-              <span className="summary-row__label">Total</span>
-              <span className="summary-row__value">{formatCurrency(total)}</span>
-            </div>
+            </CardContent>
           </Card>
         </>
       )}

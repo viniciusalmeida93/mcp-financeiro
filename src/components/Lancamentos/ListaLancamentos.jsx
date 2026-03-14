@@ -1,12 +1,27 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import LancamentoItem from './LancamentoItem'
 import ContextToggle from '../UI/ContextToggle'
 import Select from '../UI/Select'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
+import { Card, CardContent } from '@/components/UI/Card'
+import { Input } from '@/components/UI/input'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/UI/alert-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/UI/tabs'
 import { getLastNMeses, formatMesAno, formatCurrency } from '../../utils/formatters'
 import { getCategoriasByContexto } from '../../constants/categorias'
 import { deleteLancamento, deleteGrupoParcelas } from '../../services/database'
+import { Search } from 'lucide-react'
 
 const TIPOS_FILTER = [
   { value: 'todos', label: 'Todos' },
@@ -15,28 +30,34 @@ const TIPOS_FILTER = [
 ]
 
 export default function ListaLancamentos({ lancamentos, loading, filters, updateFilter, refresh }) {
-  const meses = getLastNMeses(13)
-  const categorias = [
-    { value: '', label: 'Todas categorias' },
-    ...getCategoriasByContexto(filters.contexto),
-  ]
-  const tiposOpts = TIPOS_FILTER
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteAllParcelas, setDeleteAllParcelas] = useState(false)
+  const [showParcelasDialog, setShowParcelasDialog] = useState(false)
 
-  const handleDelete = async (lancamento) => {
-    if (!confirm(`Excluir "${lancamento.descricao}"?`)) return
+  const meses = getLastNMeses(13)
+
+  const handleDeleteRequest = (lancamento) => {
+    setDeleteTarget(lancamento)
+    if (lancamento.grupo_parcela_id) {
+      setShowParcelasDialog(true)
+    }
+  }
+
+  const handleDeleteConfirm = async (deleteAll = false) => {
+    if (!deleteTarget) return
     try {
-      if (lancamento.grupo_parcela_id) {
-        if (confirm('Excluir todas as parcelas desta compra?')) {
-          await deleteGrupoParcelas(lancamento.grupo_parcela_id)
-        } else {
-          await deleteLancamento(lancamento.id)
-        }
+      if (deleteTarget.grupo_parcela_id && deleteAll) {
+        await deleteGrupoParcelas(deleteTarget.grupo_parcela_id)
       } else {
-        await deleteLancamento(lancamento.id)
+        await deleteLancamento(deleteTarget.id)
       }
       refresh()
+      toast.success('Lançamento excluído!')
     } catch (err) {
-      alert('Erro ao excluir: ' + err.message)
+      toast.error('Erro ao excluir: ' + err.message)
+    } finally {
+      setDeleteTarget(null)
+      setShowParcelasDialog(false)
     }
   }
 
@@ -44,41 +65,33 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
   const totalSaidas = lancamentos.filter(l => l.tipo === 'saida').reduce((s, l) => s + Number(l.valor), 0)
 
   return (
-    <div>
+    <div className="space-y-3">
       {/* Month selector */}
-      <div className="month-selector" style={{ marginBottom: 'var(--spacing-sm)' }}>
-        <select
-          value={filters.mes}
-          onChange={e => updateFilter('mes', e.target.value)}
-          style={{ flex: 1 }}
-        >
-          {meses.map(m => (
-            <option key={m} value={m}>{formatMesAno(m)}</option>
-          ))}
-        </select>
-      </div>
+      <Select
+        options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
+        value={filters.mes}
+        onChange={e => updateFilter('mes', e.target.value)}
+      />
 
       {/* Context toggle */}
       <ContextToggle value={filters.contexto} onChange={v => updateFilter('contexto', v)} />
-      <div style={{ height: 'var(--spacing-sm)' }} />
 
-      {/* Type + category filters */}
-      <div className="filter-bar" style={{ marginBottom: 'var(--spacing-sm)' }}>
-        {tiposOpts.map(t => (
-          <button
-            key={t.value}
-            className={`filter-chip${filters.tipo === t.value ? ' active' : ''}`}
-            onClick={() => updateFilter('tipo', t.value)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Type filter tabs */}
+      <Tabs value={filters.tipo} onValueChange={v => updateFilter('tipo', v)}>
+        <TabsList className="w-full">
+          {TIPOS_FILTER.map(t => (
+            <TabsTrigger key={t.value} value={t.value} className="flex-1">
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Search */}
-      <div className="search-input-wrapper" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <span className="search-icon">🔍</span>
-        <input
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          className="pl-9"
           placeholder="Buscar lançamento..."
           value={filters.search}
           onChange={e => updateFilter('search', e.target.value)}
@@ -87,17 +100,13 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
 
       {/* Summary */}
       {!loading && lancamentos.length > 0 && (
-        <div className="card" style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-sm) var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-          <span style={{ color: 'var(--color-success)', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-            ↑ {formatCurrency(totalEntradas)}
-          </span>
-          <span style={{ color: 'var(--color-danger)', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-            ↓ {formatCurrency(totalSaidas)}
-          </span>
-          <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-            = {formatCurrency(totalEntradas - totalSaidas)}
-          </span>
-        </div>
+        <Card>
+          <CardContent className="py-3 px-4 flex justify-between">
+            <span className="text-sm font-semibold text-green-500">↑ {formatCurrency(totalEntradas)}</span>
+            <span className="text-sm font-semibold text-red-500">↓ {formatCurrency(totalSaidas)}</span>
+            <span className="text-sm font-semibold">= {formatCurrency(totalEntradas - totalSaidas)}</span>
+          </CardContent>
+        </Card>
       )}
 
       {loading ? (
@@ -105,11 +114,64 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
       ) : lancamentos.length === 0 ? (
         <EmptyState icon="📝" text="Nenhum lançamento encontrado" subtext="Tente ajustar os filtros ou adicione um novo lançamento" />
       ) : (
-        <div className="card" style={{ padding: '0 var(--spacing-md)' }}>
-          {lancamentos.map(l => (
-            <LancamentoItem key={l.id} lancamento={l} onDelete={handleDelete} />
-          ))}
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            {lancamentos.map(l => (
+              <LancamentoItem key={l.id} lancamento={l} onDelete={handleDeleteRequest} />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete single / all parcelas dialog */}
+      {deleteTarget?.grupo_parcela_id ? (
+        <AlertDialog open={showParcelasDialog} onOpenChange={setShowParcelasDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir parcelas</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{deleteTarget?.descricao}" é uma compra parcelada. Deseja excluir todas as parcelas ou apenas esta?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+              <AlertDialogCancel onClick={() => { setDeleteTarget(null); setShowParcelasDialog(false) }}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant="outline"
+                onClick={() => handleDeleteConfirm(false)}
+              >
+                Só esta
+              </AlertDialogAction>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => handleDeleteConfirm(true)}
+              >
+                Todas as parcelas
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : (
+        <AlertDialog open={!!deleteTarget && !deleteTarget?.grupo_parcela_id} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Excluir "{deleteTarget?.descricao}"? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => handleDeleteConfirm(false)}
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   )

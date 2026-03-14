@@ -1,4 +1,5 @@
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import { Skeleton } from '@/components/UI/skeleton'
 import { formatCurrency } from '../../utils/formatters'
 
 const CATEGORIA_ICONS = {
@@ -22,48 +23,48 @@ const CATEGORIA_ICONS = {
 }
 
 export default function PrincipaisCategoriasCard({ categoriasDespesas, loading }) {
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader><Skeleton className="h-4 w-40" /></CardHeader>
+        <CardContent><Skeleton className="h-32 w-full" /></CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
-      <div className="card__header">
-        <span className="card__title">🏷️ Principais Categorias</span>
-      </div>
-
-      {loading ? (
-        <div className="loading-center"><div className="spinner" /></div>
-      ) : categoriasDespesas.length === 0 ? (
-        <div className="empty-state" style={{ padding: 'var(--spacing-md)' }}>
-          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
-            Nenhuma despesa este mês
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          {categoriasDespesas.map(cat => (
-            <div key={cat.categoria}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>{CATEGORIA_ICONS[cat.categoria] || '📋'}</span>
-                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text)' }}>
-                    {cat.label}
-                  </span>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">🏷️ Principais Categorias</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {categoriasDespesas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma despesa este mês</p>
+        ) : (
+          <div className="space-y-3">
+            {categoriasDespesas.map(cat => (
+              <div key={cat.categoria}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{CATEGORIA_ICONS[cat.categoria] || '📋'}</span>
+                    <span className="text-sm font-medium">{cat.label}</span>
+                  </div>
+                  <span className="text-sm font-semibold">{formatCurrency(cat.total)}</span>
                 </div>
-                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text)' }}>
-                  {formatCurrency(cat.total)}
-                </span>
+                <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-blue-500"
+                    style={{ width: `${Math.min(cat.percentual, 100)}%` }}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {cat.percentual.toFixed(0)}% do total
+                </div>
               </div>
-              <div className="progress-bar">
-                <div
-                  className="progress-bar__fill progress-bar__fill--empresa"
-                  style={{ width: `${Math.min(cat.percentual, 100)}%` }}
-                />
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                {cat.percentual.toFixed(0)}% do total
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </CardContent>
     </Card>
   )
 }

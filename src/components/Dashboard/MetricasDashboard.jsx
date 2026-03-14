@@ -1,6 +1,9 @@
 import { formatCurrency } from '../../utils/formatters'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Card, CardContent } from '@/components/UI/Card'
+import { Skeleton } from '@/components/UI/skeleton'
+import { cn } from '@/lib/utils'
 
 export default function MetricasDashboard({ saldoTotal, totalReceitas, totalDespesas, economia, loading }) {
   const hoje = new Date()
@@ -8,53 +11,57 @@ export default function MetricasDashboard({ saldoTotal, totalReceitas, totalDesp
 
   const cards = [
     {
-      label: `Saldo`,
+      label: 'Saldo',
       sublabel: periodo,
       value: formatCurrency(saldoTotal),
-      valueClass: saldoTotal >= 0 ? 'amount--positive' : 'amount--negative',
+      positive: saldoTotal >= 0,
       icon: '💰',
     },
     {
       label: 'Receitas',
       sublabel: 'Este mês',
       value: formatCurrency(totalReceitas),
-      valueClass: 'amount--positive',
+      positive: true,
       icon: '↑',
-      iconStyle: { color: 'var(--color-success)', fontWeight: 700, fontSize: 18 },
     },
     {
       label: 'Despesas',
       sublabel: 'Este mês',
       value: formatCurrency(totalDespesas),
-      valueClass: 'amount--negative',
+      positive: false,
       icon: '↓',
-      iconStyle: { color: 'var(--color-danger)', fontWeight: 700, fontSize: 18 },
     },
     {
       label: 'Economia',
       sublabel: 'do que recebeu',
       value: `${economia}%`,
-      valueClass: economia >= 0 ? 'amount--positive' : 'amount--negative',
+      positive: economia >= 0,
       icon: '%',
-      iconStyle: { color: 'var(--color-success)', fontWeight: 700, fontSize: 14 },
     },
   ]
 
   return (
-    <div className="metricas-grid">
+    <div className="grid grid-cols-2 gap-3">
       {cards.map(card => (
-        <div key={card.label} className="metrica-card card">
-          <div className="metrica-card__header">
-            <span className="metrica-card__label">{card.label}</span>
-            <span className="metrica-card__icon" style={card.iconStyle}>{card.icon}</span>
-          </div>
-          {loading ? (
-            <div className="skeleton skeleton-amount" style={{ marginTop: 8 }} />
-          ) : (
-            <div className={`metrica-card__value ${card.valueClass}`}>{card.value}</div>
-          )}
-          <div className="metrica-card__sublabel">{card.sublabel}</div>
-        </div>
+        <Card key={card.label}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground font-medium">{card.label}</span>
+              <span className="text-base">{card.icon}</span>
+            </div>
+            {loading ? (
+              <Skeleton className="h-6 w-24 mt-1" />
+            ) : (
+              <div className={cn(
+                'text-lg font-bold',
+                card.positive ? 'text-green-500' : 'text-red-500'
+              )}>
+                {card.value}
+              </div>
+            )}
+            <div className="text-xs text-muted-foreground mt-0.5">{card.sublabel}</div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   )

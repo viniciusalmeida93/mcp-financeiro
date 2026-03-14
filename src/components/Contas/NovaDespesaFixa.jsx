@@ -255,7 +255,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
             />
             <button
               type="button"
-              className="btn btn--primary btn--sm"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               onClick={handleAddCategoria}
               disabled={savingCat}
               style={{ flexShrink: 0 }}
@@ -264,7 +264,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
             </button>
             <button
               type="button"
-              className="btn btn--ghost btn--sm"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-accent hover:text-accent-foreground"
               onClick={() => { setShowAddCat(false); setNovaCategoria('') }}
               style={{ flexShrink: 0 }}
             >

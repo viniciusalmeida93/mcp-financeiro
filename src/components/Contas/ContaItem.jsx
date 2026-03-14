@@ -3,6 +3,7 @@ import { getCategoriaLabel } from '../../constants/categorias'
 import { getFormaPagamentoLabel } from '../../constants/formasPagamento'
 import Badge from '../UI/Badge'
 import Button from '../UI/Button'
+import { cn } from '@/lib/utils'
 
 const CopyIcon = () => (
   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -12,38 +13,43 @@ const CopyIcon = () => (
 )
 
 export default function ContaItem({ conta, onEdit, onDelete, onTogglePago, onDuplicate, isPago }) {
-  const contextClass = `list-item--${conta.contexto}`
-
   return (
-    <div className={`list-item ${contextClass} ${isPago ? 'list-item--pago' : ''}`}>
+    <div className={cn(
+      'flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-accent/50 transition-colors',
+      isPago && 'opacity-60'
+    )}>
       <button
-        className={`dashboard-checkbox ${isPago ? 'dashboard-checkbox--checked' : ''}`}
+        className={cn(
+          'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+          isPago
+            ? 'bg-green-500 border-green-500 text-white'
+            : 'border-muted-foreground hover:border-green-500'
+        )}
         onClick={() => onTogglePago && onTogglePago(conta)}
         title={isPago ? 'Clique para desmarcar' : 'Marcar como pago'}
-        style={{ marginRight: 'var(--spacing-sm)' }}
       >
         {isPago ? '✓' : ''}
       </button>
 
-      <div className="list-item__body">
-        <div className="list-item__title">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 font-medium text-sm">
           {conta.nome}
           {conta.recorrencia === 'parcela' && conta.parcela_atual && (
-            <Badge variant="secondary" className="ml-1.5 text-xs">
+            <Badge variant="secondary" className="text-xs">
               {conta.parcela_atual}/{conta.parcela_total}
             </Badge>
           )}
         </div>
-        <div className="list-item__subtitle" style={{ color: isPago ? 'var(--color-success)' : undefined }}>
+        <div className={cn('text-xs text-muted-foreground mt-0.5', isPago && 'text-green-500')}>
           {isPago ? '✓ Pago' : `Dia ${conta.dia_vencimento} · ${getCategoriaLabel(conta.categoria)} · ${getFormaPagamentoLabel(conta.forma_pagamento)}`}
         </div>
       </div>
 
-      <div className="list-item__value">
+      <div className="font-semibold text-sm tabular-nums">
         {formatCurrency(conta.valor)}
       </div>
 
-      <div className="list-item__actions">
+      <div className="flex items-center gap-1 shrink-0">
         {onEdit && (
           <Button variant="ghost" size="sm" onClick={() => onEdit(conta)} title="Editar">
             ✏️

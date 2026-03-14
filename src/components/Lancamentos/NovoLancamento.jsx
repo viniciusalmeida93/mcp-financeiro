@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
+import { Input as RawInput } from '@/components/UI/input'
 import Select from '../UI/Select'
 import ContextToggle from '../UI/ContextToggle'
+import DatePicker from '../UI/DatePicker'
+import { Label } from '@/components/UI/label'
 import { buildFormasPagamento } from '../../constants/formasPagamento'
 import { getCategoriasByContexto } from '../../constants/categorias'
 import { createLancamento, createLancamentosParcelados, getCartoes } from '../../services/database'
@@ -78,7 +82,6 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
         await createLancamento(base)
       }
 
-      // Reset form
       setForm({
         contexto: 'empresa',
         tipo: 'saida',
@@ -91,14 +94,19 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
         numeroParcelas: 2,
       })
       setErrors({})
+      toast.success('Lançamento salvo!')
       onSuccess?.()
       onClose()
     } catch (err) {
+      toast.error('Erro ao salvar.')
       setErrors({ submit: err.message })
     } finally {
       setLoading(false)
     }
   }
+
+  // Convert string date (YYYY-MM-DD) to Date object for DatePicker
+  const dateValue = form.data ? new Date(form.data + 'T12:00:00') : undefined
 
   const categorias = getCategoriasByContexto(form.contexto)
   const valorParcela = form.parcelado && form.valor && form.numeroParcelas >= 2
@@ -107,109 +115,119 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Novo Lançamento">
-      <div className="form-group">
-        <label className="form-label">Contexto</label>
-        <ContextToggle
-          value={form.contexto}
-          onChange={v => { if (v !== 'todos') { set('contexto', v); set('categoria', '') } }}
-        />
-      </div>
-
-      <div className="type-toggle">
-        {TIPOS.map(t => (
-          <button
-            key={t.value}
-            className={`type-toggle__btn${form.tipo === t.value ? ` active--${t.value}` : ''}`}
-            onClick={() => set('tipo', t.value)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <Input
-        label="Valor (R$)"
-        required
-        type="number"
-        step="0.01"
-        min="0"
-        placeholder="0,00"
-        value={form.valor}
-        onChange={e => set('valor', e.target.value)}
-        error={errors.valor}
-      />
-
-      <Input
-        label="Descrição"
-        required
-        placeholder="Ex: Netflix, Mercado, Cliente X"
-        value={form.descricao}
-        onChange={e => set('descricao', e.target.value)}
-        error={errors.descricao}
-      />
-
-      <Select
-        label="Categoria"
-        required
-        placeholder="Selecione..."
-        options={categorias}
-        value={form.categoria}
-        onChange={e => set('categoria', e.target.value)}
-        error={errors.categoria}
-      />
-
-      <Select
-        label="Forma de Pagamento"
-        options={buildFormasPagamento(cartoes)}
-        value={form.forma_pagamento}
-        onChange={e => set('forma_pagamento', e.target.value)}
-      />
-
-      <Input
-        label="Data"
-        required
-        type="date"
-        value={form.data}
-        onChange={e => set('data', e.target.value)}
-        error={errors.data}
-      />
-
-      <div className="checkbox-group">
-        <input
-          type="checkbox"
-          id="parcelado"
-          checked={form.parcelado}
-          onChange={e => set('parcelado', e.target.checked)}
-        />
-        <label htmlFor="parcelado">Parcelado</label>
-      </div>
-
-      {form.parcelado && (
-        <div className="form-row">
-          <Input
-            label="Nº de Parcelas"
-            type="number"
-            min="2"
-            max="48"
-            value={form.numeroParcelas}
-            onChange={e => set('numeroParcelas', e.target.value)}
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label>Contexto</Label>
+          <ContextToggle
+            value={form.contexto}
+            onChange={v => { if (v !== 'todos') { set('contexto', v); set('categoria', '') } }}
           />
-          {valorParcela && (
-            <div className="form-group">
-              <label className="form-label">Valor por Parcela</label>
-              <input readOnly value={`R$ ${valorParcela}`} style={{ color: 'var(--color-text-muted)' }} />
-            </div>
-          )}
         </div>
-      )}
 
-      {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
+        <div className="flex gap-2">
+          {TIPOS.map(t => (
+            <button
+              key={t.value}
+              type="button"
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors ${
+                form.tipo === t.value
+                  ? t.value === 'saida'
+                    ? 'bg-red-500/20 border-red-500 text-red-400'
+                    : 'bg-green-500/20 border-green-500 text-green-400'
+                  : 'border-input bg-background hover:bg-accent'
+              }`}
+              onClick={() => set('tipo', t.value)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-      <div className="form-actions">
-        <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button variant="default" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <Input
+          label="Valor (R$)"
+          required
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="0,00"
+          value={form.valor}
+          onChange={e => set('valor', e.target.value)}
+          error={errors.valor}
+        />
+
+        <Input
+          label="Descrição"
+          required
+          placeholder="Ex: Netflix, Mercado, Cliente X"
+          value={form.descricao}
+          onChange={e => set('descricao', e.target.value)}
+          error={errors.descricao}
+        />
+
+        <Select
+          label="Categoria"
+          required
+          placeholder="Selecione..."
+          options={categorias}
+          value={form.categoria}
+          onChange={e => set('categoria', e.target.value)}
+          error={errors.categoria}
+        />
+
+        <Select
+          label="Forma de Pagamento"
+          options={buildFormasPagamento(cartoes)}
+          value={form.forma_pagamento}
+          onChange={e => set('forma_pagamento', e.target.value)}
+        />
+
+        <DatePicker
+          label="Data"
+          value={dateValue}
+          onChange={(date) => date && set('data', toDateString(date))}
+        />
+        {errors.data && <p className="text-xs text-destructive -mt-3">{errors.data}</p>}
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="parcelado"
+            checked={form.parcelado}
+            onChange={e => set('parcelado', e.target.checked)}
+            className="rounded border-input"
+          />
+          <Label htmlFor="parcelado" className="cursor-pointer">Parcelado</Label>
+        </div>
+
+        {form.parcelado && (
+          <div className="flex gap-3">
+            <Input
+              label="Nº de Parcelas"
+              type="number"
+              min="2"
+              max="48"
+              value={form.numeroParcelas}
+              onChange={e => set('numeroParcelas', e.target.value)}
+            />
+            {valorParcela && (
+              <div className="space-y-1.5 flex-1">
+                <Label>Valor por Parcela</Label>
+                <RawInput readOnly value={`R$ ${valorParcela}`} className="text-muted-foreground" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {errors.submit && (
+          <p className="text-xs text-destructive">{errors.submit}</p>
+        )}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="default" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
       </div>
     </Modal>
   )

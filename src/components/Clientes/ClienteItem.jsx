@@ -1,6 +1,7 @@
 import { formatCurrency } from '../../utils/formatters'
 import Badge from '../UI/Badge'
 import Button from '../UI/Button'
+import { cn } from '@/lib/utils'
 
 const CopyIcon = () => (
   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -20,35 +21,42 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
       : `Vence dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
 
   return (
-    <div className={`list-item list-item--empresa ${isPago ? 'list-item--pago' : ''}`}>
+    <div className={cn(
+      'flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-accent/50 transition-colors',
+      isPago && 'opacity-60'
+    )}>
       <button
-        className={`dashboard-checkbox ${isPago ? 'dashboard-checkbox--checked' : ''}`}
+        className={cn(
+          'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+          isPago
+            ? 'bg-green-500 border-green-500 text-white'
+            : 'border-muted-foreground hover:border-green-500'
+        )}
         onClick={() => onTogglePago && onTogglePago(cliente)}
         title={isPago ? 'Clique para desmarcar' : 'Marcar como recebido'}
-        style={{ marginRight: 'var(--spacing-sm)' }}
       >
         {isPago ? '✓' : ''}
       </button>
 
-      <div className="list-item__body">
-        <div className="list-item__title">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap font-medium text-sm">
           {cliente.nome}
-          <Badge variant={isPontual ? 'secondary' : 'default'} className="ml-1.5 text-xs">
+          <Badge variant={isPontual ? 'secondary' : 'default'} className="text-xs">
             {isPontual ? 'Pontual' : 'Recorrente'}
           </Badge>
           {cliente.precisa_nf && (
-            <Badge variant="outline" className="ml-1 text-xs">📋 NF</Badge>
+            <Badge variant="outline" className="text-xs">📋 NF</Badge>
           )}
           {!isAtivo && (
-            <Badge variant="secondary" className="ml-1 text-xs">Inativo</Badge>
+            <Badge variant="secondary" className="text-xs">Inativo</Badge>
           )}
         </div>
-        <div className="list-item__subtitle" style={{ color: isPago ? 'var(--color-success)' : undefined }}>
+        <div className={cn('text-xs text-muted-foreground mt-0.5', isPago && 'text-green-500')}>
           {subtitle}
         </div>
       </div>
 
-      <div className="list-item__actions">
+      <div className="flex items-center gap-1 shrink-0">
         {onEdit && (
           <Button variant="ghost" size="sm" onClick={() => onEdit(cliente)} title="Editar">
             ✏️

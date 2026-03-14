@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import Button from '../UI/Button'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
+import Select from '../UI/Select'
+import Badge from '../UI/Badge'
 import { getNotasFiscais } from '../../services/database'
 import { formatCurrency, formatDate, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
+import { cn } from '@/lib/utils'
 
 export default function RelatorioNF() {
   const [mes, setMes] = useState(getCurrentMes())
@@ -59,11 +62,15 @@ export default function RelatorioNF() {
   const STATUS_LABEL = { pendente: '⏳ Pendente', emitida: '📄 Emitida', pago: '✅ Pago' }
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', alignItems: 'center' }}>
-        <select value={mes} onChange={e => setMes(e.target.value)} style={{ flex: 1, height: 36 }}>
-          {meses.map(m => <option key={m} value={m}>{formatMesAno(m)}</option>)}
-        </select>
+    <div className="space-y-4 mt-2">
+      <div className="flex gap-2 items-center">
+        <div className="flex-1">
+          <Select
+            options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
+            value={mes}
+            onChange={e => setMes(e.target.value)}
+          />
+        </div>
         {nfs.length > 0 && (
           <Button variant="secondary" size="sm" onClick={exportCSV}>📥 CSV</Button>
         )}
@@ -74,28 +81,44 @@ export default function RelatorioNF() {
       ) : (
         <>
           <Card>
-            <div className="summary-row"><span className="summary-row__label">Total Bruto</span><span className="summary-row__value">{formatCurrency(totalBruto)}</span></div>
-            <div className="summary-row"><span className="summary-row__label">Total Impostos</span><span className="summary-row__value amount--negative">-{formatCurrency(totalImposto)}</span></div>
-            <div className="summary-row summary-row--total"><span className="summary-row__label">Total Líquido</span><span className="summary-row__value amount--positive">{formatCurrency(totalLiquido)}</span></div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Resumo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Bruto</span>
+                <span className="font-medium">{formatCurrency(totalBruto)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Impostos</span>
+                <span className="font-medium text-red-500">-{formatCurrency(totalImposto)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                <span>Total Líquido</span>
+                <span className="text-green-500">{formatCurrency(totalLiquido)}</span>
+              </div>
+            </CardContent>
           </Card>
 
           {nfs.map(nf => (
             <Card key={nf.id}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div style={{ fontWeight: 600 }}>{nf.clientes?.nome}</div>
-                <span className={`badge badge--${nf.status === 'pago' ? 'success' : nf.status === 'emitida' ? 'neutral' : 'warning'}`}>
-                  {STATUS_LABEL[nf.status]}
-                </span>
-              </div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Vence: {formatDate(nf.data_vencimento)} {nf.numero_nf && `· NF ${nf.numero_nf}`}
-              </div>
-              <div className="summary-row" style={{ marginTop: 8 }}>
-                <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)' }}>Bruto → Líquido</span>
-                <span style={{ fontSize: 'var(--font-size-sm)' }}>
-                  {formatCurrency(nf.valor_bruto)} → <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{formatCurrency(nf.valor_liquido)}</span>
-                </span>
-              </div>
+              <CardContent className="py-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <div className="font-semibold text-sm">{nf.clientes?.nome}</div>
+                  <Badge variant={nf.status === 'pago' ? 'success' : nf.status === 'emitida' ? 'neutral' : 'warning'}>
+                    {STATUS_LABEL[nf.status]}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Vence: {formatDate(nf.data_vencimento)} {nf.numero_nf && `· NF ${nf.numero_nf}`}
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bruto → Líquido</span>
+                  <span>
+                    {formatCurrency(nf.valor_bruto)} → <span className="text-green-500 font-semibold">{formatCurrency(nf.valor_liquido)}</span>
+                  </span>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </>

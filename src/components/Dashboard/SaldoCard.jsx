@@ -1,36 +1,50 @@
 import { formatCurrency } from '../../utils/formatters'
+import { Card, CardContent } from '@/components/UI/Card'
+import { Skeleton } from '@/components/UI/skeleton'
+import { cn } from '@/lib/utils'
 
 export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, loading }) {
   if (loading) {
     return (
-      <div className="saldo-grid">
+      <div className="grid grid-cols-3 gap-3">
         {[0, 1, 2].map(i => (
-          <div key={i} className="saldo-mini-card"><div className="spinner" /></div>
+          <Card key={i}>
+            <CardContent className="p-4">
+              <Skeleton className="h-4 w-16 mb-2" />
+              <Skeleton className="h-6 w-24" />
+            </CardContent>
+          </Card>
         ))}
       </div>
     )
   }
 
   return (
-    <div className="saldo-grid">
-      <div className="saldo-mini-card saldo-mini-card--total">
-        <div className="saldo-mini-card__label">💰 Total</div>
-        <div className={`saldo-mini-card__value ${saldoTotal >= 0 ? 'amount--positive' : 'amount--negative'}`}>
-          {formatCurrency(saldoTotal)}
-        </div>
-      </div>
-      <div className="saldo-mini-card saldo-mini-card--empresa">
-        <div className="saldo-mini-card__label">💼 Empresa</div>
-        <div className={`saldo-mini-card__value ${saldoEmpresa < 0 ? 'amount--negative' : ''}`}>
-          {formatCurrency(saldoEmpresa)}
-        </div>
-      </div>
-      <div className="saldo-mini-card saldo-mini-card--pessoal">
-        <div className="saldo-mini-card__label">🏠 Pessoal</div>
-        <div className={`saldo-mini-card__value ${saldoPessoal < 0 ? 'amount--negative' : ''}`}>
-          {formatCurrency(saldoPessoal)}
-        </div>
-      </div>
+    <div className="grid grid-cols-3 gap-3">
+      <Card>
+        <CardContent className="p-4">
+          <div className="text-xs text-muted-foreground mb-1">💰 Total</div>
+          <div className={cn('font-bold text-sm', saldoTotal >= 0 ? 'text-green-500' : 'text-red-500')}>
+            {formatCurrency(saldoTotal)}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="text-xs text-muted-foreground mb-1">💼 Empresa</div>
+          <div className={cn('font-bold text-sm', saldoEmpresa < 0 ? 'text-red-500' : '')}>
+            {formatCurrency(saldoEmpresa)}
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="text-xs text-muted-foreground mb-1">🏠 Pessoal</div>
+          <div className={cn('font-bold text-sm', saldoPessoal < 0 ? 'text-red-500' : '')}>
+            {formatCurrency(saldoPessoal)}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

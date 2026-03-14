@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import LoadingScreen from '../UI/LoadingScreen'
+import Select from '../UI/Select'
 import { formatCurrency, formatPercent, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
 import { useFluxoMensal } from '../../hooks/useRelatorios'
 
@@ -10,85 +11,88 @@ export default function FluxoMensal() {
   const meses = getLastNMeses(13)
   const { data, loading, error } = useFluxoMensal(mes)
 
-  // Build chart data from last 6 months for trend
-  const chartMeses = getLastNMeses(6).reverse()
-
   return (
-    <div>
-      <div className="month-selector" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <select value={mes} onChange={e => setMes(e.target.value)} style={{ flex: 1 }}>
-          {meses.map(m => <option key={m} value={m}>{formatMesAno(m)}</option>)}
-        </select>
-      </div>
+    <div className="space-y-4 mt-2">
+      <Select
+        options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
+        value={mes}
+        onChange={e => setMes(e.target.value)}
+      />
 
       {loading ? <LoadingScreen /> : error ? (
-        <p style={{ color: 'var(--color-danger)' }}>{error}</p>
+        <p className="text-sm text-destructive">{error}</p>
       ) : data && (
         <>
           {/* Empresa block */}
-          <Card contexto="empresa">
-            <div className="card__header">
-              <span className="card__title">💼 Empresa</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Receitas</span>
-              <span className="summary-row__value amount--positive">{formatCurrency(data.receitasEmpresa)}</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Despesas</span>
-              <span className="summary-row__value amount--negative">-{formatCurrency(data.despesasEmpresa)}</span>
-            </div>
-            <div className="summary-row summary-row--total">
-              <span className="summary-row__label">Saldo</span>
-              <span className={`summary-row__value ${data.receitasEmpresa - data.despesasEmpresa >= 0 ? 'amount--positive' : 'amount--negative'}`}>
-                {formatCurrency(data.receitasEmpresa - data.despesasEmpresa)}
-              </span>
-            </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">💼 Empresa</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Receitas</span>
+                <span className="font-semibold text-green-500">{formatCurrency(data.receitasEmpresa)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Despesas</span>
+                <span className="font-semibold text-red-500">-{formatCurrency(data.despesasEmpresa)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                <span>Saldo</span>
+                <span className={data.receitasEmpresa - data.despesasEmpresa >= 0 ? 'text-green-500' : 'text-red-500'}>
+                  {formatCurrency(data.receitasEmpresa - data.despesasEmpresa)}
+                </span>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Pessoal block */}
-          <Card contexto="pessoal">
-            <div className="card__header">
-              <span className="card__title">🏠 Pessoal</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Receitas</span>
-              <span className="summary-row__value amount--positive">{formatCurrency(data.receitasPessoal)}</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Despesas</span>
-              <span className="summary-row__value amount--negative">-{formatCurrency(data.despesasPessoal)}</span>
-            </div>
-            <div className="summary-row summary-row--total">
-              <span className="summary-row__label">Saldo</span>
-              <span className={`summary-row__value ${data.receitasPessoal - data.despesasPessoal >= 0 ? 'amount--positive' : 'amount--negative'}`}>
-                {formatCurrency(data.receitasPessoal - data.despesasPessoal)}
-              </span>
-            </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">🏠 Pessoal</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Receitas</span>
+                <span className="font-semibold text-green-500">{formatCurrency(data.receitasPessoal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Despesas</span>
+                <span className="font-semibold text-red-500">-{formatCurrency(data.despesasPessoal)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                <span>Saldo</span>
+                <span className={data.receitasPessoal - data.despesasPessoal >= 0 ? 'text-green-500' : 'text-red-500'}>
+                  {formatCurrency(data.receitasPessoal - data.despesasPessoal)}
+                </span>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Consolidated */}
           <Card>
-            <div className="card__header">
-              <span className="card__title">📊 Consolidado</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Total Receitas</span>
-              <span className="summary-row__value amount--positive">{formatCurrency(data.totalReceitas)}</span>
-            </div>
-            <div className="summary-row">
-              <span className="summary-row__label">Total Despesas</span>
-              <span className="summary-row__value amount--negative">-{formatCurrency(data.totalDespesas)}</span>
-            </div>
-            <div className="summary-row summary-row--total">
-              <span className="summary-row__label">Saldo Final</span>
-              <span className={`summary-row__value ${data.saldoFinal >= 0 ? 'amount--positive' : 'amount--negative'}`}>
-                {formatCurrency(data.saldoFinal)}
-              </span>
-            </div>
-            <div style={{ marginTop: 'var(--spacing-sm)', textAlign: 'center', color: data.margemLucro >= 0 ? 'var(--color-success)' : 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>
-              Margem: {formatPercent(data.margemLucro)}
-            </div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">📊 Consolidado</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Receitas</span>
+                <span className="font-semibold text-green-500">{formatCurrency(data.totalReceitas)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Despesas</span>
+                <span className="font-semibold text-red-500">-{formatCurrency(data.totalDespesas)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                <span>Saldo Final</span>
+                <span className={data.saldoFinal >= 0 ? 'text-green-500' : 'text-red-500'}>
+                  {formatCurrency(data.saldoFinal)}
+                </span>
+              </div>
+              <div className={`text-center text-sm mt-1 ${data.margemLucro >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                Margem: {formatPercent(data.margemLucro)}
+              </div>
+            </CardContent>
           </Card>
         </>
       )}

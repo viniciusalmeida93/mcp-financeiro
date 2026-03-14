@@ -8,10 +8,10 @@ export default function DashboardPage() {
   const dashboard = useDashboard()
 
   return (
-    <>
+    <div className="space-y-4">
       {dashboard.error && (
-        <div className="card" style={{ borderColor: 'var(--color-danger)', marginBottom: 16 }}>
-          <p style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>Erro: {dashboard.error}</p>
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+          <p className="text-sm text-destructive">Erro: {dashboard.error}</p>
         </div>
       )}
 
@@ -24,8 +24,8 @@ export default function DashboardPage() {
         loading={dashboard.loading}
       />
 
-      {/* Próximos 7 dias */}
-      <div className="dashboard-mid-row">
+      {/* Próximos 7 dias — 2-col grid on larger screens */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ClientesReceberCard
           clientesAReceber={dashboard.clientesAReceber}
           loading={dashboard.loading}
@@ -46,6 +46,6 @@ export default function DashboardPage() {
         totalDespesas={dashboard.totalDespesas}
         loading={dashboard.loading}
       />
-    </>
+    </div>
   )
 }

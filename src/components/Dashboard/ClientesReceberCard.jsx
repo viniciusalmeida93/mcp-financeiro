@@ -1,57 +1,77 @@
-import Card from '../UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import { Skeleton } from '@/components/UI/skeleton'
 import Badge from '../UI/Badge'
 import { formatCurrency, formatDateShort } from '../../utils/formatters'
 import EmptyState from '../UI/EmptyState'
+import { cn } from '@/lib/utils'
 
 export default function ClientesReceberCard({ clientesAReceber, loading, pagosClienteIds = new Set(), onReceber }) {
   const total = clientesAReceber.reduce((s, c) => s + Number(c.valor), 0)
 
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader><Skeleton className="h-4 w-40" /></CardHeader>
+        <CardContent><Skeleton className="h-8 w-full" /></CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
-      <div className="card__header">
-        <span className="card__title">💰 Clientes a Receber (7 dias)</span>
-      </div>
-
-      {loading ? (
-        <div className="spinner" />
-      ) : clientesAReceber.length === 0 ? (
-        <EmptyState icon="💸" text="Nenhum recebimento nos próximos 7 dias" />
-      ) : (
-        <>
-          {clientesAReceber.map(cliente => {
-            const recebido = pagosClienteIds.has(cliente.id)
-            return (
-              <div key={cliente.id} className={`dashboard-check-item list-item list-item--empresa ${recebido ? 'dashboard-check-item--pago' : ''}`}>
-                <button
-                  className={`dashboard-checkbox ${recebido ? 'dashboard-checkbox--checked' : ''}`}
-                  onClick={() => !recebido && onReceber && onReceber(cliente)}
-                  title={recebido ? 'Já recebido' : 'Marcar como recebido'}
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">💰 Clientes a Receber (7 dias)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        {clientesAReceber.length === 0 ? (
+          <EmptyState icon="💸" text="Nenhum recebimento nos próximos 7 dias" />
+        ) : (
+          <>
+            {clientesAReceber.map(cliente => {
+              const recebido = pagosClienteIds.has(cliente.id)
+              return (
+                <div
+                  key={cliente.id}
+                  className={cn(
+                    'flex items-center gap-3 py-2 border-b last:border-b-0',
+                    recebido && 'opacity-60'
+                  )}
                 >
-                  {recebido ? '✓' : ''}
-                </button>
-                <div className="list-item__body">
-                  <div className="list-item__title">{cliente.nome}</div>
-                  <div className="list-item__subtitle">
-                    {formatDateShort(cliente.proximoVencimento)}
-                    {cliente.precisa_nf && (
-                      <Badge variant="warning" style={{ marginLeft: 4 }}>📋 NF</Badge>
+                  <button
+                    className={cn(
+                      'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+                      recebido
+                        ? 'bg-green-500 border-green-500 text-white'
+                        : 'border-muted-foreground hover:border-green-500'
                     )}
+                    onClick={() => !recebido && onReceber && onReceber(cliente)}
+                    title={recebido ? 'Já recebido' : 'Marcar como recebido'}
+                  >
+                    {recebido ? '✓' : ''}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{cliente.nome}</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      {formatDateShort(cliente.proximoVencimento)}
+                      {cliente.precisa_nf && (
+                        <Badge variant="warning" className="ml-1">📋 NF</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className={cn('text-sm font-semibold', recebido ? 'text-green-500' : '')}>
+                    {formatCurrency(cliente.valor)}
                   </div>
                 </div>
-                <div className={`list-item__value ${recebido ? 'amount--positive' : 'list-item__value--positive'}`}>
-                  {formatCurrency(cliente.valor)}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
 
-          <div className="card__divider" />
-          <div className="summary-row summary-row--total">
-            <span className="summary-row__label">Total 7 dias</span>
-            <span className="summary-row__value amount--positive">{formatCurrency(total)}</span>
-          </div>
-        </>
-      )}
+            <div className="flex justify-between text-sm font-semibold pt-2">
+              <span>Total 7 dias</span>
+              <span className="text-green-500">{formatCurrency(total)}</span>
+            </div>
+          </>
+        )}
+      </CardContent>
     </Card>
   )
 }
