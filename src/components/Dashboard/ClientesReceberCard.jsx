@@ -5,7 +5,7 @@ import { formatCurrency, formatDateShort } from '../../utils/formatters'
 import EmptyState from '../UI/EmptyState'
 import { cn } from '@/lib/utils'
 
-export default function ClientesReceberCard({ clientesAReceber, loading, pagosClienteIds = new Set(), onReceber }) {
+export default function ClientesReceberCard({ clientesAReceber, loading, pagosClienteIds = new Set(), onReceber, onDesreceber }) {
   const total = clientesAReceber.reduce((s, c) => s + Number(c.valor), 0)
 
   if (loading) {
@@ -44,8 +44,8 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
                         ? 'bg-green-500 border-green-500 text-white'
                         : 'border-muted-foreground hover:border-green-500'
                     )}
-                    onClick={() => !recebido && onReceber && onReceber(cliente)}
-                    title={recebido ? 'Já recebido' : 'Marcar como recebido'}
+                    onClick={() => recebido ? onDesreceber?.(cliente) : onReceber?.(cliente)}
+                    title={recebido ? 'Clique para desmarcar' : 'Marcar como recebido'}
                   >
                     {recebido ? '✓' : ''}
                   </button>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import { getDiasRestantesNoMes, getProximoVencimento, toDateString } from '../utils/dateHelpers'
-import { createLancamento } from '../services/database'
+import { createLancamento, deleteLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
 
@@ -217,6 +217,21 @@ export function useDashboard() {
     fetchDashboard()
   }, [fetchDashboard])
 
+  const desmarcarContaPaga = useCallback(async (conta) => {
+    const mes = format(new Date(), 'yyyy-MM')
+    const { data: rows } = await supabase
+      .from('lancamentos')
+      .select('id')
+      .eq('tipo', 'saida')
+      .eq('descricao', conta.nome)
+      .gte('data', `${mes}-01`)
+      .limit(1)
+    if (rows?.[0]) {
+      await deleteLancamento(rows[0].id)
+      fetchDashboard()
+    }
+  }, [fetchDashboard])
+
   const marcarClienteRecebido = useCallback(async (cliente) => {
     await createLancamento({
       tipo: 'entrada',
@@ -231,7 +246,22 @@ export function useDashboard() {
     fetchDashboard()
   }, [fetchDashboard])
 
+  const desmarcarClienteRecebido = useCallback(async (cliente) => {
+    const mes = format(new Date(), 'yyyy-MM')
+    const { data: rows } = await supabase
+      .from('lancamentos')
+      .select('id')
+      .eq('tipo', 'entrada')
+      .eq('cliente_id', cliente.id)
+      .gte('data', `${mes}-01`)
+      .limit(1)
+    if (rows?.[0]) {
+      await deleteLancamento(rows[0].id)
+      fetchDashboard()
+    }
+  }, [fetchDashboard])
+
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
-  return { ...data, loading, error, refresh: fetchDashboard, marcarContaPaga, marcarClienteRecebido }
+  return { ...data, loading, error, refresh: fetchDashboard, marcarContaPaga, desmarcarContaPaga, marcarClienteRecebido, desmarcarClienteRecebido }
 }

@@ -5,7 +5,7 @@ import { toDateString } from '../../utils/dateHelpers'
 import EmptyState from '../UI/EmptyState'
 import { cn } from '@/lib/utils'
 
-export default function ProximosVencimentosCard({ proximasContas, loading, pagosNomes = new Set(), onPagar }) {
+export default function ProximosVencimentosCard({ proximasContas, loading, pagosNomes = new Set(), onPagar, onDesmarcar }) {
   const empresa = proximasContas.filter(c => c.contexto === 'empresa')
   const pessoal = proximasContas.filter(c => c.contexto === 'pessoal')
   const total = proximasContas.reduce((s, c) => s + Number(c.valor), 0)
@@ -32,8 +32,8 @@ export default function ProximosVencimentosCard({ proximasContas, loading, pagos
               ? 'bg-green-500 border-green-500 text-white'
               : 'border-muted-foreground hover:border-green-500'
           )}
-          onClick={() => !pago && onPagar && onPagar(conta)}
-          title={pago ? 'Já pago' : 'Marcar como pago'}
+          onClick={() => pago ? onDesmarcar?.(conta) : onPagar?.(conta)}
+          title={pago ? 'Clique para desmarcar' : 'Marcar como pago'}
         >
           {pago ? '✓' : ''}
         </button>

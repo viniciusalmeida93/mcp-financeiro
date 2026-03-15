@@ -14,11 +14,11 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
   const isAtivo = cliente.status === 'ativo'
   const isPontual = cliente.tipo === 'pontual'
 
-  const subtitle = isPago
-    ? '✓ Recebido'
-    : isPontual
-      ? `Projeto pontual · ${formatCurrency(cliente.valor)}`
-      : `Vence dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
+  const dateInfo = isPontual
+    ? `Pontual · ${formatCurrency(cliente.valor)}`
+    : `Dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
+
+  const subtitle = isPago ? `✓ Recebido · ${dateInfo}` : dateInfo
 
   return (
     <div className={cn(

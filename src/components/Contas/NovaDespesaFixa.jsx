@@ -6,7 +6,8 @@ import Select from '../UI/Select'
 import { buildFormasPagamento } from '../../constants/formasPagamento'
 import { createDespesaFixa, updateDespesaFixa, getCategoriasCustomizadas, createCategoriaCustomizada, getCartoes } from '../../services/database'
 
-const RECORRENCIAS = [
+const TIPOS = [
+  { value: 'pontual', label: 'Pontual' },
   { value: 'mensal', label: 'Mensal' },
   { value: 'parcela', label: 'Parcela' },
 ]
@@ -15,13 +16,12 @@ const EMPTY_FORM = {
   nome: '',
   valor: '',
   dia_vencimento: '',
-  recorrencia: 'mensal',
+  recorrencia: 'pontual',
   parcela_atual: '',
   parcela_total: '',
   categoria: '',
   forma_pagamento: 'pix',
   contexto: 'empresa',
-  data_termino: '',
 }
 
 export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdit }) {
@@ -50,12 +50,11 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
           valor: despesaEdit.valor,
           dia_vencimento: despesaEdit.dia_vencimento,
           recorrencia: despesaEdit.recorrencia,
-          parcela_atual: despesaEdit.parcela_atual ?? '',
-          parcela_total: despesaEdit.parcela_total ?? '',
+          parcela_atual: despesaEdit.parcela_atual != null ? parseInt(despesaEdit.parcela_atual) : '',
+          parcela_total: despesaEdit.parcela_total != null ? parseInt(despesaEdit.parcela_total) : '',
           categoria: despesaEdit.categoria,
           forma_pagamento: despesaEdit.forma_pagamento,
           contexto: despesaEdit.contexto,
-          data_termino: despesaEdit.data_termino ?? '',
         })
       } else {
         setForm(EMPTY_FORM)
@@ -68,7 +67,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
   const validate = () => {
     const errs = {}
     if (!form.nome.trim() || form.nome.trim().length < 2) errs.nome = 'Nome deve ter pelo menos 2 caracteres'
-    if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
+    if (!form.valor || parseFloat(String(form.valor).replace(',', '.')) <= 0) errs.valor = 'Valor deve ser maior que zero'
     if (!form.dia_vencimento || Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31) {
       errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
     }
@@ -84,18 +83,19 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
 
     setLoading(true)
     try {
+      const parseValor = (v) => parseFloat(String(v).replace(',', '.'))
+
       const payload = {
         nome: form.nome.trim(),
-        valor: Number(form.valor),
+        valor: parseValor(form.valor),
         dia_vencimento: Number(form.dia_vencimento),
         recorrencia: form.recorrencia,
-        parcela_atual: form.recorrencia === 'parcela' ? Number(form.parcela_atual) : null,
-        parcela_total: form.recorrencia === 'parcela' ? Number(form.parcela_total) : null,
+        parcela_atual: form.recorrencia === 'parcela' ? parseInt(form.parcela_atual) : null,
+        parcela_total: form.recorrencia === 'parcela' ? parseInt(form.parcela_total) : null,
         categoria: form.categoria || null,
         forma_pagamento: form.forma_pagamento,
         contexto: form.contexto,
         status: 'ativo',
-        data_termino: form.data_termino || null,
       }
 
       if (isEditing) {
@@ -169,12 +169,11 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         <Input
           label="Valor (R$)"
           required
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
+          inputMode="decimal"
           placeholder="0,00"
           value={form.valor}
-          onChange={e => set('valor', e.target.value)}
+          onChange={e => set('valor', e.target.value.replace(/[^0-9,.]/, ''))}
           error={errors.valor}
         />
         <Input
@@ -191,8 +190,8 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
       </div>
 
       <Select
-        label="Recorrência"
-        options={RECORRENCIAS}
+        label="Tipo"
+        options={TIPOS}
         value={form.recorrencia}
         onChange={e => set('recorrencia', e.target.value)}
       />
@@ -281,14 +280,6 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         onChange={e => set('forma_pagamento', e.target.value)}
       />
 
-      {form.recorrencia === 'parcela' && (
-        <Input
-          label="Data de Término"
-          type="date"
-          value={form.data_termino}
-          onChange={e => set('data_termino', e.target.value)}
-        />
-      )}
 
       {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
 

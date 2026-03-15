@@ -8,9 +8,7 @@ import {
   Tag,
   BarChart2,
 } from 'lucide-react'
-import { Separator } from '@/components/UI/separator'
 import { cn } from '@/lib/utils'
-import ContextToggle from '@/components/UI/ContextToggle'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -30,7 +28,6 @@ export default function Sidebar() {
         <span className="font-bold text-lg text-sidebar-primary">VA Studio</span>
         <span className="ml-1 text-sm text-muted-foreground font-medium">Financeiro</span>
       </div>
-      <Separator />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
@@ -53,12 +50,6 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <Separator />
-      {/* Context toggle — switches global empresa/pessoal theme */}
-      <div className="p-4">
-        <ContextToggle />
-      </div>
     </aside>
   )
 }

@@ -25,19 +25,50 @@ export default function ListaDespesasFixas({ despesas, allDespesas, loading, con
 
   useEffect(() => {
     const mes = getCurrentMes()
+    const today = new Date().getDate()
+
     supabase
       .from('lancamentos')
       .select('id, descricao')
       .eq('tipo', 'saida')
       .gte('data', `${mes}-01`)
       .lte('data', getLastDayOfMes(mes))
-      .then(({ data }) => {
-        if (data) {
-          setPagosNomes(new Set(data.map(l => l.descricao)))
-          const map = {}
-          data.forEach(l => { map[l.descricao] = l.id })
-          setLancamentosMap(map)
+      .then(async ({ data }) => {
+        if (!data) return
+
+        const existingNomes = new Set(data.map(l => l.descricao))
+        const map = {}
+        data.forEach(l => { map[l.descricao] = l.id })
+
+        // Auto-mark credit card expenses as paid when dia_vencimento <= today
+        const candidates = allDespesas.filter(d =>
+          d.forma_pagamento?.startsWith('cartao:') &&
+          d.dia_vencimento <= today &&
+          !existingNomes.has(d.nome)
+        )
+
+        for (const d of candidates) {
+          try {
+            const newLanc = await createLancamento({
+              tipo: 'saida',
+              valor: d.valor,
+              descricao: d.nome,
+              categoria: d.categoria,
+              forma_pagamento: d.forma_pagamento,
+              data: toDateString(new Date()),
+              contexto: d.contexto,
+            })
+            if (newLanc) {
+              existingNomes.add(d.nome)
+              map[d.nome] = newLanc.id
+            }
+          } catch (err) {
+            console.error('Auto-pay error for', d.nome, err)
+          }
         }
+
+        setPagosNomes(new Set(existingNomes))
+        setLancamentosMap(map)
       })
   }, [despesas])
 
