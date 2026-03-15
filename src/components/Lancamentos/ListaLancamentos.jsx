@@ -6,7 +6,7 @@ import Select from '../UI/Select'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import { Card, CardContent } from '@/components/UI/Card'
-import { Input } from '@/components/UI/input'
+import { Input } from '@/components/UI/Input'
 import {
   AlertDialog,
   AlertDialogAction,

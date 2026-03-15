@@ -2,7 +2,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters'
 import { getCategoriaLabel } from '../../constants/categorias'
 import { getFormaPagamentoLabel } from '../../constants/formasPagamento'
 import Badge from '../UI/Badge'
-import { Button } from '@/components/UI/button'
+import { Button } from '@/components/UI/Button'
 import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

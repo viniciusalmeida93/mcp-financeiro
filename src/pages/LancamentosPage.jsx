@@ -2,7 +2,7 @@ import { useState } from 'react'
 import ListaLancamentos from '../components/Lancamentos/ListaLancamentos'
 import NovoLancamento from '../components/Lancamentos/NovoLancamento'
 import { useLancamentos } from '../hooks/useLancamentos'
-import { Button } from '@/components/UI/button'
+import { Button } from '@/components/UI/Button'
 import { Plus } from 'lucide-react'
 
 export default function LancamentosPage() {
