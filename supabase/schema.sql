@@ -158,6 +158,23 @@ CREATE TABLE IF NOT EXISTS historico_mensal (
 );
 
 -- ================================
+-- CARTOES
+-- ================================
+CREATE TABLE IF NOT EXISTS cartoes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nome TEXT NOT NULL,
+  bandeira TEXT NOT NULL CHECK (bandeira IN ('visa', 'mastercard', 'elo', 'amex', 'hipercard', 'outro')),
+  numero_final TEXT,
+  titular TEXT,
+  limite DECIMAL(10,2) NOT NULL DEFAULT 0,
+  fatura_atual DECIMAL(10,2) NOT NULL DEFAULT 0,
+  vencimento_fatura INTEGER CHECK (vencimento_fatura BETWEEN 1 AND 31),
+  contexto TEXT NOT NULL CHECK (contexto IN ('empresa', 'pessoal', 'ambos')),
+  cor TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ================================
 -- INDICES
 -- ================================
 CREATE INDEX IF NOT EXISTS idx_lancamentos_data ON lancamentos(data);
@@ -181,3 +198,4 @@ ALTER TABLE despesas_fixas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE notas_fiscais DISABLE ROW LEVEL SECURITY;
 ALTER TABLE emails_enviados DISABLE ROW LEVEL SECURITY;
 ALTER TABLE historico_mensal DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cartoes DISABLE ROW LEVEL SECURITY;

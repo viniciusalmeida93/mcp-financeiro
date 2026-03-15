@@ -141,7 +141,7 @@ export default function CartoesPage() {
           subtext="Adicione seus cartões de crédito e débito para acompanhar a fatura"
         />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filtered.map(c => (
             <CartaoItem key={c.id} cartao={c} onEdit={handleEdit} onDelete={handleDelete} onDuplicate={handleDuplicate} />
           ))}
@@ -150,7 +150,7 @@ export default function CartoesPage() {
 
       {/* FAB mobile */}
       <button
-        className="fixed bottom-20 right-4 md:relative md:bottom-auto md:right-auto z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
         onClick={() => setShowForm(true)}
         title="Novo cartão"
       >+</button>

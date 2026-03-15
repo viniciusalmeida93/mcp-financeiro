@@ -1,19 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
-  ArrowLeftRight,
-  Tag,
-  BarChart2,
+  TrendingUp,
+  TrendingDown,
   CreditCard,
+  BarChart2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/lancamentos', icon: ArrowLeftRight, label: 'Lançamentos' },
-  { to: '/categorias', icon: Tag, label: 'Categorias' },
-  { to: '/relatorios', icon: BarChart2, label: 'Relatórios' },
+  { to: '/clientes', icon: TrendingUp, label: 'Receitas' },
+  { to: '/contas', icon: TrendingDown, label: 'Despesas' },
   { to: '/cartoes', icon: CreditCard, label: 'Cartões' },
+  { to: '/relatorios', icon: BarChart2, label: 'Relatórios' },
 ]
 
 export default function BottomNav() {

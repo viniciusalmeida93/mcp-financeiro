@@ -2,11 +2,11 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   ArrowLeftRight,
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
   Tag,
   BarChart2,
-  CreditCard,
-  Users,
-  Wallet,
 } from 'lucide-react'
 import { Separator } from '@/components/UI/separator'
 import { cn } from '@/lib/utils'
@@ -15,11 +15,11 @@ import ContextToggle from '@/components/UI/ContextToggle'
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/lancamentos', icon: ArrowLeftRight, label: 'Lançamentos' },
+  { to: '/clientes', icon: TrendingUp, label: 'Receitas' },
+  { to: '/contas', icon: TrendingDown, label: 'Despesas' },
+  { to: '/cartoes', icon: CreditCard, label: 'Cartões' },
   { to: '/categorias', icon: Tag, label: 'Categorias' },
   { to: '/relatorios', icon: BarChart2, label: 'Relatórios' },
-  { to: '/cartoes', icon: CreditCard, label: 'Cartões' },
-  { to: '/clientes', icon: Users, label: 'Clientes' },
-  { to: '/contas', icon: Wallet, label: 'Contas' },
 ]
 
 export default function Sidebar() {
