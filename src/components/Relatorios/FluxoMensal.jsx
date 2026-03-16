@@ -8,7 +8,7 @@ import { useFluxoMensal } from '../../hooks/useRelatorios'
 
 export default function FluxoMensal() {
   const [mes, setMes] = useState(getCurrentMes())
-  const meses = getMesesFrom('2026-03')
+  const meses = getMesesFrom('2026-03', '2026-12')
   const { data, loading, error } = useFluxoMensal(mes)
 
   return (

@@ -16,7 +16,7 @@ export default function GastosPorCategoria() {
   const [contexto, setContexto] = useState('todos')
   const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(true)
-  const meses = getMesesFrom('2026-03')
+  const meses = getMesesFrom('2026-03', '2026-12')
 
   useEffect(() => {
     const fetch = async () => {
