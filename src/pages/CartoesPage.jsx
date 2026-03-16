@@ -4,22 +4,27 @@ import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
 import Button from '../components/UI/Button'
 import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
-import { getCartoes, createCartao, updateCartao, deleteCartao } from '../services/database'
+import { getCartoes, createCartao, updateCartao, deleteCartao, getDespesasFixas } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
 
 export default function CartoesPage() {
   const [cartoes, setCartoes] = useState([])
+  const [despesasFixas, setDespesasFixas] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCartao, setEditingCartao] = useState(null)
   const [contexto, setContexto] = useState('ambos')
   const [cartaoFilter, setCartaoFilter] = useState('todos')
 
-  const fetchCartoes = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await getCartoes({})
-      setCartoes(data)
+      const [cartData, despData] = await Promise.all([
+        getCartoes({}),
+        getDespesasFixas({ status: 'ativo' }),
+      ])
+      setCartoes(cartData)
+      setDespesasFixas(despData)
     } catch (err) {
       console.error(err)
     } finally {
@@ -27,7 +32,7 @@ export default function CartoesPage() {
     }
   }, [])
 
-  useEffect(() => { fetchCartoes() }, [fetchCartoes])
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   const handleSave = async (cartaoData) => {
     if (editingCartao) {
@@ -35,13 +40,13 @@ export default function CartoesPage() {
     } else {
       await createCartao(cartaoData)
     }
-    fetchCartoes()
+    fetchAll()
   }
 
   const handleDelete = async (id) => {
     if (!window.confirm('Excluir cartão?')) return
     await deleteCartao(id)
-    fetchCartoes()
+    fetchAll()
   }
 
   const handleEdit = (cartao) => {
@@ -58,7 +63,7 @@ export default function CartoesPage() {
     try {
       const { id, created_at, ...rest } = cartao
       await createCartao(rest)
-      fetchCartoes()
+      fetchAll()
     } catch (err) {
       alert('Erro ao duplicar: ' + err.message)
     }
@@ -143,7 +148,14 @@ export default function CartoesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filtered.map(c => (
-            <CartaoItem key={c.id} cartao={c} onEdit={handleEdit} onDelete={handleDelete} onDuplicate={handleDuplicate} />
+            <CartaoItem
+              key={c.id}
+              cartao={c}
+              despesas={despesasFixas.filter(d => d.forma_pagamento === `cartao:${c.id}`)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
+            />
           ))}
         </div>
       )}

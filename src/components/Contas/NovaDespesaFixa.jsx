@@ -68,7 +68,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     const errs = {}
     if (!form.nome.trim() || form.nome.trim().length < 2) errs.nome = 'Nome deve ter pelo menos 2 caracteres'
     if (!form.valor || parseFloat(String(form.valor).replace(',', '.')) <= 0) errs.valor = 'Valor deve ser maior que zero'
-    if (!form.dia_vencimento || Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31) {
+    if (form.dia_vencimento && (Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31)) {
       errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
     }
     if (form.recorrencia === 'parcela') {
@@ -88,7 +88,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
       const payload = {
         nome: form.nome.trim(),
         valor: parseValor(form.valor),
-        dia_vencimento: Number(form.dia_vencimento),
+        dia_vencimento: Number(form.dia_vencimento) || new Date().getDate(),
         recorrencia: form.recorrencia,
         parcela_atual: form.recorrencia === 'parcela' ? parseInt(form.parcela_atual) : null,
         parcela_total: form.recorrencia === 'parcela' ? parseInt(form.parcela_total) : null,

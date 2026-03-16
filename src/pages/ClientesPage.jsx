@@ -1,20 +1,17 @@
 import { useState } from 'react'
 import ListaClientes from '../components/Clientes/ListaClientes'
 import NovoCliente from '../components/Clientes/NovoCliente'
-import { useClientes } from '../hooks/useClientes'
+import { useClientesComStatus } from '../hooks/useClientes'
 import { formatCurrency } from '../utils/formatters'
 import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
+import { TrendingUp, CheckCircle, Clock } from 'lucide-react'
 
 export default function ClientesPage() {
   const [contexto, setContexto] = useState('todos')
   const [showForm, setShowForm] = useState(false)
-  const { clientes, loading, error, refresh } = useClientes()
+  const { clientes, pagosIds, loading, error, refresh, handleTogglePago, calcTotais } = useClientesComStatus()
 
-  const ativos = clientes.filter(c => c.status === 'ativo')
-  const mensais = ativos.filter(c => c.tipo === 'mensal')
-  const totalReceitas = mensais.reduce((s, c) => s + Number(c.valor), 0)
-  const projecaoAnual = totalReceitas * 12
-  const totalClientes = ativos.length
+  const { total: receitaTotal, recebido: receitaRecebida, futuro: receitaFutura } = calcTotais(contexto)
 
   const filtered = contexto === 'todos'
     ? clientes
@@ -25,31 +22,43 @@ export default function ClientesPage() {
       {/* Metric cards */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">💰 Receita Mensal</div>
-          <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(totalReceitas)}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <TrendingUp size={12} />
+            Receita Total
           </div>
+          <div className="text-lg font-semibold text-green-600">
+            {loading ? '...' : formatCurrency(receitaTotal)}
+          </div>
+          <div className="text-xs text-muted-foreground">esperada este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">📈 Projeção Anual</div>
-          <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(projecaoAnual)}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <CheckCircle size={12} />
+            Recebida
           </div>
+          <div className="text-lg font-semibold text-green-600">
+            {loading ? '...' : formatCurrency(receitaRecebida)}
+          </div>
+          <div className="text-xs text-muted-foreground">confirmada este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">👥 Clientes Ativos</div>
-          <div className="text-lg font-semibold">
-            {loading ? '...' : totalClientes}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <Clock size={12} />
+            A Receber
           </div>
+          <div className={`text-lg font-semibold ${receitaFutura > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+            {loading ? '...' : formatCurrency(receitaFutura)}
+          </div>
+          <div className="text-xs text-muted-foreground">pendente este mês</div>
         </div>
       </div>
 
-      {/* Filtro contexto com Tabs */}
+      {/* Filtro contexto */}
       <Tabs value={contexto} onValueChange={setContexto} className="mb-4">
         <TabsList>
           <TabsTrigger value="todos">Tudo</TabsTrigger>
-          <TabsTrigger value="empresa">💼 Empresa</TabsTrigger>
-          <TabsTrigger value="pessoal">🏠 Pessoal</TabsTrigger>
+          <TabsTrigger value="empresa">Empresa</TabsTrigger>
+          <TabsTrigger value="pessoal">Pessoal</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -59,7 +68,13 @@ export default function ClientesPage() {
         </div>
       )}
 
-      <ListaClientes clientes={filtered} loading={loading} refresh={refresh} />
+      <ListaClientes
+        clientes={filtered}
+        loading={loading}
+        refresh={refresh}
+        pagosIds={pagosIds}
+        onTogglePago={handleTogglePago}
+      />
 
       <button
         className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"

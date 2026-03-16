@@ -1,45 +1,60 @@
+import { useState } from 'react'
 import ListaDespesasFixas from '../components/Contas/ListaDespesasFixas'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
-import { useDespesasFixas } from '../hooks/useDespesasFixas'
-import { useState } from 'react'
+import { useDespesasComStatus } from '../hooks/useDespesasFixas'
 import { formatCurrency } from '../utils/formatters'
-import Button from '../components/UI/Button'
+import { TrendingDown, CheckCircle, Clock } from 'lucide-react'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
-  const { despesas, allDespesas, loading, error, contextoFilter, setContextoFilter, refresh } = useDespesasFixas()
+  const {
+    despesas,
+    allDespesas,
+    pagosNomes,
+    loading,
+    error,
+    contextoFilter,
+    setContextoFilter,
+    refresh,
+    handleTogglePago,
+    calcTotais,
+  } = useDespesasComStatus()
 
-  const gastoMensalEmpresa = allDespesas
-    .filter(d => d.contexto === 'empresa')
-    .reduce((s, d) => s + Number(d.valor), 0)
-
-  const gastoMensalPessoal = allDespesas
-    .filter(d => d.contexto === 'pessoal')
-    .reduce((s, d) => s + Number(d.valor), 0)
-
-  const gastoMensalTotal = gastoMensalEmpresa + gastoMensalPessoal
+  const { total: despesasTotal, pago: despesasPagas, futuro: despesasFuturas } = calcTotais(contextoFilter)
 
   return (
     <>
       {/* Metric cards */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">💸 Gasto Mensal</div>
-          <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(gastoMensalTotal)}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <TrendingDown size={12} />
+            Despesas Totais
           </div>
+          <div className="text-lg font-semibold text-destructive">
+            {loading ? '...' : formatCurrency(despesasTotal)}
+          </div>
+          <div className="text-xs text-muted-foreground">esperadas este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">💼 Empresa</div>
-          <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(gastoMensalEmpresa)}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <CheckCircle size={12} />
+            Pagas
           </div>
+          <div className="text-lg font-semibold text-destructive">
+            {loading ? '...' : formatCurrency(despesasPagas)}
+          </div>
+          <div className="text-xs text-muted-foreground">confirmadas este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="text-xs text-muted-foreground mb-1">🏠 Pessoal</div>
-          <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(gastoMensalPessoal)}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <Clock size={12} />
+            A Pagar
           </div>
+          <div className={`text-lg font-semibold ${despesasFuturas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+            {loading ? '...' : formatCurrency(despesasFuturas)}
+          </div>
+          <div className="text-xs text-muted-foreground">pendentes este mês</div>
         </div>
       </div>
 
@@ -56,6 +71,8 @@ export default function ContasPage() {
         contextoFilter={contextoFilter}
         setContextoFilter={setContextoFilter}
         refresh={refresh}
+        pagosNomes={pagosNomes}
+        onTogglePago={handleTogglePago}
       />
 
       <button

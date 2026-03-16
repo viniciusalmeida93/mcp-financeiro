@@ -1,20 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import { Tabs, TabsList, TabsTrigger } from '../UI/tabs'
-import { createLancamento, deleteLancamento, gerarNFParaCliente, createCliente } from '../../services/database'
+import { gerarNFParaCliente, createCliente } from '../../services/database'
 import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
-import { toDateString } from '../../utils/dateHelpers'
-import { supabase } from '../../services/supabase'
-import { getDaysInMonth } from 'date-fns'
-
-function getLastDayOfMes(mes) {
-  const [year, month] = mes.split('-').map(Number)
-  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
-}
 
 const TIPO_FILTER = [
   { value: 'todos', label: 'Todos' },
@@ -22,59 +14,14 @@ const TIPO_FILTER = [
   { value: 'pontual', label: 'Pontual' },
 ]
 
-export default function ListaClientes({ clientes, loading, refresh }) {
+export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago }) {
   const [tipoFilter, setTipoFilter] = useState('todos')
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
-  const [pagosIds, setPagosIds] = useState(new Set())
-  const [lancamentosMap, setLancamentosMap] = useState({}) // cliente_id → lancamento_id
-
-  useEffect(() => {
-    const mes = getCurrentMes()
-    supabase
-      .from('lancamentos')
-      .select('id, cliente_id')
-      .eq('tipo', 'entrada')
-      .not('cliente_id', 'is', null)
-      .gte('data', `${mes}-01`)
-      .lte('data', getLastDayOfMes(mes))
-      .then(({ data }) => {
-        if (data) {
-          setPagosIds(new Set(data.map(l => l.cliente_id)))
-          const map = {}
-          data.forEach(l => { map[l.cliente_id] = l.id })
-          setLancamentosMap(map)
-        }
-      })
-  }, [clientes])
 
   const filtered = tipoFilter === 'todos'
     ? clientes
     : clientes.filter(c => c.tipo === tipoFilter)
-
-  const handleTogglePago = async (cliente) => {
-    const isPago = pagosIds.has(cliente.id)
-    try {
-      if (isPago) {
-        const lancId = lancamentosMap[cliente.id]
-        if (lancId) await deleteLancamento(lancId)
-      } else {
-        await createLancamento({
-          tipo: 'entrada',
-          valor: cliente.valor,
-          descricao: cliente.nome,
-          categoria: 'cliente',
-          forma_pagamento: 'pix',
-          data: toDateString(new Date()),
-          contexto: cliente.contexto || 'empresa',
-          cliente_id: cliente.id,
-        })
-      }
-      refresh()
-    } catch (err) {
-      alert('Erro: ' + err.message)
-    }
-  }
 
   const handleCobrar = async (cliente) => {
     if (!cliente.email_cobranca) {
@@ -116,7 +63,6 @@ export default function ListaClientes({ clientes, loading, refresh }) {
 
   return (
     <div>
-      {/* Tipo filter with Tabs */}
       <Tabs value={tipoFilter} onValueChange={setTipoFilter} className="mb-4">
         <TabsList>
           {TIPO_FILTER.map(f => (
@@ -135,7 +81,7 @@ export default function ListaClientes({ clientes, loading, refresh }) {
             <ClienteItem
               key={c.id}
               cliente={c}
-              onTogglePago={handleTogglePago}
+              onTogglePago={onTogglePago}
               onGerarNF={handleGerarNF}
               onEdit={handleEdit}
               onDuplicate={handleDuplicate}

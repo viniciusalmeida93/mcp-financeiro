@@ -11,11 +11,6 @@ const TIPOS = [
   { value: 'pontual', label: 'Pontual (Projeto)' },
 ]
 
-const STATUS_OPTS = [
-  { value: 'ativo', label: 'Ativo' },
-  { value: 'inativo', label: 'Inativo' },
-]
-
 const EMPTY_FORM = {
   nome: '',
   email_cobranca: '',
@@ -106,7 +101,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
     }
     if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
     if (form.tipo === 'mensal') {
-      if (!form.dia_vencimento || Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31) {
+      if (form.dia_vencimento && (Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31)) {
         errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
       }
     } else {
@@ -127,7 +122,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         nome: form.nome.trim(),
         email_cobranca: form.email_cobranca || null,
         valor: Number(form.valor),
-        dia_vencimento: form.tipo === 'mensal' ? Number(form.dia_vencimento) : null,
+        dia_vencimento: form.tipo === 'mensal' ? (Number(form.dia_vencimento) || new Date().getDate()) : null,
         tipo: form.tipo,
         status: form.status,
         servico: form.servico || null,
@@ -229,20 +224,12 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         error={errors.email_cobranca}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <Select
-          label="Tipo"
-          options={TIPOS}
-          value={form.tipo}
-          onChange={e => set('tipo', e.target.value)}
-        />
-        <Select
-          label="Status"
-          options={STATUS_OPTS}
-          value={form.status}
-          onChange={e => set('status', e.target.value)}
-        />
-      </div>
+      <Select
+        label="Tipo"
+        options={TIPOS}
+        value={form.tipo}
+        onChange={e => set('tipo', e.target.value)}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <Input

@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { Card, CardContent } from '../UI/Card'
 import Badge from '../UI/Badge'
 import Button from '../UI/Button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 const BANDEIRA_ICONS = {
   visa: '💳',
@@ -19,7 +21,9 @@ const CopyIcon = () => (
   </svg>
 )
 
-export default function CartaoItem({ cartao, onEdit, onDelete, onDuplicate }) {
+export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, onDuplicate }) {
+  const [open, setOpen] = useState(false)
+
   const utilizacao = cartao.limite > 0
     ? Math.round((cartao.fatura_atual / cartao.limite) * 100)
     : 0
@@ -34,12 +38,13 @@ export default function CartaoItem({ cartao, onEdit, onDelete, onDuplicate }) {
       ? 'bg-yellow-500'
       : 'bg-green-500'
   const bandeira = cartao.bandeira?.toLowerCase() || 'outro'
+  const faturaEstimada = despesas.reduce((s, d) => s + Number(d.valor), 0)
 
   return (
     <Card className="overflow-hidden">
       {/* Cartão visual */}
       <div
-        className={`p-4 text-white relative ${cartao.contexto === 'pessoal' ? '' : ''}`}
+        className="p-4 text-white relative"
         style={
           cartao.cor
             ? { background: `linear-gradient(135deg, ${cartao.cor} 0%, ${cartao.cor}cc 100%)` }
@@ -96,6 +101,32 @@ export default function CartaoItem({ cartao, onEdit, onDelete, onDuplicate }) {
             />
           </div>
         </div>
+
+        {/* Fatura Estimada (despesas vinculadas) */}
+        {despesas.length > 0 && (
+          <div className="border-t pt-3 mb-4">
+            <button
+              className="w-full flex items-center justify-between text-sm"
+              onClick={() => setOpen(o => !o)}
+            >
+              <span className="text-muted-foreground">Fatura Estimada</span>
+              <span className="flex items-center gap-1 font-semibold">
+                {formatCurrency(faturaEstimada)}
+                {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </span>
+            </button>
+            {open && (
+              <div className="mt-2 space-y-1">
+                {despesas.map(d => (
+                  <div key={d.id} className="flex justify-between text-xs text-muted-foreground py-0.5">
+                    <span>{d.nome}</span>
+                    <span>{formatCurrency(d.valor)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-2">

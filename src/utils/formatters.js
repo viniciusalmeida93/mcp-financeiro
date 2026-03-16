@@ -84,3 +84,21 @@ export const getLastNMeses = (n = 12) => {
   }
   return meses
 }
+
+/**
+ * Get all months from startMes (YYYY-MM) to current month, most recent first
+ */
+export const getMesesFrom = (startMes) => {
+  const meses = []
+  const [sy, sm] = startMes.split('-').map(Number)
+  const start = new Date(sy, sm - 1, 1)
+  const now = new Date()
+  let cursor = new Date(now.getFullYear(), now.getMonth(), 1)
+  while (cursor >= start) {
+    const y = cursor.getFullYear()
+    const m = String(cursor.getMonth() + 1).padStart(2, '0')
+    meses.push(`${y}-${m}`)
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1)
+  }
+  return meses
+}

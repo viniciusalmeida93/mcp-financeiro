@@ -1,99 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import ContaItem from './ContaItem'
 import NovaDespesaFixa from './NovaDespesaFixa'
 import ContextToggle from '../UI/ContextToggle'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
-import { Card, CardHeader, CardContent, CardTitle } from '../UI/Card'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../UI/table'
-import { formatCurrency, getCurrentMes } from '../../utils/formatters'
-import { deleteDespesaFixa, deleteLancamento, createLancamento, createDespesaFixa } from '../../services/database'
-import { supabase } from '../../services/supabase'
-import { toDateString } from '../../utils/dateHelpers'
-import { getDaysInMonth } from 'date-fns'
+import { deleteDespesaFixa, createDespesaFixa } from '../../services/database'
 
-function getLastDayOfMes(mes) {
-  const [year, month] = mes.split('-').map(Number)
-  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
-}
-
-export default function ListaDespesasFixas({ despesas, allDespesas, loading, contextoFilter, setContextoFilter, refresh }) {
+export default function ListaDespesasFixas({
+  despesas,
+  allDespesas,
+  loading,
+  contextoFilter,
+  setContextoFilter,
+  refresh,
+  pagosNomes = new Set(),
+  onTogglePago,
+}) {
   const [showForm, setShowForm] = useState(false)
   const [despesaEdit, setDespesaEdit] = useState(null)
-  const [pagosNomes, setPagosNomes] = useState(new Set())
-  const [lancamentosMap, setLancamentosMap] = useState({}) // nome → lancamento_id
-
-  useEffect(() => {
-    const mes = getCurrentMes()
-    const today = new Date().getDate()
-
-    supabase
-      .from('lancamentos')
-      .select('id, descricao')
-      .eq('tipo', 'saida')
-      .gte('data', `${mes}-01`)
-      .lte('data', getLastDayOfMes(mes))
-      .then(async ({ data }) => {
-        if (!data) return
-
-        const existingNomes = new Set(data.map(l => l.descricao))
-        const map = {}
-        data.forEach(l => { map[l.descricao] = l.id })
-
-        // Auto-mark credit card expenses as paid when dia_vencimento <= today
-        const candidates = allDespesas.filter(d =>
-          d.forma_pagamento?.startsWith('cartao:') &&
-          d.dia_vencimento <= today &&
-          !existingNomes.has(d.nome)
-        )
-
-        for (const d of candidates) {
-          try {
-            const newLanc = await createLancamento({
-              tipo: 'saida',
-              valor: d.valor,
-              descricao: d.nome,
-              categoria: d.categoria,
-              forma_pagamento: d.forma_pagamento,
-              data: toDateString(new Date()),
-              contexto: d.contexto,
-            })
-            if (newLanc) {
-              existingNomes.add(d.nome)
-              map[d.nome] = newLanc.id
-            }
-          } catch (err) {
-            console.error('Auto-pay error for', d.nome, err)
-          }
-        }
-
-        setPagosNomes(new Set(existingNomes))
-        setLancamentosMap(map)
-      })
-  }, [despesas])
-
-  const handleTogglePago = async (conta) => {
-    const isPago = pagosNomes.has(conta.nome)
-    try {
-      if (isPago) {
-        const lancId = lancamentosMap[conta.nome]
-        if (lancId) await deleteLancamento(lancId)
-      } else {
-        await createLancamento({
-          tipo: 'saida',
-          valor: conta.valor,
-          descricao: conta.nome,
-          categoria: conta.categoria,
-          forma_pagamento: conta.forma_pagamento,
-          data: toDateString(new Date()),
-          contexto: conta.contexto,
-        })
-      }
-      refresh()
-    } catch (err) {
-      alert('Erro ao registrar pagamento: ' + err.message)
-    }
-  }
 
   const handleDelete = async (conta) => {
     if (!confirm(`Excluir "${conta.nome}"?`)) return
@@ -120,47 +44,8 @@ export default function ListaDespesasFixas({ despesas, allDespesas, loading, con
     }
   }
 
-  const empresa = allDespesas.filter(d => d.contexto === 'empresa')
-  const pessoal = allDespesas.filter(d => d.contexto === 'pessoal')
-  const totalEmpresa = empresa.reduce((s, d) => s + Number(d.valor), 0)
-  const totalPessoal = pessoal.reduce((s, d) => s + Number(d.valor), 0)
-
   return (
     <div>
-      {/* Summary */}
-      {!loading && (
-        <Card className="mb-4">
-          <CardContent className="pt-4 pb-4">
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="py-2 px-0 font-medium text-sm">
-                    <span className="text-muted-foreground">💼 Empresa</span>
-                  </TableCell>
-                  <TableCell className="py-2 px-0 text-right font-semibold text-sm text-primary">
-                    {formatCurrency(totalEmpresa)}/mês
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="py-2 px-0 font-medium text-sm">
-                    <span className="text-muted-foreground">🏠 Pessoal</span>
-                  </TableCell>
-                  <TableCell className="py-2 px-0 text-right font-semibold text-sm" style={{ color: 'var(--color-pessoal-primary)' }}>
-                    {formatCurrency(totalPessoal)}/mês
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-t-2">
-                  <TableCell className="py-2 px-0 font-bold text-sm">Total Fixo</TableCell>
-                  <TableCell className="py-2 px-0 text-right font-bold text-sm">
-                    {formatCurrency(totalEmpresa + totalPessoal)}/mês
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
       <ContextToggle value={contextoFilter} onChange={setContextoFilter} />
       <div className="h-4" />
 
@@ -177,7 +62,7 @@ export default function ListaDespesasFixas({ despesas, allDespesas, loading, con
               onEdit={handleEdit}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
-              onTogglePago={handleTogglePago}
+              onTogglePago={onTogglePago}
               isPago={pagosNomes.has(d.nome)}
             />
           ))}

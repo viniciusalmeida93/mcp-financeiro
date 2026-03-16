@@ -41,7 +41,10 @@ export default function ContaItem({ conta, onEdit, onDelete, onTogglePago, onDup
           )}
         </div>
         <div className={cn('text-xs text-muted-foreground mt-0.5', isPago && 'text-green-500')}>
-          {isPago ? '✓ Pago' : `Dia ${conta.dia_vencimento} · ${getCategoriaLabel(conta.categoria)} · ${getFormaPagamentoLabel(conta.forma_pagamento)}`}
+          {(() => {
+            const dateInfo = `Dia ${conta.dia_vencimento} · ${getCategoriaLabel(conta.categoria)} · ${getFormaPagamentoLabel(conta.forma_pagamento)}`
+            return isPago ? `✓ Pago · ${dateInfo}` : dateInfo
+          })()}
         </div>
       </div>
 

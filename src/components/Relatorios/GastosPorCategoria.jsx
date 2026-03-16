@@ -6,7 +6,7 @@ import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
 import Select from '../UI/Select'
 import { supabase } from '../../services/supabase'
-import { formatCurrency, formatPercent, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
+import { formatCurrency, formatPercent, getMesesFrom, formatMesAno, getCurrentMes } from '../../utils/formatters'
 import { getCategoriaLabel } from '../../constants/categorias'
 
 const COLORS = ['#00D9FF', '#FF6B35', '#70AD47', '#C00000', '#FFD700', '#9B59B6', '#E67E22', '#1ABC9C', '#E74C3C', '#3498DB']
@@ -16,7 +16,7 @@ export default function GastosPorCategoria() {
   const [contexto, setContexto] = useState('todos')
   const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(true)
-  const meses = getLastNMeses(13)
+  const meses = getMesesFrom('2026-03')
 
   useEffect(() => {
     const fetch = async () => {

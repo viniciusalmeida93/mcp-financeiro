@@ -3,12 +3,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import LoadingScreen from '../UI/LoadingScreen'
 import Select from '../UI/Select'
-import { formatCurrency, formatPercent, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
+import { formatCurrency, formatPercent, getMesesFrom, formatMesAno, getCurrentMes } from '../../utils/formatters'
 import { useFluxoMensal } from '../../hooks/useRelatorios'
 
 export default function FluxoMensal() {
   const [mes, setMes] = useState(getCurrentMes())
-  const meses = getLastNMeses(13)
+  const meses = getMesesFrom('2026-03')
   const { data, loading, error } = useFluxoMensal(mes)
 
   return (

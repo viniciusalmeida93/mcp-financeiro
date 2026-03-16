@@ -19,6 +19,8 @@ export function useDashboard() {
     saldoTotal: 0,
     totalReceitas: 0,
     totalDespesas: 0,
+    receitaEsperada: 0,
+    despesaEsperada: 0,
     economia: 0,
     receitasEmpresa: 0,
     receitasPessoal: 0,
@@ -177,12 +179,17 @@ export function useDashboard() {
         })
       }
 
+      const receitaEsperada = clientes.reduce((s, c) => s + Number(c.valor), 0)
+      const despesaEsperada = despesas.reduce((s, d) => s + Number(d.valor), 0)
+
       setData({
         saldoEmpresa,
         saldoPessoal,
         saldoTotal: saldoEmpresa + saldoPessoal,
         totalReceitas,
         totalDespesas,
+        receitaEsperada,
+        despesaEsperada,
         economia,
         receitasEmpresa,
         receitasPessoal,
