@@ -23,7 +23,7 @@ const navItems = [
 export default function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-card border-t border-border z-50">
-      <div className="flex h-full overflow-x-auto scrollbar-none">
+      <div className="flex h-full overflow-x-auto scrollbar-none" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
         {navItems.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}

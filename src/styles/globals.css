@@ -111,6 +111,7 @@ body {
 .scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
