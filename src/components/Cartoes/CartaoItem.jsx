@@ -75,17 +75,9 @@ export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, on
 
       <CardContent className="pt-4">
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <div className="text-xs text-muted-foreground">Limite</div>
-            <div className="font-semibold">{formatCurrency(cartao.limite)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground">Fatura Atual</div>
-            <div className={`font-semibold ${utilizacaoColor}`}>
-              {formatCurrency(cartao.fatura_atual)}
-            </div>
-          </div>
+        <div className="mb-4">
+          <div className="text-xs text-muted-foreground">Limite</div>
+          <div className="font-semibold">{formatCurrency(cartao.limite)}</div>
         </div>
 
         {/* Progress bar */}

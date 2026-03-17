@@ -86,14 +86,25 @@ export const getLastNMeses = (n = 12) => {
 }
 
 /**
- * Get all months from startMes (YYYY-MM) to current month, most recent first
+ * Get all months from startMes to endMes (YYYY-MM), most recent first.
+ * If endMes is in the past, uses current month instead.
  */
-export const getMesesFrom = (startMes) => {
+export const getMesesFrom = (startMes, endMes) => {
   const meses = []
   const [sy, sm] = startMes.split('-').map(Number)
   const start = new Date(sy, sm - 1, 1)
   const now = new Date()
-  let cursor = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  let end
+  if (endMes) {
+    const [ey, em] = endMes.split('-').map(Number)
+    const endFixed = new Date(ey, em - 1, 1)
+    end = endFixed > now ? endFixed : new Date(now.getFullYear(), now.getMonth(), 1)
+  } else {
+    end = new Date(now.getFullYear(), now.getMonth(), 1)
+  }
+
+  let cursor = new Date(end)
   while (cursor >= start) {
     const y = cursor.getFullYear()
     const m = String(cursor.getMonth() + 1).padStart(2, '0')

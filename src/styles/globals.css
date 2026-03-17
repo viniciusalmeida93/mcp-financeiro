@@ -107,3 +107,11 @@ body {
   color: hsl(var(--foreground));
   font-family: Inter, system-ui, sans-serif;
 }
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
