@@ -7,8 +7,10 @@ import {
   CreditCard,
   Tag,
   BarChart2,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '../../contexts/AuthContext'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -21,6 +23,8 @@ const navItems = [
 ]
 
 export default function Sidebar() {
+  const { signOut } = useAuth()
+
   return (
     <aside className="hidden md:flex flex-col w-60 h-screen bg-sidebar border-r border-sidebar-border shrink-0">
       {/* Logo */}
@@ -50,6 +54,17 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-4 border-t border-sidebar-border">
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-red-400 transition-colors"
+        >
+          <LogOut size={18} />
+          Sair
+        </button>
+      </div>
     </aside>
   )
 }

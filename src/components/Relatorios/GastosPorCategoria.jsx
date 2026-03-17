@@ -51,7 +51,7 @@ export default function GastosPorCategoria() {
   return (
     <div className="space-y-4 mt-2">
       <Select
-        options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
+        options={[...meses].reverse().map(m => ({ value: m, label: formatMesAno(m) }))}
         value={mes}
         onChange={e => setMes(e.target.value)}
       />
