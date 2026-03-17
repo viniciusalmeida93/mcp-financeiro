@@ -10,7 +10,7 @@ function getLastDayOfMes(mes) {
   return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
 }
 
-export function useDashboard() {
+export function useDashboard(mes) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [data, setData] = useState({
@@ -41,10 +41,11 @@ export function useDashboard() {
     setError(null)
     try {
       const hoje = new Date()
-      const mesAtual = format(hoje, 'yyyy-MM')
+      const mesAtual = mes || format(hoje, 'yyyy-MM')
       const inicioMes = `${mesAtual}-01`
-      const fimSemana = toDateString(addDays(hoje, 7))
       const hojeStr = toDateString(hoje)
+      const [mesAno, mesNum] = mesAtual.split('-').map(Number)
+      const isCurrentMes = mesAtual === format(hoje, 'yyyy-MM')
 
       // Fetch current month lancamentos (with client name)
       const { data: lancamentos, error: lErr } = await supabase
@@ -108,27 +109,37 @@ export function useDashboard() {
       const saldoEmpresa = receitasEmpresa - gastosEmpresa
       const saldoPessoal = receitasPessoal - gastosPessoal
 
-      // Upcoming bills (next 7 days)
+      // Bills for selected month
       const proximasContas = despesas
-        .map(d => ({
-          ...d,
-          proximoVencimento: getProximoVencimento(d.dia_vencimento),
-        }))
+        .map(d => {
+          const dia = d.dia_vencimento || 1
+          const vencimento = new Date(mesAno, mesNum - 1, dia)
+          return { ...d, proximoVencimento: vencimento }
+        })
         .filter(d => {
           const venc = toDateString(d.proximoVencimento)
-          return venc >= hojeStr && venc <= fimSemana
+          if (isCurrentMes) {
+            const fimSemana = toDateString(addDays(hoje, 7))
+            return venc >= hojeStr && venc <= fimSemana
+          }
+          return true
         })
         .sort((a, b) => a.proximoVencimento - b.proximoVencimento)
 
-      // Clients to receive (next 7 days)
+      // Clients for selected month
       const clientesAReceber = clientes
-        .map(c => ({
-          ...c,
-          proximoVencimento: getProximoVencimento(c.dia_vencimento),
-        }))
+        .map(c => {
+          const dia = c.dia_vencimento || 1
+          const vencimento = new Date(mesAno, mesNum - 1, dia)
+          return { ...c, proximoVencimento: vencimento }
+        })
         .filter(c => {
           const venc = toDateString(c.proximoVencimento)
-          return venc >= hojeStr && venc <= fimSemana
+          if (isCurrentMes) {
+            const fimSemana = toDateString(addDays(hoje, 7))
+            return venc >= hojeStr && venc <= fimSemana
+          }
+          return true
         })
         .sort((a, b) => a.proximoVencimento - b.proximoVencimento)
 
@@ -160,17 +171,18 @@ export function useDashboard() {
       // Last 8 transactions
       const ultimasTransacoes = lancamentos.slice(0, 8)
 
-      // Daily evolution for chart (days 1..lastDay of month)
-      const lastDay = getDaysInMonth(new Date(hoje.getFullYear(), hoje.getMonth()))
+      // Daily evolution for chart
+      const lastDay = getDaysInMonth(new Date(mesAno, mesNum - 1))
+      const maxDay = isCurrentMes ? Math.min(lastDay, hoje.getDate()) : lastDay
       const dailyMap = {}
       lancamentos.forEach(l => {
-        const day = l.data.slice(8, 10) // DD from YYYY-MM-DD
+        const day = l.data.slice(8, 10)
         if (!dailyMap[day]) dailyMap[day] = { receitas: 0, despesas: 0 }
         if (l.tipo === 'entrada') dailyMap[day].receitas += Number(l.valor)
         if (l.tipo === 'saida') dailyMap[day].despesas += Number(l.valor)
       })
       const evolucaoDiaria = []
-      for (let d = 1; d <= Math.min(lastDay, hoje.getDate()); d++) {
+      for (let d = 1; d <= maxDay; d++) {
         const key = String(d).padStart(2, '0')
         evolucaoDiaria.push({
           dia: `${d}`,
@@ -209,64 +221,76 @@ export function useDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [mes])
 
   const marcarContaPaga = useCallback(async (conta) => {
+    const hoje = new Date()
+    const mesAtual = mes || format(hoje, 'yyyy-MM')
+    const [mesAno, mesNum] = mesAtual.split('-').map(Number)
+    const dia = conta.dia_vencimento || hoje.getDate()
+    const dataLanc = `${mesAtual}-${String(Math.min(dia, getDaysInMonth(new Date(mesAno, mesNum - 1)))).padStart(2, '0')}`
     await createLancamento({
       tipo: 'saida',
       valor: conta.valor,
       descricao: conta.nome,
       categoria: conta.categoria,
       forma_pagamento: conta.forma_pagamento,
-      data: toDateString(new Date()),
+      data: dataLanc,
       contexto: conta.contexto,
     })
     fetchDashboard()
-  }, [fetchDashboard])
+  }, [fetchDashboard, mes])
 
   const desmarcarContaPaga = useCallback(async (conta) => {
-    const mes = format(new Date(), 'yyyy-MM')
+    const mesAtual = mes || format(new Date(), 'yyyy-MM')
     const { data: rows } = await supabase
       .from('lancamentos')
       .select('id')
       .eq('tipo', 'saida')
       .eq('descricao', conta.nome)
-      .gte('data', `${mes}-01`)
+      .gte('data', `${mesAtual}-01`)
+      .lte('data', getLastDayOfMes(mesAtual))
       .limit(1)
     if (rows?.[0]) {
       await deleteLancamento(rows[0].id)
       fetchDashboard()
     }
-  }, [fetchDashboard])
+  }, [fetchDashboard, mes])
 
   const marcarClienteRecebido = useCallback(async (cliente) => {
+    const hoje = new Date()
+    const mesAtual = mes || format(hoje, 'yyyy-MM')
+    const [mesAno, mesNum] = mesAtual.split('-').map(Number)
+    const dia = cliente.dia_vencimento || hoje.getDate()
+    const dataLanc = `${mesAtual}-${String(Math.min(dia, getDaysInMonth(new Date(mesAno, mesNum - 1)))).padStart(2, '0')}`
     await createLancamento({
       tipo: 'entrada',
       valor: cliente.valor,
       descricao: cliente.nome,
       categoria: 'receita_servico',
       forma_pagamento: 'transferencia',
-      data: toDateString(new Date()),
+      data: dataLanc,
       contexto: 'empresa',
       cliente_id: cliente.id,
     })
     fetchDashboard()
-  }, [fetchDashboard])
+  }, [fetchDashboard, mes])
 
   const desmarcarClienteRecebido = useCallback(async (cliente) => {
-    const mes = format(new Date(), 'yyyy-MM')
+    const mesAtual = mes || format(new Date(), 'yyyy-MM')
     const { data: rows } = await supabase
       .from('lancamentos')
       .select('id')
       .eq('tipo', 'entrada')
       .eq('cliente_id', cliente.id)
-      .gte('data', `${mes}-01`)
+      .gte('data', `${mesAtual}-01`)
+      .lte('data', getLastDayOfMes(mesAtual))
       .limit(1)
     if (rows?.[0]) {
       await deleteLancamento(rows[0].id)
       fetchDashboard()
     }
-  }, [fetchDashboard])
+  }, [fetchDashboard, mes])
 
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
