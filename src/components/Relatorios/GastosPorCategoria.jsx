@@ -4,19 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import ContextToggle from '../UI/ContextToggle'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
-import Select from '../UI/Select'
 import { supabase } from '../../services/supabase'
-import { formatCurrency, formatPercent, getMesesFrom, formatMesAno, getCurrentMes } from '../../utils/formatters'
+import { formatCurrency, formatPercent } from '../../utils/formatters'
+import { useMes } from '../../contexts/MesContext'
 import { getCategoriaLabel } from '../../constants/categorias'
 
 const COLORS = ['#00D9FF', '#FF6B35', '#70AD47', '#C00000', '#FFD700', '#9B59B6', '#E67E22', '#1ABC9C', '#E74C3C', '#3498DB']
 
 export default function GastosPorCategoria() {
-  const [mes, setMes] = useState(getCurrentMes())
+  const { mes } = useMes()
   const [contexto, setContexto] = useState('todos')
   const [categorias, setCategorias] = useState([])
   const [loading, setLoading] = useState(true)
-  const meses = getMesesFrom('2026-03', '2026-12')
 
   useEffect(() => {
     const fetch = async () => {
@@ -50,12 +49,6 @@ export default function GastosPorCategoria() {
 
   return (
     <div className="space-y-4 mt-2">
-      <Select
-        options={[...meses].reverse().map(m => ({ value: m, label: formatMesAno(m) }))}
-        value={mes}
-        onChange={e => setMes(e.target.value)}
-      />
-
       <ContextToggle value={contexto} onChange={setContexto} />
 
       {loading ? <LoadingScreen /> : categorias.length === 0 ? (

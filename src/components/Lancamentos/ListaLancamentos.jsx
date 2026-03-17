@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import LancamentoItem from './LancamentoItem'
 import ContextToggle from '../UI/ContextToggle'
-import Select from '../UI/Select'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import { Card, CardContent } from '@/components/UI/Card'
@@ -18,8 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/UI/alert-dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/UI/tabs'
-import { getLastNMeses, formatMesAno, formatCurrency } from '../../utils/formatters'
-import { getCategoriasByContexto } from '../../constants/categorias'
+import { formatCurrency } from '../../utils/formatters'
 import { deleteLancamento, deleteGrupoParcelas } from '../../services/database'
 import { Search } from 'lucide-react'
 
@@ -31,10 +29,7 @@ const TIPOS_FILTER = [
 
 export default function ListaLancamentos({ lancamentos, loading, filters, updateFilter, refresh }) {
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [deleteAllParcelas, setDeleteAllParcelas] = useState(false)
   const [showParcelasDialog, setShowParcelasDialog] = useState(false)
-
-  const meses = getLastNMeses(13)
 
   const handleDeleteRequest = (lancamento) => {
     setDeleteTarget(lancamento)
@@ -66,13 +61,6 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
 
   return (
     <div className="space-y-3">
-      {/* Month selector */}
-      <Select
-        options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
-        value={filters.mes}
-        onChange={e => updateFilter('mes', e.target.value)}
-      />
-
       {/* Context toggle */}
       <ContextToggle value={filters.contexto} onChange={v => updateFilter('contexto', v)} />
 

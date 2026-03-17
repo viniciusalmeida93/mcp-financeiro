@@ -8,11 +8,12 @@ import NovoCliente from '../components/Clientes/NovoCliente'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
 import Select from '../components/UI/Select'
 import { useDashboard } from '../hooks/useDashboard'
-import { getMesesFrom, formatMesAno, getCurrentMes } from '../utils/formatters'
+import { useMes } from '../contexts/MesContext'
+import { getMesesFrom, formatMesAno } from '../utils/formatters'
 import { Plus } from 'lucide-react'
 
 export default function DashboardPage() {
-  const [mes, setMes] = useState(getCurrentMes())
+  const { mes, setMes } = useMes()
   const meses = getMesesFrom('2026-03', '2026-12')
   const dashboard = useDashboard(mes)
   const [showPicker, setShowPicker] = useState(false)

@@ -4,7 +4,8 @@ import NovaCategoria from '../components/Categorias/NovaCategoria'
 import Button from '../components/UI/Button'
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
 import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
-import { formatCurrency, formatMesAno, getCurrentMes, getLastNMeses } from '../utils/formatters'
+import { formatCurrency, formatMesAno } from '../utils/formatters'
+import { useMes } from '../contexts/MesContext'
 import { getCategoriaLabel } from '../constants/categorias'
 import { createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
 import { getDaysInMonth } from 'date-fns'
@@ -36,7 +37,7 @@ const CATEGORIA_ICONS = {
 }
 
 export default function CategoriasPage() {
-  const [mes, setMes] = useState(getCurrentMes())
+  const { mes } = useMes()
   const [filtro, setFiltro] = useState('todas') // todas | despesas | receitas
   const [loading, setLoading] = useState(true)
   const [despesasCats, setDespesasCats] = useState([])
@@ -45,8 +46,6 @@ export default function CategoriasPage() {
   const [showForm, setShowForm] = useState(false)
   const [categoriaEdit, setCategoriaEdit] = useState(null)
   const [categoriasCustom, setCategoriasCustom] = useState([])
-
-  const meses = getLastNMeses(12)
 
   const fetchCategorias = useCallback(async () => {
     setLoading(true)
@@ -174,19 +173,8 @@ export default function CategoriasPage() {
 
   return (
     <>
-      {/* Month selector + filters */}
+      {/* Filters */}
       <div className="flex gap-2 items-center mb-4 flex-wrap">
-        <select
-          value={mes}
-          onChange={e => setMes(e.target.value)}
-          className="h-9 text-sm px-2 rounded-md border border-input bg-background"
-          style={{ width: 'auto', paddingRight: '1.5rem' }}
-        >
-          {meses.map(m => (
-            <option key={m} value={m}>{formatMesAno(m)}</option>
-          ))}
-        </select>
-
         <Tabs value={filtro} onValueChange={setFiltro}>
           <TabsList>
             <TabsTrigger value="todas">Todas</TabsTrigger>

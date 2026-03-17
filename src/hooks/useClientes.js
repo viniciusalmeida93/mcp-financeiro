@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getClientes, createLancamento, deleteLancamento } from '../services/database'
 import { supabase } from '../services/supabase'
-import { getCurrentMes } from '../utils/formatters'
+import { useMes } from '../contexts/MesContext'
 import { getDaysInMonth } from 'date-fns'
 
 function getLastDay(mes) {
@@ -39,7 +39,7 @@ export function useClientesComStatus() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const mes = getCurrentMes()
+  const { mes } = useMes()
 
   const fetchAll = useCallback(async () => {
     setLoading(true)

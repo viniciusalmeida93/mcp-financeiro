@@ -1,23 +1,16 @@
-import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import LoadingScreen from '../UI/LoadingScreen'
-import Select from '../UI/Select'
-import { formatCurrency, formatPercent, getMesesFrom, formatMesAno, getCurrentMes } from '../../utils/formatters'
+import { formatCurrency, formatPercent } from '../../utils/formatters'
+import { useMes } from '../../contexts/MesContext'
 import { useFluxoMensal } from '../../hooks/useRelatorios'
 
 export default function FluxoMensal() {
-  const [mes, setMes] = useState(getCurrentMes())
-  const meses = getMesesFrom('2026-03', '2026-12')
+  const { mes } = useMes()
   const { data, loading, error } = useFluxoMensal(mes)
 
   return (
     <div className="space-y-4 mt-2">
-      <Select
-        options={[...meses].reverse().map(m => ({ value: m, label: formatMesAno(m) }))}
-        value={mes}
-        onChange={e => setMes(e.target.value)}
-      />
 
       {loading ? <LoadingScreen /> : error ? (
         <p className="text-sm text-destructive">{error}</p>

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { MesProvider } from './contexts/MesContext'
 import AppWrapper from './components/Layout/AppWrapper'
 import { Toaster } from '@/components/UI/sonner'
 import LoginPage from './pages/LoginPage'
@@ -45,7 +46,9 @@ function App() {
     <BrowserRouter>
       <Toaster richColors position="top-center" />
       <AuthProvider>
-        <AppRoutes />
+        <MesProvider>
+          <AppRoutes />
+        </MesProvider>
       </AuthProvider>
     </BrowserRouter>
   )
