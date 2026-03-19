@@ -144,6 +144,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
               valor,
               descricao: form.nome,
               categoria: form.servico || 'receita_servico',
+              forma_pagamento: 'transferencia',
               data: parcelas[i].data,
               contexto: form.contexto,
               cliente_id: novoCliente.id,
