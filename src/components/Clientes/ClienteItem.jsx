@@ -10,7 +10,7 @@ const CopyIcon = () => (
   </svg>
 )
 
-export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, isPago }) {
+export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
   const isAtivo = cliente.status === 'ativo'
   const isPontual = cliente.tipo === 'pontual'
 
@@ -75,6 +75,11 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
         {onGerarNF && cliente.precisa_nf && (
           <Button variant="secondary" size="sm" onClick={() => onGerarNF(cliente)} title="Gerar NF">
             📄
+          </Button>
+        )}
+        {onDelete && (
+          <Button variant="ghost" size="sm" onClick={() => onDelete(cliente)} title="Excluir">
+            🗑️
           </Button>
         )}
       </div>

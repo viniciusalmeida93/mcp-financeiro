@@ -4,7 +4,7 @@ import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import { Tabs, TabsList, TabsTrigger } from '../UI/tabs'
-import { gerarNFParaCliente, createCliente } from '../../services/database'
+import { gerarNFParaCliente, createCliente, deleteCliente } from '../../services/database'
 import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
 
@@ -43,6 +43,16 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
       alert(`NF gerada para ${cliente.nome}!`)
     } catch (err) {
       alert('Erro: ' + err.message)
+    }
+  }
+
+  const handleDelete = async (cliente) => {
+    if (!confirm(`Excluir "${cliente.nome}"? Esta ação não pode ser desfeita.`)) return
+    try {
+      await deleteCliente(cliente.id)
+      refresh()
+    } catch (err) {
+      alert('Erro ao excluir: ' + err.message)
     }
   }
 
@@ -85,6 +95,7 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
               onGerarNF={handleGerarNF}
               onEdit={handleEdit}
               onDuplicate={handleDuplicate}
+              onDelete={handleDelete}
               onCobrar={handleCobrar}
               isPago={pagosIds.has(c.id)}
             />
