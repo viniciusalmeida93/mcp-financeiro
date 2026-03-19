@@ -299,19 +299,16 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
                   }}>
                     {i + 1}
                   </div>
-                  <input
+                  <Input
                     type="date"
                     value={p.data}
                     onChange={e => setParcelaData(i, e.target.value)}
-                    className="input"
+                    error={errors[`parcela_${i}`]}
                     style={{ flex: 1 }}
                   />
                   <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text)', flexShrink: 0, minWidth: 80, textAlign: 'right' }}>
                     {Number(form.valor) > 0 ? formatCurrency(valor) : 'R$ -'}
                   </span>
-                  {errors[`parcela_${i}`] && (
-                    <span style={{ color: 'var(--color-danger)', fontSize: 11 }}>*</span>
-                  )}
                 </div>
               )
             })}
