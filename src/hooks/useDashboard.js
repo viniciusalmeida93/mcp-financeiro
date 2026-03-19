@@ -21,6 +21,7 @@ export function useDashboard(mes) {
     totalDespesas: 0,
     receitaEsperada: 0,
     despesaEsperada: 0,
+    despesasPagasCount: 0,
     economia: 0,
     receitasEmpresa: 0,
     receitasPessoal: 0,
@@ -193,6 +194,7 @@ export function useDashboard(mes) {
 
       const receitaEsperada = clientes.reduce((s, c) => s + Number(c.valor), 0)
       const despesaEsperada = despesas.reduce((s, d) => s + Number(d.valor), 0)
+      const despesasPagasCount = despesas.filter(d => pagosNomes.has(d.nome)).length
 
       setData({
         saldoEmpresa,
@@ -202,6 +204,7 @@ export function useDashboard(mes) {
         totalDespesas,
         receitaEsperada,
         despesaEsperada,
+        despesasPagasCount,
         economia,
         receitasEmpresa,
         receitasPessoal,

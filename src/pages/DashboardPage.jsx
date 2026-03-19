@@ -43,6 +43,7 @@ export default function DashboardPage() {
         economia={dashboard.economia}
         receitaEsperada={dashboard.receitaEsperada}
         despesaEsperada={dashboard.despesaEsperada}
+        despesasPagasCount={dashboard.despesasPagasCount}
         loading={dashboard.loading}
       />
 
