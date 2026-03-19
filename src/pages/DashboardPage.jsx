@@ -39,7 +39,7 @@ export default function DashboardPage() {
       <MetricasDashboard
         saldoTotal={dashboard.saldoTotal}
         totalReceitas={dashboard.totalReceitas}
-        totalDespesas={dashboard.totalDespesas}
+        totalDespesas={dashboard.despesasPagasTotal}
         economia={dashboard.economia}
         receitaEsperada={dashboard.receitaEsperada}
         despesaEsperada={dashboard.despesaEsperada}
