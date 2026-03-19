@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/UI/Card'
 import { Skeleton } from '@/components/UI/skeleton'
 import { cn } from '@/lib/utils'
 
-export default function MetricasDashboard({ saldoTotal, totalReceitas, economia, receitaEsperada, despesaEsperada, despesasPagasCount, loading }) {
+export default function MetricasDashboard({ saldoTotal, totalReceitas, totalDespesas, economia, receitaEsperada, despesaEsperada, loading }) {
   const hoje = new Date()
   const periodo = format(hoje, "'01/'MM'/'yyyy - 'dd/MM/yyyy", { locale: ptBR })
 
@@ -34,7 +34,7 @@ export default function MetricasDashboard({ saldoTotal, totalReceitas, economia,
     {
       label: 'Despesas Pagas',
       sublabel: 'confirmadas este mês',
-      value: `${despesasPagasCount ?? 0} paga${(despesasPagasCount ?? 0) !== 1 ? 's' : ''}`,
+      value: formatCurrency(totalDespesas),
       positive: false,
       icon: '✓',
     },
