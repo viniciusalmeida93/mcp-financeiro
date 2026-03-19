@@ -122,7 +122,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         nome: form.nome.trim(),
         email_cobranca: form.email_cobranca || null,
         valor: Number(form.valor),
-        dia_vencimento: form.tipo === 'mensal' ? (Number(form.dia_vencimento) || new Date().getDate()) : null,
+        dia_vencimento: form.tipo === 'mensal' ? (Number(form.dia_vencimento) || new Date().getDate()) : 1,
         tipo: form.tipo,
         status: form.status,
         servico: form.servico || null,
