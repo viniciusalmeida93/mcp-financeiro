@@ -4,7 +4,7 @@ import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/UI/button"
+import { Button } from "@/components/UI/Button"
 
 function AlertDialog({
   ...props
