@@ -6,15 +6,12 @@ import ClientesReceberCard from '../components/Dashboard/ClientesReceberCard'
 import NovoRegistroPicker from '../components/Dashboard/NovoRegistroPicker'
 import NovoCliente from '../components/Clientes/NovoCliente'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
-import Select from '../components/UI/Select'
 import { useDashboard } from '../hooks/useDashboard'
 import { useMes } from '../contexts/MesContext'
-import { getMesesFrom, formatMesAno } from '../utils/formatters'
 import { Plus } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { mes, setMes } = useMes()
-  const meses = getMesesFrom('2026-03', '2026-12')
+  const { mes } = useMes()
   const dashboard = useDashboard(mes)
   const [showPicker, setShowPicker] = useState(false)
   const [showCliente, setShowCliente] = useState(false)
@@ -22,13 +19,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* Month selector */}
-      <Select
-        options={[...meses].reverse().map(m => ({ value: m, label: formatMesAno(m) }))}
-        value={mes}
-        onChange={e => setMes(e.target.value)}
-      />
-
       {dashboard.error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
           <p className="text-sm text-destructive">Erro: {dashboard.error}</p>

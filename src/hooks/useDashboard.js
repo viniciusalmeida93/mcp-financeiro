@@ -95,9 +95,6 @@ export function useDashboard(mes) {
 
       const totalReceitas = receitasEmpresa + receitasPessoal
       const totalDespesas = gastosEmpresa + gastosPessoal
-      const economia = totalReceitas > 0
-        ? Math.round(((totalReceitas - totalDespesas) / totalReceitas) * 100)
-        : 0
 
       // Fixed expenses this month
       const despesasFixasEmpresa = despesas
@@ -198,17 +195,22 @@ export function useDashboard(mes) {
       const despesasPagasCount = despesas.filter(d => pagosNomes.has(d.nome)).length
       const despesasPagasTotal = despesas.filter(d => pagosNomes.has(d.nome)).reduce((s, d) => s + Number(d.valor), 0)
 
+      const saldoTotal = totalReceitas - despesasPagasTotal
+      const economiaFinal = totalReceitas > 0
+        ? Math.round(((totalReceitas - despesasPagasTotal) / totalReceitas) * 100)
+        : 0
+
       setData({
         saldoEmpresa,
         saldoPessoal,
-        saldoTotal: saldoEmpresa + saldoPessoal,
+        saldoTotal,
         totalReceitas,
         totalDespesas,
         receitaEsperada,
         despesaEsperada,
         despesasPagasCount,
         despesasPagasTotal,
-        economia,
+        economia: economiaFinal,
         receitasEmpresa,
         receitasPessoal,
         despesasFixasEmpresa,

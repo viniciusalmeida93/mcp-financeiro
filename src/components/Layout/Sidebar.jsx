@@ -29,8 +29,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex flex-col w-60 h-screen bg-sidebar border-r border-sidebar-border shrink-0">
       {/* Logo */}
       <div className="flex items-center h-14 px-6">
-        <span className="font-bold text-lg text-sidebar-primary">VA Studio</span>
-        <span className="ml-1 text-sm text-muted-foreground font-medium">Financeiro</span>
+        <img src="/logo.png" alt="VA Studio" className="h-8 w-auto" />
       </div>
 
       {/* Navigation */}
