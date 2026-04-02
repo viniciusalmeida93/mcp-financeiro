@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { Card, CardContent } from '../UI/Card'
 import Badge from '../UI/Badge'
-import Button from '../UI/Button'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Pencil, Copy, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 
 const BANDEIRA_ICONS = {
   visa: '💳',
@@ -14,18 +13,11 @@ const BANDEIRA_ICONS = {
   outro: '💳',
 }
 
-const CopyIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="5" width="9" height="10" rx="1.5"/>
-    <path d="M5 5V3.5A1.5 1.5 0 016.5 2H13A1.5 1.5 0 0114.5 3.5V10A1.5 1.5 0 0113 11.5H11"/>
-  </svg>
-)
-
-export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, onDuplicate }) {
+export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0, onEdit, onDelete, onDuplicate }) {
   const [open, setOpen] = useState(false)
 
   const utilizacao = cartao.limite > 0
-    ? Math.round((cartao.fatura_atual / cartao.limite) * 100)
+    ? Math.round((faturaCalculada / cartao.limite) * 100)
     : 0
   const utilizacaoColor = utilizacao >= 80
     ? 'text-destructive'
@@ -38,7 +30,6 @@ export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, on
       ? 'bg-yellow-500'
       : 'bg-green-500'
   const bandeira = cartao.bandeira?.toLowerCase() || 'outro'
-  const faturaEstimada = despesas.reduce((s, d) => s + Number(d.valor), 0)
 
   return (
     <Card className="overflow-hidden">
@@ -66,18 +57,27 @@ export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, on
             <div className="font-semibold text-sm">{cartao.nome}</div>
           </div>
           <div className="text-right">
+            <div className="text-xs opacity-70">Fecha dia</div>
+            <div className="font-semibold text-sm">{cartao.dia_fechamento || '-'}</div>
+          </div>
+          <div className="text-right">
             <div className="text-xs opacity-70">Vence dia</div>
             <div className="font-semibold text-sm">{cartao.vencimento_fatura}</div>
           </div>
-          <div className="text-right capitalize text-sm opacity-80">{cartao.bandeira}</div>
         </div>
       </div>
 
       <CardContent className="pt-4">
-        {/* Stats */}
-        <div className="mb-4">
-          <div className="text-xs text-muted-foreground">Limite</div>
-          <div className="font-semibold">{formatCurrency(cartao.limite)}</div>
+        {/* Fatura do mês */}
+        <div className="flex justify-between items-center mb-3">
+          <div>
+            <div className="text-xs text-muted-foreground">Fatura do mês</div>
+            <div className={`text-lg font-bold ${utilizacaoColor}`}>{formatCurrency(faturaCalculada)}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-muted-foreground">Limite</div>
+            <div className="font-semibold">{formatCurrency(cartao.limite)}</div>
+          </div>
         </div>
 
         {/* Progress bar */}
@@ -94,16 +94,15 @@ export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, on
           </div>
         </div>
 
-        {/* Fatura Estimada (despesas vinculadas) */}
+        {/* Despesas vinculadas no mês */}
         {despesas.length > 0 && (
           <div className="border-t pt-3 mb-4">
             <button
               className="w-full flex items-center justify-between text-sm"
               onClick={() => setOpen(o => !o)}
             >
-              <span className="text-muted-foreground">Fatura Estimada</span>
-              <span className="flex items-center gap-1 font-semibold">
-                {formatCurrency(faturaEstimada)}
+              <span className="text-muted-foreground">Detalhes ({despesas.length})</span>
+              <span className="flex items-center gap-1">
                 {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </span>
             </button>
@@ -121,23 +120,18 @@ export default function CartaoItem({ cartao, despesas = [], onEdit, onDelete, on
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(cartao)}>
-            ✏️ Editar
-          </Button>
+        <div className="flex gap-1">
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onEdit(cartao)} title="Editar">
+            <Pencil size={14} />
+          </button>
           {onDuplicate && (
-            <Button variant="ghost" size="sm" onClick={() => onDuplicate(cartao)} title="Duplicar">
-              <CopyIcon />
-            </Button>
+            <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onDuplicate(cartao)} title="Duplicar">
+              <Copy size={14} />
+            </button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto text-destructive hover:text-destructive"
-            onClick={() => onDelete(cartao.id)}
-          >
-            🗑️ Excluir
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent transition-colors ml-auto" onClick={() => onDelete(cartao.id)} title="Excluir">
+            <Trash2 size={14} />
+          </button>
         </div>
       </CardContent>
     </Card>

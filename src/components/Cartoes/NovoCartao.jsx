@@ -25,7 +25,7 @@ const EMPTY = {
   bandeira: 'Visa',
   numero_final: '',
   limite: '',
-  fatura_atual: '',
+  dia_fechamento: '',
   vencimento_fatura: '',
   contexto: 'empresa',
   cor: '#1f507a',
@@ -35,7 +35,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
   const [form, setForm] = useState(cartao ? {
     ...cartao,
     limite: String(cartao.limite),
-    fatura_atual: String(cartao.fatura_atual),
+    dia_fechamento: String(cartao.dia_fechamento || ''),
     vencimento_fatura: String(cartao.vencimento_fatura),
   } : EMPTY)
   const [saving, setSaving] = useState(false)
@@ -48,6 +48,8 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
     if (!form.nome.trim()) e.nome = 'Nome é obrigatório'
     if (!form.numero_final || form.numero_final.length !== 4) e.numero_final = '4 dígitos finais obrigatórios'
     if (!form.limite || isNaN(form.limite)) e.limite = 'Limite inválido'
+    if (!form.dia_fechamento || Number(form.dia_fechamento) < 1 || Number(form.dia_fechamento) > 31)
+      e.dia_fechamento = 'Dia de fechamento inválido (1-31)'
     if (!form.vencimento_fatura || Number(form.vencimento_fatura) < 1 || Number(form.vencimento_fatura) > 31)
       e.vencimento_fatura = 'Dia de vencimento inválido (1-31)'
     setErrors(e)
@@ -64,7 +66,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
         bandeira: form.bandeira,
         numero_final: form.numero_final,
         limite: parseFloat(form.limite),
-        fatura_atual: parseFloat(form.fatura_atual || '0'),
+        dia_fechamento: parseInt(form.dia_fechamento),
         vencimento_fatura: parseInt(form.vencimento_fatura),
         contexto: form.contexto,
         cor: form.cor,
@@ -107,30 +109,30 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Limite (R$)"
-            required
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="5000.00"
-            value={form.limite}
-            onChange={e => set('limite', e.target.value)}
-            error={errors.limite}
-          />
-          <Input
-            label="Fatura Atual (R$)"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            value={form.fatura_atual}
-            onChange={e => set('fatura_atual', e.target.value)}
-          />
-        </div>
+        <Input
+          label="Limite (R$)"
+          required
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="5000.00"
+          value={form.limite}
+          onChange={e => set('limite', e.target.value)}
+          error={errors.limite}
+        />
 
         <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Dia fechamento fatura"
+            required
+            type="number"
+            min="1"
+            max="31"
+            placeholder="21"
+            value={form.dia_fechamento}
+            onChange={e => set('dia_fechamento', e.target.value)}
+            error={errors.dia_fechamento}
+          />
           <Input
             label="Dia vencimento fatura"
             required
@@ -142,27 +144,28 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
             onChange={e => set('vencimento_fatura', e.target.value)}
             error={errors.vencimento_fatura}
           />
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Contexto</label>
-            <div className="flex gap-4 mt-1">
-              {[
-                { value: 'empresa', label: '💼 Empresa' },
-                { value: 'pessoal', label: '🏠 Pessoal' },
-                { value: 'ambos', label: '🔄 Ambos' },
-              ].map(opt => (
-                <label key={opt.value} className={`flex items-center gap-1.5 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
-                  <input
-                    type="radio"
-                    name="contexto_cartao"
-                    value={opt.value}
-                    checked={form.contexto === opt.value}
-                    onChange={() => set('contexto', opt.value)}
-                    className="accent-primary"
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Contexto</label>
+          <div className="flex gap-4 mt-1">
+            {[
+              { value: 'empresa', label: '💼 Empresa' },
+              { value: 'pessoal', label: '🏠 Pessoal' },
+              { value: 'ambos', label: '🔄 Ambos' },
+            ].map(opt => (
+              <label key={opt.value} className={`flex items-center gap-1.5 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
+                <input
+                  type="radio"
+                  name="contexto_cartao"
+                  value={opt.value}
+                  checked={form.contexto === opt.value}
+                  onChange={() => set('contexto', opt.value)}
+                  className="accent-primary"
+                />
+                {opt.label}
+              </label>
+            ))}
           </div>
         </div>
 

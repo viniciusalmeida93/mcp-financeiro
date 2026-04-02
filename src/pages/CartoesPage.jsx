@@ -2,19 +2,63 @@ import { useState, useEffect, useCallback } from 'react'
 import CartaoItem from '../components/Cartoes/CartaoItem'
 import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
-import Button from '../components/UI/Button'
-import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
+import SelectField from '../components/UI/Select'
+import { Plus } from 'lucide-react'
 import { getCartoes, createCartao, updateCartao, deleteCartao, getDespesasFixas } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
+import { useMes } from '../contexts/MesContext'
+import { calcParcelaNoMes } from '../utils/cicloFatura'
+
+const CONTEXTO_OPTIONS = [
+  { value: 'ambos', label: 'Todos' },
+  { value: 'empresa', label: 'Empresa' },
+  { value: 'pessoal', label: 'Pessoal' },
+]
+
+/**
+ * Filtra despesas que pertencem a um cartão no mês selecionado,
+ * respeitando o ciclo de fechamento.
+ */
+function getDespesasDoCartaoNoMes(despesas, cartao, mesSelecionado, cartoes) {
+  const cartaoId = cartao.id
+  const linked = despesas.filter(d => d.forma_pagamento === `cartao:${cartaoId}`)
+
+  return linked.filter(d => {
+    // Parcelas: só se a parcela cabe no mês
+    if (d.recorrencia === 'parcela') {
+      return calcParcelaNoMes(d, mesSelecionado, cartoes) !== null
+    }
+    // Pontual: só no mês de referência ou created_at
+    if (d.recorrencia === 'pontual') {
+      if (d.mes_referencia) return d.mes_referencia === mesSelecionado
+      if (d.created_at) {
+        const created = new Date(d.created_at)
+        const createdDay = created.getDate()
+        let createdMonth = created.getMonth() + 1
+        let createdYear = created.getFullYear()
+        // Se dia > fechamento, cai no mês seguinte
+        if (cartao.dia_fechamento && createdDay > cartao.dia_fechamento) {
+          createdMonth += 1
+          if (createdMonth > 12) { createdMonth = 1; createdYear += 1 }
+        }
+        const mesEfetivo = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
+        return mesEfetivo === mesSelecionado
+      }
+      return false
+    }
+    // Mensal: aparece todo mês
+    return true
+  })
+}
 
 export default function CartoesPage() {
+  const { mes } = useMes()
   const [cartoes, setCartoes] = useState([])
   const [despesasFixas, setDespesasFixas] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCartao, setEditingCartao] = useState(null)
   const [contexto, setContexto] = useState('ambos')
-  const [cartaoFilter, setCartaoFilter] = useState('todos')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -70,15 +114,20 @@ export default function CartoesPage() {
   }
 
   const filtered = cartoes.filter(c => {
-    const matchContexto = contexto === 'ambos' ||
+    return contexto === 'ambos' ||
       c.contexto === contexto ||
       c.contexto === 'ambos'
-    const matchCartao = cartaoFilter === 'todos' || c.id === cartaoFilter
-    return matchContexto && matchCartao
+  })
+
+  // Calcular fatura de cada cartão baseado nas despesas do mês
+  const faturasPorCartao = {}
+  filtered.forEach(c => {
+    const despDoMes = getDespesasDoCartaoNoMes(despesasFixas, c, mes, cartoes)
+    faturasPorCartao[c.id] = despDoMes.reduce((s, d) => s + Number(d.valor), 0)
   })
 
   const totalLimite = filtered.reduce((s, c) => s + Number(c.limite), 0)
-  const totalFatura = filtered.reduce((s, c) => s + Number(c.fatura_atual), 0)
+  const totalFatura = filtered.reduce((s, c) => s + (faturasPorCartao[c.id] || 0), 0)
   const utilizacaoGeral = totalLimite > 0 ? Math.round((totalFatura / totalLimite) * 100) : 0
 
   return (
@@ -87,17 +136,17 @@ export default function CartoesPage() {
       {cartoes.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">💳 Limite Total</div>
+            <div className="text-xs text-muted-foreground mb-1">Limite</div>
             <div className="text-lg font-semibold">{formatCurrency(totalLimite)}</div>
           </div>
           <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">📄 Fatura Total</div>
+            <div className="text-xs text-muted-foreground mb-1">Fatura</div>
             <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : ''}`}>
               {formatCurrency(totalFatura)}
             </div>
           </div>
           <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">📊 Utilização</div>
+            <div className="text-xs text-muted-foreground mb-1">Utilização</div>
             <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : utilizacaoGeral >= 60 ? 'text-yellow-600' : 'text-green-600'}`}>
               {utilizacaoGeral}%
             </div>
@@ -105,37 +154,15 @@ export default function CartoesPage() {
         </div>
       )}
 
-      {/* Filtro contexto com Tabs */}
-      <Tabs value={contexto} onValueChange={(v) => { setContexto(v); setCartaoFilter('todos') }} className="mb-3">
-        <TabsList>
-          <TabsTrigger value="ambos">🔄 Ambos</TabsTrigger>
-          <TabsTrigger value="empresa">💼 Empresa</TabsTrigger>
-          <TabsTrigger value="pessoal">🏠 Pessoal</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* Filtro por cartão individual */}
-      {cartoes.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-1">
-          <Button
-            variant={cartaoFilter === 'todos' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setCartaoFilter('todos')}
-          >
-            Todos
-          </Button>
-          {cartoes.map(c => (
-            <Button
-              key={c.id}
-              variant={cartaoFilter === c.id ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCartaoFilter(c.id)}
-            >
-              {c.nome} ****{c.numero_final}
-            </Button>
-          ))}
-        </div>
-      )}
+      {/* Filtro contexto */}
+      <div className="mb-4">
+        <SelectField
+          options={CONTEXTO_OPTIONS}
+          value={contexto}
+          onValueChange={setContexto}
+          className="w-40"
+        />
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-8"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
@@ -143,29 +170,36 @@ export default function CartoesPage() {
         <EmptyState
           icon="💳"
           text="Nenhum cartão encontrado"
-          subtext="Adicione seus cartões de crédito e débito para acompanhar a fatura"
+          subtext="Adicione seus cartões de crédito para acompanhar a fatura"
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {filtered.map(c => (
-            <CartaoItem
-              key={c.id}
-              cartao={c}
-              despesas={despesasFixas.filter(d => d.forma_pagamento === `cartao:${c.id}`)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onDuplicate={handleDuplicate}
-            />
-          ))}
+          {filtered.map(c => {
+            const despDoMes = getDespesasDoCartaoNoMes(despesasFixas, c, mes, cartoes)
+            return (
+              <CartaoItem
+                key={c.id}
+                cartao={c}
+                despesas={despDoMes}
+                faturaCalculada={faturasPorCartao[c.id] || 0}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
+              />
+            )
+          })}
         </div>
       )}
 
-      {/* FAB mobile */}
+      {/* FAB */}
       <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
+        style={{ backgroundColor: '#5ED0FF' }}
         onClick={() => setShowForm(true)}
         title="Novo cartão"
-      >+</button>
+      >
+        <Plus size={20} />
+      </button>
 
       {showForm && (
         <NovoCartao

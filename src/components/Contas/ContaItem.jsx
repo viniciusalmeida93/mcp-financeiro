@@ -1,18 +1,24 @@
 import { formatCurrency } from '../../utils/formatters'
-import { getCategoriaLabel } from '../../constants/categorias'
-import { getFormaPagamentoLabel } from '../../constants/formasPagamento'
 import Badge from '../UI/Badge'
-import Button from '../UI/Button'
+import { Pencil, Copy, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useMes } from '../../contexts/MesContext'
+import { calcParcelaNoMes, formatDataVencimento } from '../../utils/cicloFatura'
 
-const CopyIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="5" width="9" height="10" rx="1.5"/>
-    <path d="M5 5V3.5A1.5 1.5 0 016.5 2H13A1.5 1.5 0 0114.5 3.5V10A1.5 1.5 0 0113 11.5H11"/>
-  </svg>
-)
+function getFormaPagamentoSimple(value, cartoes = []) {
+  if (value?.startsWith('cartao:')) {
+    const id = value.replace('cartao:', '')
+    const cartao = cartoes.find(c => c.id === id)
+    return cartao ? cartao.nome : 'Cartão'
+  }
+  const labels = { pix: 'PIX', debito: 'Débito', boleto: 'Boleto', dinheiro: 'Dinheiro' }
+  return labels[value] || value
+}
 
-export default function ContaItem({ conta, onEdit, onDelete, onTogglePago, onDuplicate, isPago }) {
+export default function ContaItem({ conta, cartoes = [], onEdit, onDelete, onTogglePago, onDuplicate, isPago }) {
+  const { mes } = useMes()
+  const parcela = calcParcelaNoMes(conta, mes, cartoes)
+
   return (
     <div className={cn(
       'flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-accent/50 transition-colors',
@@ -34,39 +40,39 @@ export default function ContaItem({ conta, onEdit, onDelete, onTogglePago, onDup
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 font-medium text-sm">
           {conta.nome}
-          {conta.recorrencia === 'parcela' && conta.parcela_atual && (
+          {parcela && (
             <Badge variant="secondary" className="text-xs">
-              {conta.parcela_atual}/{conta.parcela_total}
+              {parcela.atual}/{parcela.total}
             </Badge>
           )}
         </div>
         <div className={cn('text-xs text-muted-foreground mt-0.5', isPago && 'text-green-500')}>
-          {(() => {
-            const dateInfo = `Dia ${conta.dia_vencimento} · ${getCategoriaLabel(conta.categoria)} · ${getFormaPagamentoLabel(conta.forma_pagamento)}`
-            return isPago ? `✓ Pago · ${dateInfo}` : dateInfo
-          })()}
+          {isPago && 'Pago · '}
+          {getFormaPagamentoSimple(conta.forma_pagamento, cartoes)}
+          {' · '}
+          {formatDataVencimento(conta.dia_vencimento, mes, conta, cartoes)}
         </div>
       </div>
 
-      <div className="font-semibold text-sm tabular-nums">
+      <div className="font-semibold text-sm tabular-nums shrink-0">
         {formatCurrency(conta.valor)}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-0.5 shrink-0">
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={() => onEdit(conta)} title="Editar">
-            ✏️
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onEdit(conta)} title="Editar">
+            <Pencil size={14} />
+          </button>
         )}
         {onDuplicate && (
-          <Button variant="ghost" size="sm" onClick={() => onDuplicate(conta)} title="Duplicar">
-            <CopyIcon />
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onDuplicate(conta)} title="Duplicar">
+            <Copy size={14} />
+          </button>
         )}
         {onDelete && (
-          <Button variant="ghost" size="sm" onClick={() => onDelete(conta)} title="Excluir">
-            🗑️
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent transition-colors" onClick={() => onDelete(conta)} title="Excluir">
+            <Trash2 size={14} />
+          </button>
         )}
       </div>
     </div>

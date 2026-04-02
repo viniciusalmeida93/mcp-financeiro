@@ -1,53 +1,42 @@
 import { formatCurrency } from '../../utils/formatters'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Card, CardContent } from '@/components/UI/Card'
 import { Skeleton } from '@/components/UI/skeleton'
 import { cn } from '@/lib/utils'
 
 export default function MetricasDashboard({ saldoTotal, totalReceitas, totalDespesas, economia, receitaEsperada, despesaEsperada, loading }) {
-  const hoje = new Date()
-  const periodo = format(hoje, "'01/'MM'/'yyyy - 'dd/MM/yyyy", { locale: ptBR })
-
   const cards = [
     {
       label: 'Receita Total',
-      sublabel: 'esperada este mês',
       value: formatCurrency(receitaEsperada ?? 0),
       positive: true,
       icon: '↑',
     },
     {
-      label: 'Receita Recebida',
-      sublabel: 'confirmada este mês',
+      label: 'Recebido',
       value: formatCurrency(totalReceitas),
       positive: true,
       icon: '✓',
     },
     {
-      label: 'Despesas Totais',
-      sublabel: 'esperadas este mês',
+      label: 'Despesas Total',
       value: formatCurrency(despesaEsperada ?? 0),
       positive: false,
       icon: '↓',
     },
     {
-      label: 'Despesas Pagas',
-      sublabel: 'confirmadas este mês',
+      label: 'Pago',
       value: formatCurrency(totalDespesas),
       positive: false,
       icon: '✓',
     },
     {
       label: 'Saldo',
-      sublabel: periodo,
       value: formatCurrency(saldoTotal),
       positive: saldoTotal >= 0,
       icon: '💰',
     },
     {
       label: 'Economia',
-      sublabel: 'do que recebeu',
       value: `${economia}%`,
       positive: economia >= 0,
       icon: '%',
@@ -73,7 +62,6 @@ export default function MetricasDashboard({ saldoTotal, totalReceitas, totalDesp
                 {card.value}
               </div>
             )}
-            <div className="text-xs text-muted-foreground mt-0.5">{card.sublabel}</div>
           </CardContent>
         </Card>
       ))}

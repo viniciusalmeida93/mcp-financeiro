@@ -1,23 +1,46 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ContaItem from './ContaItem'
 import NovaDespesaFixa from './NovaDespesaFixa'
-import ContextToggle from '../UI/ContextToggle'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
-import { deleteDespesaFixa, createDespesaFixa } from '../../services/database'
+import SelectField from '../UI/Select'
+import { deleteDespesaFixa, createDespesaFixa, getCategoriasCustomizadas } from '../../services/database'
+
+const CONTEXTO_OPTIONS = [
+  { value: 'todos', label: 'Tudo' },
+  { value: 'empresa', label: 'Empresa' },
+  { value: 'pessoal', label: 'Pessoal' },
+]
 
 export default function ListaDespesasFixas({
   despesas,
   allDespesas,
+  cartoes = [],
   loading,
   contextoFilter,
   setContextoFilter,
   refresh,
-  pagosNomes = new Set(),
+  pagosIds = new Set(),
   onTogglePago,
 }) {
   const [showForm, setShowForm] = useState(false)
   const [despesaEdit, setDespesaEdit] = useState(null)
+  const [categoriaFilter, setCategoriaFilter] = useState('todos')
+  const [categoriasOptions, setCategoriasOptions] = useState([{ value: 'todos', label: 'Todas categorias' }])
+
+  useEffect(() => {
+    getCategoriasCustomizadas().then(data => {
+      const despCats = data.filter(c => c.tipo === 'despesa')
+      setCategoriasOptions([
+        { value: 'todos', label: 'Todas categorias' },
+        ...despCats.map(c => ({ value: c.nome, label: c.nome })),
+      ])
+    }).catch(() => {})
+  }, [])
+
+  const filtered = categoriaFilter === 'todos'
+    ? despesas
+    : despesas.filter(d => d.categoria === categoriaFilter)
 
   const handleDelete = async (conta) => {
     if (!confirm(`Excluir "${conta.nome}"?`)) return
@@ -46,24 +69,35 @@ export default function ListaDespesasFixas({
 
   return (
     <div>
-      <ContextToggle value={contextoFilter} onChange={setContextoFilter} />
-      <div className="h-4" />
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <SelectField
+          options={CONTEXTO_OPTIONS}
+          value={contextoFilter}
+          onValueChange={setContextoFilter}
+        />
+        <SelectField
+          options={categoriasOptions}
+          value={categoriaFilter}
+          onValueChange={setCategoriaFilter}
+        />
+      </div>
 
       {loading ? (
         <LoadingScreen />
-      ) : despesas.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState icon="💳" text="Nenhuma despesa fixa encontrada" />
       ) : (
-        <div className="card" style={{ padding: '0 var(--spacing-md)' }}>
-          {despesas.map(d => (
+        <div className="rounded-lg border bg-card overflow-hidden">
+          {filtered.map(d => (
             <ContaItem
               key={d.id}
               conta={d}
+              cartoes={cartoes}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
               onTogglePago={onTogglePago}
-              isPago={pagosNomes.has(d.nome)}
+              isPago={pagosIds.has(d.id)}
             />
           ))}
         </div>

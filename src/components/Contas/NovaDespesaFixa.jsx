@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
-import Select from '../UI/Select'
+import SelectField from '../UI/Select'
 import { buildFormasPagamento } from '../../constants/formasPagamento'
 import { createDespesaFixa, updateDespesaFixa, getCategoriasCustomizadas, createCategoriaCustomizada, getCartoes } from '../../services/database'
+import { useMes } from '../../contexts/MesContext'
 
 const TIPOS = [
   { value: 'pontual', label: 'Pontual' },
@@ -15,7 +16,7 @@ const TIPOS = [
 const EMPTY_FORM = {
   nome: '',
   valor: '',
-  dia_vencimento: '',
+  data_vencimento: '',
   recorrencia: 'pontual',
   parcela_atual: '',
   parcela_total: '',
@@ -25,6 +26,7 @@ const EMPTY_FORM = {
 }
 
 export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdit }) {
+  const { mes } = useMes()
   const isEditing = !!despesaEdit
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -45,14 +47,17 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     if (isOpen) {
       setErrors({})
       if (despesaEdit) {
+        // Converter dia_vencimento (number) pra data completa usando o mês selecionado
+        const diaStr = String(despesaEdit.dia_vencimento || 1).padStart(2, '0')
+        const dataVenc = `${mes}-${diaStr}`
         setForm({
           nome: despesaEdit.nome,
           valor: despesaEdit.valor,
-          dia_vencimento: despesaEdit.dia_vencimento,
+          data_vencimento: dataVenc,
           recorrencia: despesaEdit.recorrencia,
           parcela_atual: despesaEdit.parcela_atual != null ? parseInt(despesaEdit.parcela_atual) : '',
           parcela_total: despesaEdit.parcela_total != null ? parseInt(despesaEdit.parcela_total) : '',
-          categoria: despesaEdit.categoria,
+          categoria: despesaEdit.categoria || '',
           forma_pagamento: despesaEdit.forma_pagamento,
           contexto: despesaEdit.contexto,
         })
@@ -60,7 +65,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         setForm(EMPTY_FORM)
       }
     }
-  }, [isOpen, despesaEdit])
+  }, [isOpen, despesaEdit, mes])
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
 
@@ -68,9 +73,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     const errs = {}
     if (!form.nome.trim() || form.nome.trim().length < 2) errs.nome = 'Nome deve ter pelo menos 2 caracteres'
     if (!form.valor || parseFloat(String(form.valor).replace(',', '.')) <= 0) errs.valor = 'Valor deve ser maior que zero'
-    if (form.dia_vencimento && (Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31)) {
-      errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
-    }
+    if (!form.data_vencimento) errs.data_vencimento = 'Informe a data'
     if (form.recorrencia === 'parcela') {
       if (!form.parcela_atual || !form.parcela_total) errs.parcelas = 'Informe parcela atual e total'
     }
@@ -85,10 +88,27 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     try {
       const parseValor = (v) => parseFloat(String(v).replace(',', '.'))
 
+      // Extrair dia e mês da data selecionada
+      const [anoSel, mesSel, diaSel] = form.data_vencimento.split('-').map(Number)
+      const diaVenc = diaSel
+      const mesOrigem = `${anoSel}-${String(mesSel).padStart(2, '0')}`
+
+      // Calcular mes_referencia correto para cartão
+      let mesRef = mesOrigem
+      if (form.recorrencia !== 'mensal' && form.forma_pagamento?.startsWith('cartao:')) {
+        const cartaoId = form.forma_pagamento.replace('cartao:', '')
+        const cartaoSel = cartoes.find(c => c.id === cartaoId)
+        if (cartaoSel?.dia_fechamento && diaVenc > cartaoSel.dia_fechamento) {
+          let y = anoSel, m = mesSel + 1
+          if (m > 12) { m = 1; y += 1 }
+          mesRef = `${y}-${String(m).padStart(2, '0')}`
+        }
+      }
+
       const payload = {
         nome: form.nome.trim(),
         valor: parseValor(form.valor),
-        dia_vencimento: Number(form.dia_vencimento) || new Date().getDate(),
+        dia_vencimento: diaVenc,
         recorrencia: form.recorrencia,
         parcela_atual: form.recorrencia === 'parcela' ? parseInt(form.parcela_atual) : null,
         parcela_total: form.recorrencia === 'parcela' ? parseInt(form.parcela_total) : null,
@@ -96,6 +116,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         forma_pagamento: form.forma_pagamento,
         contexto: form.contexto,
         status: 'ativo',
+        mes_referencia: form.recorrencia !== 'mensal' ? mesRef : null,
       }
 
       if (isEditing) {
@@ -132,6 +153,10 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
   }
 
   const categoriasDespesa = categorias.filter(c => c.tipo === 'despesa')
+  const categoriaOptions = [
+    ...categoriasDespesa.map(c => ({ value: c.nome, label: c.nome })),
+    { value: '__add__', label: '+ Nova categoria' },
+  ]
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Despesa' : 'Nova Despesa'}>
@@ -139,16 +164,16 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
       {/* Contexto */}
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Tipo de Despesa</label>
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
+        <div className="flex gap-4 mt-1">
           {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
-            <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: form.contexto === opt.value ? 600 : 400 }}>
+            <label key={opt.value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
               <input
                 type="radio"
                 name="contexto_despesa"
                 value={opt.value}
                 checked={form.contexto === opt.value}
                 onChange={() => set('contexto', opt.value)}
-                style={{ accentColor: 'var(--color-empresa-primary)' }}
+                className="accent-primary"
               />
               {opt.label}
             </label>
@@ -177,24 +202,29 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
           error={errors.valor}
         />
         <Input
-          label="Dia Vencimento"
+          label="Data Vencimento"
           required
-          type="number"
-          min="1"
-          max="31"
-          placeholder="1-31"
-          value={form.dia_vencimento}
-          onChange={e => set('dia_vencimento', e.target.value)}
-          error={errors.dia_vencimento}
+          type="date"
+          value={form.data_vencimento}
+          onChange={e => set('data_vencimento', e.target.value)}
+          error={errors.data_vencimento}
         />
       </div>
 
-      <Select
-        label="Tipo"
-        options={TIPOS}
-        value={form.recorrencia}
-        onChange={e => set('recorrencia', e.target.value)}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Tipo"
+          options={TIPOS}
+          value={form.recorrencia}
+          onValueChange={v => set('recorrencia', v)}
+        />
+        <SelectField
+          label="Forma de Pagamento"
+          options={buildFormasPagamento(cartoes)}
+          value={form.forma_pagamento}
+          onValueChange={v => set('forma_pagamento', v)}
+        />
+      </div>
 
       {form.recorrencia === 'parcela' && (
         <div className="grid grid-cols-2 gap-3">
@@ -219,69 +249,41 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
         </div>
       )}
 
-      {/* Categoria — somente despesas */}
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Categoria</label>
-        <select
-          className="select"
-          value={form.categoria || ''}
-          onChange={e => {
-            if (e.target.value === '__add__') {
-              setShowAddCat(true)
-            } else {
-              set('categoria', e.target.value)
-              setShowAddCat(false)
-            }
-          }}
-        >
-          <option value="">Selecione uma categoria...</option>
-          {categoriasDespesa.map(c => (
-            <option key={c.id} value={c.nome}>{c.nome}</option>
-          ))}
-          <option value="__add__">+ Adicionar nova categoria</option>
-        </select>
-
-        {showAddCat && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <input
-              className="input"
-              placeholder="Nome da categoria"
-              value={novaCategoria}
-              onChange={e => setNovaCategoria(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
-              autoFocus
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              onClick={handleAddCategoria}
-              disabled={savingCat}
-              style={{ flexShrink: 0 }}
-            >
-              {savingCat ? '...' : 'Salvar'}
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-accent hover:text-accent-foreground"
-              onClick={() => { setShowAddCat(false); setNovaCategoria('') }}
-              style={{ flexShrink: 0 }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </div>
-
-      <Select
-        label="Forma de Pagamento"
-        options={buildFormasPagamento(cartoes)}
-        value={form.forma_pagamento}
-        onChange={e => set('forma_pagamento', e.target.value)}
+      {/* Categoria */}
+      <SelectField
+        label="Categoria"
+        options={categoriaOptions}
+        value={form.categoria || undefined}
+        placeholder="Selecione..."
+        onValueChange={v => {
+          if (v === '__add__') {
+            setShowAddCat(true)
+          } else {
+            set('categoria', v)
+            setShowAddCat(false)
+          }
+        }}
       />
 
+      {showAddCat && (
+        <div className="flex gap-2">
+          <Input
+            placeholder="Nome da categoria"
+            value={novaCategoria}
+            onChange={e => setNovaCategoria(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
+            className="flex-1"
+          />
+          <Button onClick={handleAddCategoria} disabled={savingCat}>
+            {savingCat ? '...' : 'Salvar'}
+          </Button>
+          <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
+            ✕
+          </Button>
+        </div>
+      )}
 
-      {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
+      {errors.submit && <div className="text-sm text-destructive mb-2">{errors.submit}</div>}
 
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onClose}>Cancelar</Button>

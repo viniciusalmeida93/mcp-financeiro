@@ -64,7 +64,8 @@ export default function DashboardPage() {
       {/* FAB */}
       <button
         onClick={() => setShowPicker(true)}
-        className="fixed bottom-20 right-4 md:bottom-4 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+        className="fixed bottom-20 right-4 md:bottom-4 z-40 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-colors"
+        style={{ backgroundColor: '#5ED0FF' }}
         title="Novo registro"
       >
         <Plus size={24} />

@@ -3,18 +3,24 @@ import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
-import { Tabs, TabsList, TabsTrigger } from '../UI/tabs'
+import SelectField from '../UI/Select'
 import { gerarNFParaCliente, createCliente, deleteCliente } from '../../services/database'
 import { enviarCobranca } from '../../services/email'
 import { getCurrentMes } from '../../utils/formatters'
 
-const TIPO_FILTER = [
+const CONTEXTO_OPTIONS = [
+  { value: 'todos', label: 'Tudo' },
+  { value: 'empresa', label: 'Empresa' },
+  { value: 'pessoal', label: 'Pessoal' },
+]
+
+const TIPO_OPTIONS = [
   { value: 'todos', label: 'Todos' },
   { value: 'mensal', label: 'Recorrente' },
   { value: 'pontual', label: 'Pontual' },
 ]
 
-export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago }) {
+export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago, contexto, setContexto }) {
   const [tipoFilter, setTipoFilter] = useState('todos')
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
@@ -73,20 +79,25 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
 
   return (
     <div>
-      <Tabs value={tipoFilter} onValueChange={setTipoFilter} className="mb-4">
-        <TabsList>
-          {TIPO_FILTER.map(f => (
-            <TabsTrigger key={f.value} value={f.value}>{f.label}</TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <SelectField
+          options={CONTEXTO_OPTIONS}
+          value={contexto}
+          onValueChange={setContexto}
+        />
+        <SelectField
+          options={TIPO_OPTIONS}
+          value={tipoFilter}
+          onValueChange={setTipoFilter}
+        />
+      </div>
 
       {loading ? (
         <LoadingScreen />
       ) : filtered.length === 0 ? (
         <EmptyState icon="👥" text="Nenhum cliente encontrado" />
       ) : (
-        <div className="card" style={{ padding: '0 var(--spacing-md)' }}>
+        <div className="rounded-lg border bg-card overflow-hidden">
           {filtered.map(c => (
             <ClienteItem
               key={c.id}

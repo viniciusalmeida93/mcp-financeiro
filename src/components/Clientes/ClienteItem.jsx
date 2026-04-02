@@ -1,14 +1,7 @@
 import { formatCurrency } from '../../utils/formatters'
 import Badge from '../UI/Badge'
-import Button from '../UI/Button'
+import { Pencil, Copy, Trash2, Mail, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const CopyIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="5" width="9" height="10" rx="1.5"/>
-    <path d="M5 5V3.5A1.5 1.5 0 016.5 2H13A1.5 1.5 0 0114.5 3.5V10A1.5 1.5 0 0113 11.5H11"/>
-  </svg>
-)
 
 export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
   const isAtivo = cliente.status === 'ativo'
@@ -45,7 +38,7 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
             {isPontual ? 'Pontual' : 'Recorrente'}
           </Badge>
           {cliente.precisa_nf && (
-            <Badge variant="outline" className="text-xs">📋 NF</Badge>
+            <Badge variant="outline" className="text-xs">NF</Badge>
           )}
           {!isAtivo && (
             <Badge variant="secondary" className="text-xs">Inativo</Badge>
@@ -56,31 +49,31 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
         </div>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-0.5 shrink-0">
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={() => onEdit(cliente)} title="Editar">
-            ✏️
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onEdit(cliente)} title="Editar">
+            <Pencil size={14} />
+          </button>
         )}
         {onDuplicate && (
-          <Button variant="ghost" size="sm" onClick={() => onDuplicate(cliente)} title="Duplicar">
-            <CopyIcon />
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onDuplicate(cliente)} title="Duplicar">
+            <Copy size={14} />
+          </button>
         )}
         {onCobrar && (
-          <Button variant="ghost" size="sm" onClick={() => onCobrar(cliente)} title="Enviar cobrança por email">
-            ✉️
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onCobrar(cliente)} title="Enviar cobrança">
+            <Mail size={14} />
+          </button>
         )}
         {onGerarNF && cliente.precisa_nf && (
-          <Button variant="secondary" size="sm" onClick={() => onGerarNF(cliente)} title="Gerar NF">
-            📄
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onGerarNF(cliente)} title="Gerar NF">
+            <FileText size={14} />
+          </button>
         )}
         {onDelete && (
-          <Button variant="ghost" size="sm" onClick={() => onDelete(cliente)} title="Excluir">
-            🗑️
-          </Button>
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent transition-colors" onClick={() => onDelete(cliente)} title="Excluir">
+            <Trash2 size={14} />
+          </button>
         )}
       </div>
     </div>

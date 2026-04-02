@@ -233,7 +233,8 @@ export default function CategoriasPage() {
 
       {/* FAB */}
       <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white text-2xl flex items-center justify-center shadow-lg hover:opacity-90"
+        style={{ backgroundColor: '#5ED0FF' }}
         onClick={() => setShowForm(true)}
         title="Nova categoria"
       >+</button>

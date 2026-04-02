@@ -3,14 +3,15 @@ import ListaDespesasFixas from '../components/Contas/ListaDespesasFixas'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
 import { useDespesasComStatus } from '../hooks/useDespesasFixas'
 import { formatCurrency } from '../utils/formatters'
-import { TrendingDown, CheckCircle, Clock } from 'lucide-react'
+import { TrendingDown, CheckCircle, Clock, Plus } from 'lucide-react'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
   const {
     despesas,
     allDespesas,
-    pagosNomes,
+    cartoes,
+    pagosIds,
     loading,
     error,
     contextoFilter,
@@ -29,32 +30,29 @@ export default function ContasPage() {
         <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
             <TrendingDown size={12} />
-            Despesas Totais
+            Total
           </div>
           <div className="text-lg font-semibold text-destructive">
             {loading ? '...' : formatCurrency(despesasTotal)}
           </div>
-          <div className="text-xs text-muted-foreground">esperadas este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
             <CheckCircle size={12} />
-            Pagas
+            Pago
           </div>
           <div className="text-lg font-semibold text-destructive">
             {loading ? '...' : formatCurrency(despesasPagas)}
           </div>
-          <div className="text-xs text-muted-foreground">confirmadas este mês</div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
             <Clock size={12} />
-            A Pagar
+            Pendente
           </div>
           <div className={`text-lg font-semibold ${despesasFuturas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
             {loading ? '...' : formatCurrency(despesasFuturas)}
           </div>
-          <div className="text-xs text-muted-foreground">pendentes este mês</div>
         </div>
       </div>
 
@@ -67,19 +65,23 @@ export default function ContasPage() {
       <ListaDespesasFixas
         despesas={despesas}
         allDespesas={allDespesas}
+        cartoes={cartoes}
         loading={loading}
         contextoFilter={contextoFilter}
         setContextoFilter={setContextoFilter}
         refresh={refresh}
-        pagosNomes={pagosNomes}
+        pagosIds={pagosIds}
         onTogglePago={handleTogglePago}
       />
 
       <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full bg-primary text-primary-foreground text-2xl flex items-center justify-center shadow-lg hover:bg-primary/90"
+        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
+        style={{ backgroundColor: '#5ED0FF' }}
         onClick={() => setShowForm(true)}
         title="Nova despesa"
-      >+</button>
+      >
+        <Plus size={20} />
+      </button>
 
       <NovaDespesaFixa
         isOpen={showForm}

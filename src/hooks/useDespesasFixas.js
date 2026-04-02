@@ -1,12 +1,64 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getDespesasFixas, createLancamento, deleteLancamento } from '../services/database'
+import { getDespesasFixas, getCartoes, createLancamento, deleteLancamento } from '../services/database'
 import { supabase } from '../services/supabase'
 import { useMes } from '../contexts/MesContext'
 import { getDaysInMonth } from 'date-fns'
+import { calcParcelaNoMes, getDataRealDaDespesa } from '../utils/cicloFatura'
 
 function getLastDay(mes) {
   const [y, m] = mes.split('-').map(Number)
   return `${mes}-${String(getDaysInMonth(new Date(y, m - 1))).padStart(2, '0')}`
+}
+
+/**
+ * Retorna o "YYYY-MM" em que uma despesa pontual deve aparecer,
+ * considerando o ciclo de fechamento do cartão.
+ */
+function getMesDaPontual(despesa, cartoes) {
+  if (!despesa.created_at) return null
+  const created = new Date(despesa.created_at)
+  const createdYear = created.getFullYear()
+  const createdMonth = created.getMonth() + 1
+  const createdDay = created.getDate()
+
+  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
+
+  // Se é cartão, verificar se passou do fechamento → mês seguinte
+  if (despesa.forma_pagamento?.startsWith('cartao:')) {
+    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
+    const cartao = cartoes.find(c => c.id === cartaoId)
+    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
+      // Cai no mês seguinte
+      let nextMonth = createdMonth + 1
+      let nextYear = createdYear
+      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
+      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+    }
+  }
+  return mesAno
+}
+
+/**
+ * Filtra despesas que devem aparecer no mês selecionado.
+ * - Mensal: sempre aparece (recorrente)
+ * - Pontual: só aparece no mês em que foi criada (respeitando ciclo do cartão)
+ * - Parcela: só aparece se a parcela calculada está no range
+ */
+function filtrarDespesasPorMes(despesas, mesSelecionado, cartoes) {
+  return despesas.filter(d => {
+    // Parcelas: verificar se existe parcela para este mês
+    if (d.recorrencia === 'parcela') {
+      const p = calcParcelaNoMes(d, mesSelecionado, cartoes)
+      return p !== null
+    }
+    // Pontual: só aparece no mês em que foi criada
+    if (d.recorrencia === 'pontual') {
+      const mesDaPontual = getMesDaPontual(d, cartoes)
+      return mesDaPontual === mesSelecionado
+    }
+    // Mensal: aparece todo mês
+    return true
+  })
 }
 
 export function useDespesasFixas() {
@@ -47,7 +99,8 @@ export function useDespesasFixas() {
 
 export function useDespesasComStatus() {
   const [allDespesas, setAllDespesas] = useState([])
-  const [pagosNomes, setPagosNomes] = useState(new Set())
+  const [cartoes, setCartoes] = useState([])
+  const [pagosIds, setPagosIds] = useState(new Set())
   const [lancamentosMap, setLancamentosMap] = useState({})
   const [contextoFilter, setContextoFilter] = useState('todos')
   const [loading, setLoading] = useState(true)
@@ -59,49 +112,45 @@ export function useDespesasComStatus() {
     setLoading(true)
     setError(null)
     try {
-      const [despData, { data: lancs }] = await Promise.all([
+      const [despData, cartoesData, { data: lancs }] = await Promise.all([
         getDespesasFixas({ status: 'ativo' }),
+        getCartoes(),
         supabase
           .from('lancamentos')
-          .select('id, descricao, valor, contexto')
+          .select('id, descricao, valor, contexto, despesa_id')
           .eq('tipo', 'saida')
           .gte('data', `${mes}-01`)
           .lte('data', getLastDay(mes))
       ])
 
-      const existingNomes = new Set((lancs || []).map(l => l.descricao))
-      const map = {}
-      ;(lancs || []).forEach(l => { map[l.descricao] = l.id })
+      setCartoes(cartoesData || [])
 
-      // Auto-pay credit card expenses where dia_vencimento <= today
-      const today = new Date().getDate()
-      const candidates = despData.filter(d =>
-        d.forma_pagamento?.startsWith('cartao:') &&
-        d.dia_vencimento <= today &&
-        !existingNomes.has(d.nome)
-      )
-      for (const d of candidates) {
-        try {
-          const novoLanc = await createLancamento({
-            tipo: 'saida',
-            valor: d.valor,
-            descricao: d.nome,
-            categoria: d.categoria,
-            forma_pagamento: d.forma_pagamento,
-            data: new Date().toISOString().split('T')[0],
-            contexto: d.contexto,
-          })
-          if (novoLanc) {
-            existingNomes.add(d.nome)
-            map[d.nome] = novoLanc.id
+      // Mapear por despesa_id (novo) e por descricao (fallback para dados antigos)
+      const pagoSet = new Set()
+      const map = {}
+      ;(lancs || []).forEach(l => {
+        if (l.despesa_id) {
+          pagoSet.add(l.despesa_id)
+          map[l.despesa_id] = l.id
+        } else {
+          // Fallback: match por nome para lançamentos antigos
+          const desp = despData.find(d => d.nome === l.descricao)
+          if (desp) {
+            pagoSet.add(desp.id)
+            map[desp.id] = l.id
           }
-        } catch (err) {
-          console.error('Auto-pay error for', d.nome, err)
         }
-      }
+      })
+
+      // Despesas de cartão são automaticamente "pagas"
+      despData.forEach(d => {
+        if (d.forma_pagamento?.startsWith('cartao:')) {
+          pagoSet.add(d.id)
+        }
+      })
 
       setAllDespesas(despData)
-      setPagosNomes(new Set(existingNomes))
+      setPagosIds(new Set(pagoSet))
       setLancamentosMap(map)
     } catch (err) {
       setError(err.message)
@@ -113,11 +162,14 @@ export function useDespesasComStatus() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   const handleTogglePago = useCallback(async (conta) => {
-    if (pagosNomes.has(conta.nome)) {
-      const lancId = lancamentosMap[conta.nome]
+    // Despesas de cartão não podem ser desmarcadas
+    if (conta.forma_pagamento?.startsWith('cartao:')) return
+
+    if (pagosIds.has(conta.id)) {
+      const lancId = lancamentosMap[conta.id]
       if (lancId) await deleteLancamento(lancId)
-      setPagosNomes(prev => { const s = new Set(prev); s.delete(conta.nome); return s })
-      setLancamentosMap(prev => { const m = { ...prev }; delete m[conta.nome]; return m })
+      setPagosIds(prev => { const s = new Set(prev); s.delete(conta.id); return s })
+      setLancamentosMap(prev => { const m = { ...prev }; delete m[conta.id]; return m })
     } else {
       const novoLanc = await createLancamento({
         tipo: 'saida',
@@ -127,34 +179,40 @@ export function useDespesasComStatus() {
         forma_pagamento: conta.forma_pagamento,
         data: new Date().toISOString().split('T')[0],
         contexto: conta.contexto,
+        despesa_id: conta.id,
       })
       if (novoLanc) {
-        setPagosNomes(prev => new Set([...prev, conta.nome]))
-        setLancamentosMap(prev => ({ ...prev, [conta.nome]: novoLanc.id }))
+        setPagosIds(prev => new Set([...prev, conta.id]))
+        setLancamentosMap(prev => ({ ...prev, [conta.id]: novoLanc.id }))
       }
     }
-  }, [pagosNomes, lancamentosMap])
+  }, [pagosIds, lancamentosMap])
 
   // Compute totals for a given contexto ('todos'|'empresa'|'pessoal')
   const calcTotais = useCallback((contexto) => {
-    const filtradas = contexto === 'todos'
-      ? allDespesas
-      : allDespesas.filter(d => d.contexto === contexto)
+    let filtradas = filtrarDespesasPorMes(allDespesas, mes, cartoes)
+    if (contexto !== 'todos') {
+      filtradas = filtradas.filter(d => d.contexto === contexto)
+    }
     const total = filtradas.reduce((s, d) => s + Number(d.valor), 0)
     const pago = filtradas
-      .filter(d => pagosNomes.has(d.nome))
+      .filter(d => pagosIds.has(d.id))
       .reduce((s, d) => s + Number(d.valor), 0)
     return { total, pago, futuro: total - pago }
-  }, [allDespesas, pagosNomes])
+  }, [allDespesas, pagosIds, mes, cartoes])
 
+  // Filtrar despesas visíveis no mês selecionado e ordenar por data real (mais antigo primeiro)
+  const despesasNoMes = filtrarDespesasPorMes(allDespesas, mes, cartoes)
+    .sort((a, b) => getDataRealDaDespesa(a, mes, cartoes) - getDataRealDaDespesa(b, mes, cartoes))
   const despesas = contextoFilter === 'todos'
-    ? allDespesas
-    : allDespesas.filter(d => d.contexto === contextoFilter)
+    ? despesasNoMes
+    : despesasNoMes.filter(d => d.contexto === contextoFilter)
 
   return {
     despesas,
     allDespesas,
-    pagosNomes,
+    cartoes,
+    pagosIds,
     lancamentosMap,
     contextoFilter,
     setContextoFilter,

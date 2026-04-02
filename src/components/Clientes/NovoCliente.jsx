@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
-import Select from '../UI/Select'
+import SelectField from '../UI/Select'
 import { createCliente, updateCliente, createLancamento, createCategoriaCustomizada, getCategoriasCustomizadas } from '../../services/database'
 import { formatCurrency } from '../../utils/formatters'
 
@@ -15,14 +15,14 @@ const EMPTY_FORM = {
   nome: '',
   email_cobranca: '',
   valor: '',
-  dia_vencimento: '',
+  data_vencimento: '',
   tipo: 'mensal',
   status: 'ativo',
   servico: '',
   precisa_nf: false,
   aliquota_imposto: 5,
   valor_entrada: '',
-  qtd_parcelas: 2,
+  qtd_parcelas: 1,
   contexto: 'empresa',
 }
 
@@ -42,7 +42,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState(clienteEdit ?? EMPTY_FORM)
   const [errors, setErrors] = useState({})
-  const [parcelas, setParcelas] = useState([{ data: '' }, { data: '' }])
+  const [parcelas, setParcelas] = useState([{ data: '' }])
 
   const [categorias, setCategorias] = useState([])
   const [showAddCat, setShowAddCat] = useState(false)
@@ -61,19 +61,19 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
           nome: clienteEdit.nome || '',
           email_cobranca: clienteEdit.email_cobranca || '',
           valor: clienteEdit.valor || '',
-          dia_vencimento: clienteEdit.dia_vencimento || '',
+          data_vencimento: '',
           tipo: clienteEdit.tipo || 'mensal',
           status: clienteEdit.status || 'ativo',
           servico: clienteEdit.servico || '',
           precisa_nf: clienteEdit.precisa_nf || false,
           aliquota_imposto: clienteEdit.aliquota_imposto || 5,
           valor_entrada: '',
-          qtd_parcelas: 2,
+          qtd_parcelas: 1,
           contexto: clienteEdit.contexto || 'empresa',
         })
       } else {
         setForm(EMPTY_FORM)
-        setParcelas([{ data: '' }, { data: '' }])
+        setParcelas([{ data: '' }])
       }
     }
   }, [isOpen, clienteEdit])
@@ -101,9 +101,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
     }
     if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
     if (form.tipo === 'mensal') {
-      if (form.dia_vencimento && (Number(form.dia_vencimento) < 1 || Number(form.dia_vencimento) > 31)) {
-        errs.dia_vencimento = 'Dia deve ser entre 1 e 31'
-      }
+      if (!form.data_vencimento) errs.data_vencimento = 'Informe a data'
     } else {
       parcelas.forEach((p, i) => {
         if (!p.data) errs[`parcela_${i}`] = 'Informe a data'
@@ -118,11 +116,16 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
 
     setLoading(true)
     try {
+      // Extrair dia da data selecionada
+      const diaVenc = form.tipo === 'mensal' && form.data_vencimento
+        ? Number(form.data_vencimento.split('-')[2])
+        : 1
+
       const payload = {
         nome: form.nome.trim(),
         email_cobranca: form.email_cobranca || null,
         valor: Number(form.valor),
-        dia_vencimento: form.tipo === 'mensal' ? (Number(form.dia_vencimento) || new Date().getDate()) : 1,
+        dia_vencimento: diaVenc,
         tipo: form.tipo,
         status: form.status,
         servico: form.servico || null,
@@ -183,23 +186,27 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
   const isPontual = form.tipo === 'pontual'
   const qtd = Number(form.qtd_parcelas) || 1
   const categoriasReceita = categorias.filter(c => c.tipo === 'receita')
+  const categoriaOptions = [
+    ...categoriasReceita.map(c => ({ value: c.nome, label: c.nome })),
+    { value: '__add__', label: '+ Nova categoria' },
+  ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Cliente' : 'Novo Cliente'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Receita' : 'Nova Receita'}>
 
       {/* Contexto */}
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Contexto</label>
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 4 }}>
+        <div className="flex gap-4 mt-1">
           {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
-            <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: form.contexto === opt.value ? 600 : 400 }}>
+            <label key={opt.value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
               <input
                 type="radio"
                 name="contexto_cliente"
                 value={opt.value}
                 checked={form.contexto === opt.value}
                 onChange={() => set('contexto', opt.value)}
-                style={{ accentColor: 'var(--color-empresa-primary)' }}
+                className="accent-primary"
               />
               {opt.label}
             </label>
@@ -225,16 +232,16 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         error={errors.email_cobranca}
       />
 
-      <Select
+      <SelectField
         label="Tipo"
         options={TIPOS}
         value={form.tipo}
-        onChange={e => set('tipo', e.target.value)}
+        onValueChange={v => set('tipo', v)}
       />
 
       <div className="grid grid-cols-2 gap-3">
         <Input
-          label={isPontual ? 'Valor Total do Projeto (R$)' : 'Valor Mensal (R$)'}
+          label={isPontual ? 'Valor Total (R$)' : 'Valor Mensal (R$)'}
           required
           type="number"
           step="0.01"
@@ -246,22 +253,19 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         />
         {!isPontual && (
           <Input
-            label="Dia Vencimento"
+            label="Data Vencimento"
             required
-            type="number"
-            min="1"
-            max="31"
-            placeholder="1-31"
-            value={form.dia_vencimento}
-            onChange={e => set('dia_vencimento', e.target.value)}
-            error={errors.dia_vencimento}
+            type="date"
+            value={form.data_vencimento}
+            onChange={e => set('data_vencimento', e.target.value)}
+            error={errors.data_vencimento}
           />
         )}
       </div>
 
       {isPontual && (
-        <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-sm)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="rounded-lg border bg-accent/30 p-3">
+          <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
             Parcelamento
           </div>
 
@@ -276,28 +280,22 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
               onChange={e => set('valor_entrada', e.target.value)}
             />
             <Input
-              label="Número de Parcelas"
+              label="Nº de Parcelas"
               type="number"
               min="1"
               max="24"
-              placeholder="2"
+              placeholder="1"
               value={form.qtd_parcelas}
               onChange={e => set('qtd_parcelas', e.target.value)}
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="flex flex-col gap-2 mt-2">
             {parcelas.map((p, i) => {
               const valor = calcParcelaValor(i, form.valor, form.valor_entrada, qtd)
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: 'var(--color-empresa-bg)',
-                    color: 'var(--color-empresa-primary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700, flexShrink: 0,
-                  }}>
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
                     {i + 1}
                   </div>
                   <Input
@@ -305,9 +303,9 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
                     value={p.data}
                     onChange={e => setParcelaData(i, e.target.value)}
                     error={errors[`parcela_${i}`]}
-                    style={{ flex: 1 }}
+                    className="flex-1"
                   />
-                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text)', flexShrink: 0, minWidth: 80, textAlign: 'right' }}>
+                  <span className="text-sm font-semibold shrink-0 min-w-[80px] text-right">
                     {Number(form.valor) > 0 ? formatCurrency(valor) : 'R$ -'}
                   </span>
                 </div>
@@ -317,59 +315,39 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         </div>
       )}
 
-      {/* Categoria dropdown — somente receitas */}
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Categoria</label>
-        <select
-          className="select"
-          value={form.servico || ''}
-          onChange={e => {
-            if (e.target.value === '__add__') {
-              setShowAddCat(true)
-            } else {
-              set('servico', e.target.value)
-              setShowAddCat(false)
-            }
-          }}
-        >
-          <option value="">Selecione uma categoria...</option>
-          {categoriasReceita.map(c => (
-            <option key={c.id} value={c.nome}>{c.nome}</option>
-          ))}
-          <option value="__add__">+ Adicionar nova categoria</option>
-        </select>
+      {/* Categoria */}
+      <SelectField
+        label="Categoria"
+        options={categoriaOptions}
+        value={form.servico || undefined}
+        placeholder="Selecione..."
+        onValueChange={v => {
+          if (v === '__add__') {
+            setShowAddCat(true)
+          } else {
+            set('servico', v)
+            setShowAddCat(false)
+          }
+        }}
+      />
 
-        {showAddCat && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <input
-              className="input"
-              placeholder="Nome da categoria"
-              value={novaCategoria}
-              onChange={e => setNovaCategoria(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
-              autoFocus
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              onClick={handleAddCategoria}
-              disabled={savingCat}
-              style={{ flexShrink: 0 }}
-            >
-              {savingCat ? '...' : 'Salvar'}
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-accent hover:text-accent-foreground"
-              onClick={() => { setShowAddCat(false); setNovaCategoria('') }}
-              style={{ flexShrink: 0 }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </div>
+      {showAddCat && (
+        <div className="flex gap-2">
+          <Input
+            placeholder="Nome da categoria"
+            value={novaCategoria}
+            onChange={e => setNovaCategoria(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
+            className="flex-1"
+          />
+          <Button onClick={handleAddCategoria} disabled={savingCat}>
+            {savingCat ? '...' : 'Salvar'}
+          </Button>
+          <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
+            ✕
+          </Button>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 py-1">
         <input
@@ -394,7 +372,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         />
       )}
 
-      {errors.submit && <div className="form-error" style={{ marginBottom: 8 }}>{errors.submit}</div>}
+      {errors.submit && <div className="text-sm text-destructive mb-2">{errors.submit}</div>}
 
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="secondary" onClick={onClose}>Cancelar</Button>
