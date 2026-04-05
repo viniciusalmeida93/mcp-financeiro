@@ -19,13 +19,14 @@ export default function ListaDespesasFixas({
   loading,
   contextoFilter,
   setContextoFilter,
+  categoriaFilter,
+  setCategoriaFilter,
   refresh,
   pagosIds = new Set(),
   onTogglePago,
 }) {
   const [showForm, setShowForm] = useState(false)
   const [despesaEdit, setDespesaEdit] = useState(null)
-  const [categoriaFilter, setCategoriaFilter] = useState('todos')
   const [categoriasOptions, setCategoriasOptions] = useState([{ value: 'todos', label: 'Todas categorias' }])
 
   useEffect(() => {

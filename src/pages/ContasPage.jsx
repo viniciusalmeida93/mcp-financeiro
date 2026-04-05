@@ -7,6 +7,7 @@ import { TrendingDown, CheckCircle, Clock, Plus } from 'lucide-react'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
+  const [categoriaFilter, setCategoriaFilter] = useState('todos')
   const {
     despesas,
     allDespesas,
@@ -21,7 +22,7 @@ export default function ContasPage() {
     calcTotais,
   } = useDespesasComStatus()
 
-  const { total: despesasTotal, pago: despesasPagas, futuro: despesasFuturas } = calcTotais(contextoFilter)
+  const { total: despesasTotal, pago: despesasPagas, futuro: despesasFuturas } = calcTotais(contextoFilter, categoriaFilter)
 
   return (
     <>
@@ -69,6 +70,8 @@ export default function ContasPage() {
         loading={loading}
         contextoFilter={contextoFilter}
         setContextoFilter={setContextoFilter}
+        categoriaFilter={categoriaFilter}
+        setCategoriaFilter={setCategoriaFilter}
         refresh={refresh}
         pagosIds={pagosIds}
         onTogglePago={handleTogglePago}

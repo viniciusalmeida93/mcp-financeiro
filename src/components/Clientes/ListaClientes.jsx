@@ -20,14 +20,11 @@ const TIPO_OPTIONS = [
   { value: 'pontual', label: 'Pontual' },
 ]
 
-export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago, contexto, setContexto }) {
-  const [tipoFilter, setTipoFilter] = useState('todos')
+export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago, contexto, setContexto, tipoFilter, setTipoFilter }) {
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
 
-  const filtered = tipoFilter === 'todos'
-    ? clientes
-    : clientes.filter(c => c.tipo === tipoFilter)
+  const filtered = clientes
 
   const handleCobrar = async (cliente) => {
     if (!cliente.email_cobranca) {

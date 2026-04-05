@@ -97,12 +97,16 @@ export function useClientesComStatus() {
     }
   }, [pagosIds, lancamentosMap])
 
-  // Compute totals for a given contexto ('todos'|'empresa'|'pessoal')
-  const calcTotais = useCallback((contexto) => {
-    const ativos = clientes.filter(c =>
-      c.status === 'ativo' && c.tipo === 'mensal' &&
-      (contexto === 'todos' || c.contexto === contexto)
-    )
+  // Compute totals for a given contexto ('todos'|'empresa'|'pessoal') e tipo ('todos'|'mensal'|'pontual')
+  const calcTotais = useCallback((contexto, tipoFiltro = 'todos') => {
+    const ativos = clientes.filter(c => {
+      if (c.status !== 'ativo') return false
+      if (contexto !== 'todos' && c.contexto !== contexto) return false
+      if (tipoFiltro !== 'todos' && c.tipo !== tipoFiltro) return false
+      // Quando filtro é 'todos', considera só mensais (comportamento anterior)
+      if (tipoFiltro === 'todos' && c.tipo !== 'mensal') return false
+      return true
+    })
     const total = ativos.reduce((s, c) => s + Number(c.valor), 0)
     const recebido = ativos
       .filter(c => pagosIds.has(c.id))

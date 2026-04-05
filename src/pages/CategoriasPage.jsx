@@ -3,7 +3,7 @@ import { supabase } from '../services/supabase'
 import NovaCategoria from '../components/Categorias/NovaCategoria'
 import Button from '../components/UI/Button'
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
-import { Tabs, TabsList, TabsTrigger } from '../components/UI/tabs'
+import { cn } from '@/lib/utils'
 import { formatCurrency, formatMesAno } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
 import { getCategoriaLabel } from '../constants/categorias'
@@ -174,14 +174,25 @@ export default function CategoriasPage() {
   return (
     <>
       {/* Filters */}
-      <div className="flex gap-2 items-center mb-4 flex-wrap">
-        <Tabs value={filtro} onValueChange={setFiltro}>
-          <TabsList>
-            <TabsTrigger value="todas">Todas</TabsTrigger>
-            <TabsTrigger value="despesas">Despesas</TabsTrigger>
-            <TabsTrigger value="receitas">Receitas</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {[
+          { value: 'todas', label: 'Todas' },
+          { value: 'despesas', label: 'Despesas' },
+          { value: 'receitas', label: 'Receitas' },
+        ].map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setFiltro(opt.value)}
+            className={cn(
+              'h-10 rounded-md text-sm font-medium border transition-colors',
+              filtro === opt.value
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-background text-muted-foreground border-border hover:bg-accent'
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {loading ? (

@@ -7,14 +7,18 @@ import { TrendingUp, CheckCircle, Clock, Plus } from 'lucide-react'
 
 export default function ClientesPage() {
   const [contexto, setContexto] = useState('todos')
+  const [tipoFilter, setTipoFilter] = useState('todos')
   const [showForm, setShowForm] = useState(false)
   const { clientes, pagosIds, loading, error, refresh, handleTogglePago, calcTotais } = useClientesComStatus()
 
-  const filtered = contexto === 'todos'
+  let filtered = contexto === 'todos'
     ? clientes
     : clientes.filter(c => (c.contexto || 'empresa') === contexto)
+  if (tipoFilter !== 'todos') {
+    filtered = filtered.filter(c => c.tipo === tipoFilter)
+  }
 
-  const { total: receitaTotal, recebido: receitaRecebida, futuro: receitaFutura } = calcTotais(contexto)
+  const { total: receitaTotal, recebido: receitaRecebida, futuro: receitaFutura } = calcTotais(contexto, tipoFilter)
 
   return (
     <>
@@ -63,6 +67,8 @@ export default function ClientesPage() {
         onTogglePago={handleTogglePago}
         contexto={contexto}
         setContexto={setContexto}
+        tipoFilter={tipoFilter}
+        setTipoFilter={setTipoFilter}
       />
 
       <button

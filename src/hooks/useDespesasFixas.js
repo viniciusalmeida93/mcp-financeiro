@@ -188,11 +188,14 @@ export function useDespesasComStatus() {
     }
   }, [pagosIds, lancamentosMap])
 
-  // Compute totals for a given contexto ('todos'|'empresa'|'pessoal')
-  const calcTotais = useCallback((contexto) => {
+  // Compute totals for a given contexto ('todos'|'empresa'|'pessoal') e categoria
+  const calcTotais = useCallback((contexto, categoria = 'todos') => {
     let filtradas = filtrarDespesasPorMes(allDespesas, mes, cartoes)
     if (contexto !== 'todos') {
       filtradas = filtradas.filter(d => d.contexto === contexto)
+    }
+    if (categoria !== 'todos') {
+      filtradas = filtradas.filter(d => d.categoria === categoria)
     }
     const total = filtradas.reduce((s, d) => s + Number(d.valor), 0)
     const pago = filtradas
