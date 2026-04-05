@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../services/supabase'
 import NovaCategoria from '../components/Categorias/NovaCategoria'
 import Button from '../components/UI/Button'
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
@@ -7,12 +6,37 @@ import { cn } from '@/lib/utils'
 import { formatCurrency, formatMesAno } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
 import { getCategoriaLabel } from '../constants/categorias'
-import { createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
-import { getDaysInMonth } from 'date-fns'
+import { getDespesasFixas, getClientes, getCartoes, createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
+import { calcParcelaNoMes } from '../utils/cicloFatura'
 
-function getLastDayOfMes(mes) {
-  const [year, month] = mes.split('-').map(Number)
-  return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
+function getMesDaPontual(despesa, cartoes) {
+  if (!despesa.created_at) return null
+  const created = new Date(despesa.created_at)
+  const createdYear = created.getFullYear()
+  const createdMonth = created.getMonth() + 1
+  const createdDay = created.getDate()
+  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
+  if (despesa.forma_pagamento?.startsWith('cartao:')) {
+    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
+    const cartao = cartoes.find(c => c.id === cartaoId)
+    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
+      let nextMonth = createdMonth + 1
+      let nextYear = createdYear
+      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
+      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+    }
+  }
+  return mesAno
+}
+
+function despesaNoMes(d, mes, cartoes) {
+  if (d.recorrencia === 'parcela') {
+    return calcParcelaNoMes(d, mes, cartoes) !== null
+  }
+  if (d.recorrencia === 'pontual') {
+    return getMesDaPontual(d, cartoes) === mes
+  }
+  return true // mensal
 }
 
 const CATEGORIA_ICONS = {
@@ -50,25 +74,25 @@ export default function CategoriasPage() {
   const fetchCategorias = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: lancamentos, error } = await supabase
-        .from('lancamentos')
-        .select('*')
-        .gte('data', `${mes}-01`)
-        .lte('data', getLastDayOfMes(mes))
+      const [despesas, clientes, cartoes] = await Promise.all([
+        getDespesasFixas({ status: 'ativo' }),
+        getClientes({ status: 'ativo' }),
+        getCartoes(),
+      ])
 
-      if (error) throw error
+      // Despesas: filtrar por ciclo do mês
+      const despDoMes = despesas.filter(d => despesaNoMes(d, mes, cartoes))
+      // Receitas: só clientes mensais ativos
+      const clientesDoMes = clientes.filter(c => c.tipo === 'mensal')
 
-      const saidas = lancamentos.filter(l => l.tipo === 'saida')
-      const entradas = lancamentos.filter(l => l.tipo === 'entrada')
+      const totalDespesas = despDoMes.reduce((s, d) => s + Number(d.valor), 0)
+      const totalReceitas = clientesDoMes.reduce((s, c) => s + Number(c.valor), 0)
 
-      const totalDespesas = saidas.reduce((s, l) => s + Number(l.valor), 0)
-      const totalReceitas = entradas.reduce((s, l) => s + Number(l.valor), 0)
-
-      const groupBy = (items, total) => {
+      const groupBy = (items, total, keyFn) => {
         const map = {}
-        items.forEach(l => {
-          const key = l.categoria || 'outros'
-          map[key] = (map[key] || 0) + Number(l.valor)
+        items.forEach(item => {
+          const key = keyFn(item) || 'outros'
+          map[key] = (map[key] || 0) + Number(item.valor)
         })
         return Object.entries(map)
           .map(([categoria, valor]) => ({
@@ -80,8 +104,8 @@ export default function CategoriasPage() {
           .sort((a, b) => b.valor - a.valor)
       }
 
-      setDespesasCats(groupBy(saidas, totalDespesas))
-      setReceitasCats(groupBy(entradas, totalReceitas))
+      setDespesasCats(groupBy(despDoMes, totalDespesas, d => d.categoria))
+      setReceitasCats(groupBy(clientesDoMes, totalReceitas, c => c.servico))
       setTotais({ receitas: totalReceitas, despesas: totalDespesas })
     } catch (err) {
       console.error(err)
