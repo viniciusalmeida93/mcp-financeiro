@@ -198,14 +198,19 @@ export function useDespesasComStatus() {
       setPagosIds(prev => { const s = new Set(prev); s.delete(conta.id); return s })
       setLancamentosMap(prev => { const m = { ...prev }; delete m[conta.id]; return m })
     } else {
-      // MARCAR como pago
+      // MARCAR como pago — data dentro do mês selecionado
+      const dia = conta.dia_vencimento || 1
+      const [y, m] = mes.split('-').map(Number)
+      const maxDia = getDaysInMonth(new Date(y, m - 1))
+      const dataLanc = `${mes}-${String(Math.min(dia, maxDia)).padStart(2, '0')}`
+
       const novoLanc = await createLancamento({
         tipo: 'saida',
         valor: conta.valor,
         descricao: conta.nome,
         categoria: conta.categoria,
         forma_pagamento: conta.forma_pagamento,
-        data: new Date().toISOString().split('T')[0],
+        data: dataLanc,
         contexto: conta.contexto,
         despesa_id: conta.id,
       })
