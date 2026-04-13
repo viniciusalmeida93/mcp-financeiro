@@ -23,8 +23,11 @@ const TIPO_OPTIONS = [
 export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago, contexto, setContexto, tipoFilter, setTipoFilter }) {
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
+  const [search, setSearch] = useState('')
 
-  const filtered = clientes
+  const filtered = search.trim()
+    ? clientes.filter(c => c.nome.toLowerCase().includes(search.trim().toLowerCase()))
+    : clientes
 
   const handleCobrar = async (cliente) => {
     if (!cliente.email_cobranca) {
@@ -76,6 +79,13 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
 
   return (
     <div>
+      <input
+        type="text"
+        placeholder="Buscar receita..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
+      />
       <div className="grid grid-cols-2 gap-3 mb-4">
         <SelectField
           options={CONTEXTO_OPTIONS}

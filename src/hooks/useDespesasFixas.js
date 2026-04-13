@@ -166,7 +166,19 @@ export function useDespesasComStatus() {
     if (conta.forma_pagamento?.startsWith('cartao:')) return
 
     if (pagosIds.has(conta.id)) {
-      const lancId = lancamentosMap[conta.id]
+      let lancId = lancamentosMap[conta.id]
+      // Fallback: buscar por nome se não tem o ID mapeado
+      if (!lancId) {
+        const { data: rows } = await supabase
+          .from('lancamentos')
+          .select('id')
+          .eq('tipo', 'saida')
+          .eq('descricao', conta.nome)
+          .gte('data', `${mes}-01`)
+          .lte('data', getLastDay(mes))
+          .limit(1)
+        lancId = rows?.[0]?.id
+      }
       if (lancId) await deleteLancamento(lancId)
       setPagosIds(prev => { const s = new Set(prev); s.delete(conta.id); return s })
       setLancamentosMap(prev => { const m = { ...prev }; delete m[conta.id]; return m })
@@ -186,7 +198,7 @@ export function useDespesasComStatus() {
         setLancamentosMap(prev => ({ ...prev, [conta.id]: novoLanc.id }))
       }
     }
-  }, [pagosIds, lancamentosMap])
+  }, [pagosIds, lancamentosMap, mes])
 
   // Compute totals for a given contexto ('todos'|'empresa'|'pessoal') e categoria
   const calcTotais = useCallback((contexto, categoria = 'todos') => {

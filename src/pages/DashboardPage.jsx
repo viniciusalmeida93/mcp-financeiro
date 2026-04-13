@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <ProximosVencimentosCard
           proximasContas={dashboard.proximasContas}
           loading={dashboard.loading}
-          pagosNomes={dashboard.pagosNomes}
+          pagosIds={dashboard.pagosIds}
           onPagar={dashboard.marcarContaPaga}
           onDesmarcar={dashboard.desmarcarContaPaga}
         />

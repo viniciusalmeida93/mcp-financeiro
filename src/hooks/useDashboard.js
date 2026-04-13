@@ -1,37 +1,60 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
-import { getDiasRestantesNoMes, getProximoVencimento, toDateString } from '../utils/dateHelpers'
-import { createLancamento, deleteLancamento } from '../services/database'
+import { getDiasRestantesNoMes, toDateString } from '../utils/dateHelpers'
+import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
+import { calcParcelaNoMes } from '../utils/cicloFatura'
 
 function getLastDayOfMes(mes) {
   const [year, month] = mes.split('-').map(Number)
   return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
 }
 
+function getMesDaPontual(despesa, cartoes) {
+  if (!despesa.created_at) return null
+  const created = new Date(despesa.created_at)
+  const createdYear = created.getFullYear()
+  const createdMonth = created.getMonth() + 1
+  const createdDay = created.getDate()
+  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
+  if (despesa.forma_pagamento?.startsWith('cartao:')) {
+    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
+    const cartao = cartoes.find(c => c.id === cartaoId)
+    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
+      let nextMonth = createdMonth + 1
+      let nextYear = createdYear
+      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
+      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+    }
+  }
+  return mesAno
+}
+
+function despesaNoMes(d, mes, cartoes) {
+  if (d.recorrencia === 'parcela') return calcParcelaNoMes(d, mes, cartoes) !== null
+  if (d.recorrencia === 'pontual') {
+    if (d.mes_referencia) return d.mes_referencia === mes
+    return getMesDaPontual(d, cartoes) === mes
+  }
+  return true
+}
+
 export function useDashboard(mes) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [data, setData] = useState({
-    saldoEmpresa: 0,
-    saldoPessoal: 0,
     saldoTotal: 0,
     totalReceitas: 0,
     totalDespesas: 0,
     receitaEsperada: 0,
     despesaEsperada: 0,
-    despesasPagasCount: 0,
     despesasPagasTotal: 0,
     economia: 0,
-    receitasEmpresa: 0,
-    receitasPessoal: 0,
-    despesasFixasEmpresa: 0,
-    despesasFixasPessoal: 0,
     diasRestantes: 0,
     proximasContas: [],
     clientesAReceber: [],
-    pagosNomes: new Set(),
+    pagosIds: new Set(),
     pagosClienteIds: new Set(),
     categoriasDespesas: [],
     ultimasTransacoes: [],
@@ -49,75 +72,79 @@ export function useDashboard(mes) {
       const [mesAno, mesNum] = mesAtual.split('-').map(Number)
       const isCurrentMes = mesAtual === format(hoje, 'yyyy-MM')
 
-      // Fetch current month lancamentos (with client name)
-      const { data: lancamentos, error: lErr } = await supabase
-        .from('lancamentos')
-        .select('*, clientes(nome)')
-        .gte('data', inicioMes)
-        .lte('data', getLastDayOfMes(mesAtual))
-        .order('data', { ascending: false })
+      const [lancamentos_res, despesasData, clientesData, cartoesData] = await Promise.all([
+        supabase
+          .from('lancamentos')
+          .select('*, clientes(nome)')
+          .gte('data', inicioMes)
+          .lte('data', getLastDayOfMes(mesAtual))
+          .order('data', { ascending: false }),
+        getDespesasFixas({ status: 'ativo' }),
+        getClientes({ status: 'ativo' }),
+        getCartoes(),
+      ])
 
-      if (lErr) throw lErr
+      const lancamentos = lancamentos_res.data || []
+      if (lancamentos_res.error) throw lancamentos_res.error
 
-      // Fetch active despesas_fixas
-      const { data: despesas, error: dErr } = await supabase
-        .from('despesas_fixas')
-        .select('*')
-        .eq('status', 'ativo')
+      const clientes = clientesData.filter(c => c.tipo === 'mensal')
 
-      if (dErr) throw dErr
+      // Despesas do mês (com ciclo do cartão)
+      const despDoMes = despesasData.filter(d => despesaNoMes(d, mesAtual, cartoesData))
 
-      // Fetch active clients
-      const { data: clientes, error: cErr } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('status', 'ativo')
-        .eq('tipo', 'mensal')
-
-      if (cErr) throw cErr
-
-      // Calculate totals from lancamentos
-      const receitasEmpresa = lancamentos
-        .filter(l => l.contexto === 'empresa' && l.tipo === 'entrada')
+      // Receitas e gastos dos lançamentos
+      const totalReceitas = lancamentos
+        .filter(l => l.tipo === 'entrada')
         .reduce((s, l) => s + Number(l.valor), 0)
 
-      const receitasPessoal = lancamentos
-        .filter(l => l.contexto === 'pessoal' && l.tipo === 'entrada')
+      const totalDespesas = lancamentos
+        .filter(l => l.tipo === 'saida')
         .reduce((s, l) => s + Number(l.valor), 0)
 
-      const gastosEmpresa = lancamentos
-        .filter(l => l.contexto === 'empresa' && l.tipo === 'saida')
-        .reduce((s, l) => s + Number(l.valor), 0)
+      // Esperados do mês
+      const receitaEsperada = clientes.reduce((s, c) => s + Number(c.valor), 0)
+      const despesaEsperada = despDoMes.reduce((s, d) => s + Number(d.valor), 0)
 
-      const gastosPessoal = lancamentos
-        .filter(l => l.contexto === 'pessoal' && l.tipo === 'saida')
-        .reduce((s, l) => s + Number(l.valor), 0)
+      // Pagos - mapear por despesa_id e fallback por nome
+      const pagosIds = new Set()
+      const lancMapById = {}
+      lancamentos.filter(l => l.tipo === 'saida').forEach(l => {
+        if (l.despesa_id) {
+          pagosIds.add(l.despesa_id)
+          lancMapById[l.despesa_id] = l.id
+        } else {
+          const desp = despesasData.find(d => d.nome === l.descricao)
+          if (desp) {
+            pagosIds.add(desp.id)
+            lancMapById[desp.id] = l.id
+          }
+        }
+      })
 
-      const totalReceitas = receitasEmpresa + receitasPessoal
-      const totalDespesas = gastosEmpresa + gastosPessoal
+      // Despesas de cartão = automaticamente pagas
+      despDoMes.forEach(d => {
+        if (d.forma_pagamento?.startsWith('cartao:')) pagosIds.add(d.id)
+      })
 
-      // Fixed expenses this month
-      const despesasFixasEmpresa = despesas
-        .filter(d => d.contexto === 'empresa')
+      const despesasPagasTotal = despDoMes
+        .filter(d => pagosIds.has(d.id))
         .reduce((s, d) => s + Number(d.valor), 0)
 
-      const despesasFixasPessoal = despesas
-        .filter(d => d.contexto === 'pessoal')
-        .reduce((s, d) => s + Number(d.valor), 0)
+      // Clientes recebidos
+      const pagosClienteIds = new Set(
+        lancamentos.filter(l => l.tipo === 'entrada' && l.cliente_id).map(l => l.cliente_id)
+      )
 
-      const saldoEmpresa = receitasEmpresa - gastosEmpresa
-      const saldoPessoal = receitasPessoal - gastosPessoal
-
-      // Bills for selected month
-      const proximasContas = despesas
+      // Próximas contas do mês
+      const proximasContas = despDoMes
         .map(d => {
           const dia = d.dia_vencimento || 1
           const vencimento = new Date(mesAno, mesNum - 1, dia)
           return { ...d, proximoVencimento: vencimento }
         })
         .filter(d => {
-          const venc = toDateString(d.proximoVencimento)
           if (isCurrentMes) {
+            const venc = toDateString(d.proximoVencimento)
             const fimSemana = toDateString(addDays(hoje, 7))
             return venc >= hojeStr && venc <= fimSemana
           }
@@ -125,7 +152,7 @@ export function useDashboard(mes) {
         })
         .sort((a, b) => a.proximoVencimento - b.proximoVencimento)
 
-      // Clients for selected month
+      // Clientes a receber
       const clientesAReceber = clientes
         .map(c => {
           const dia = c.dia_vencimento || 1
@@ -133,8 +160,8 @@ export function useDashboard(mes) {
           return { ...c, proximoVencimento: vencimento }
         })
         .filter(c => {
-          const venc = toDateString(c.proximoVencimento)
           if (isCurrentMes) {
+            const venc = toDateString(c.proximoVencimento)
             const fimSemana = toDateString(addDays(hoje, 7))
             return venc >= hojeStr && venc <= fimSemana
           }
@@ -142,21 +169,12 @@ export function useDashboard(mes) {
         })
         .sort((a, b) => a.proximoVencimento - b.proximoVencimento)
 
-      const pagosNomes = new Set(
-        lancamentos.filter(l => l.tipo === 'saida').map(l => l.descricao)
-      )
-      const pagosClienteIds = new Set(
-        lancamentos.filter(l => l.tipo === 'entrada' && l.cliente_id).map(l => l.cliente_id)
-      )
-
-      // Top categories by despesas
+      // Top categorias despesas
       const catMap = {}
-      lancamentos
-        .filter(l => l.tipo === 'saida')
-        .forEach(l => {
-          const key = l.categoria || 'outros'
-          catMap[key] = (catMap[key] || 0) + Number(l.valor)
-        })
+      despDoMes.forEach(d => {
+        const key = d.categoria || 'outros'
+        catMap[key] = (catMap[key] || 0) + Number(d.valor)
+      })
       const categoriasDespesas = Object.entries(catMap)
         .map(([categoria, total]) => ({
           categoria,
@@ -165,12 +183,11 @@ export function useDashboard(mes) {
         }))
         .sort((a, b) => b.total - a.total)
         .slice(0, 6)
-        .map(c => ({ ...c, percentual: totalDespesas > 0 ? (c.total / totalDespesas) * 100 : 0 }))
+        .map(c => ({ ...c, percentual: despesaEsperada > 0 ? (c.total / despesaEsperada) * 100 : 0 }))
 
-      // Last 8 transactions
       const ultimasTransacoes = lancamentos.slice(0, 8)
 
-      // Daily evolution for chart
+      // Evolução diária
       const lastDay = getDaysInMonth(new Date(mesAno, mesNum - 1))
       const maxDay = isCurrentMes ? Math.min(lastDay, hoje.getDate()) : lastDay
       const dailyMap = {}
@@ -190,39 +207,28 @@ export function useDashboard(mes) {
         })
       }
 
-      const receitaEsperada = clientes.reduce((s, c) => s + Number(c.valor), 0)
-      const despesaEsperada = despesas.reduce((s, d) => s + Number(d.valor), 0)
-      const despesasPagasCount = despesas.filter(d => pagosNomes.has(d.nome)).length
-      const despesasPagasTotal = despesas.filter(d => pagosNomes.has(d.nome)).reduce((s, d) => s + Number(d.valor), 0)
-
       const saldoTotal = totalReceitas - despesasPagasTotal
-      const economiaFinal = totalReceitas > 0
+      const economia = totalReceitas > 0
         ? Math.round(((totalReceitas - despesasPagasTotal) / totalReceitas) * 100)
         : 0
 
       setData({
-        saldoEmpresa,
-        saldoPessoal,
         saldoTotal,
         totalReceitas,
         totalDespesas,
         receitaEsperada,
         despesaEsperada,
-        despesasPagasCount,
         despesasPagasTotal,
-        economia: economiaFinal,
-        receitasEmpresa,
-        receitasPessoal,
-        despesasFixasEmpresa,
-        despesasFixasPessoal,
+        economia,
         diasRestantes: getDiasRestantesNoMes(),
         proximasContas,
         clientesAReceber,
-        pagosNomes,
+        pagosIds,
         pagosClienteIds,
         categoriasDespesas,
         ultimasTransacoes,
         evolucaoDiaria,
+        _lancMapById: lancMapById,
       })
     } catch (err) {
       setError(err.message)
@@ -232,10 +238,9 @@ export function useDashboard(mes) {
   }, [mes])
 
   const marcarContaPaga = useCallback(async (conta) => {
-    const hoje = new Date()
-    const mesAtual = mes || format(hoje, 'yyyy-MM')
+    const mesAtual = mes || format(new Date(), 'yyyy-MM')
     const [mesAno, mesNum] = mesAtual.split('-').map(Number)
-    const dia = conta.dia_vencimento || hoje.getDate()
+    const dia = conta.dia_vencimento || new Date().getDate()
     const dataLanc = `${mesAtual}-${String(Math.min(dia, getDaysInMonth(new Date(mesAno, mesNum - 1)))).padStart(2, '0')}`
     await createLancamento({
       tipo: 'saida',
@@ -245,31 +250,36 @@ export function useDashboard(mes) {
       forma_pagamento: conta.forma_pagamento,
       data: dataLanc,
       contexto: conta.contexto,
+      despesa_id: conta.id,
     })
     fetchDashboard()
   }, [fetchDashboard, mes])
 
   const desmarcarContaPaga = useCallback(async (conta) => {
-    const mesAtual = mes || format(new Date(), 'yyyy-MM')
-    const { data: rows } = await supabase
-      .from('lancamentos')
-      .select('id')
-      .eq('tipo', 'saida')
-      .eq('descricao', conta.nome)
-      .gte('data', `${mesAtual}-01`)
-      .lte('data', getLastDayOfMes(mesAtual))
-      .limit(1)
-    if (rows?.[0]) {
-      await deleteLancamento(rows[0].id)
+    // Tentar pelo lancMapById primeiro
+    let lancId = data._lancMapById?.[conta.id]
+    if (!lancId) {
+      const mesAtual = mes || format(new Date(), 'yyyy-MM')
+      const { data: rows } = await supabase
+        .from('lancamentos')
+        .select('id')
+        .eq('tipo', 'saida')
+        .eq('descricao', conta.nome)
+        .gte('data', `${mesAtual}-01`)
+        .lte('data', getLastDayOfMes(mesAtual))
+        .limit(1)
+      lancId = rows?.[0]?.id
+    }
+    if (lancId) {
+      await deleteLancamento(lancId)
       fetchDashboard()
     }
-  }, [fetchDashboard, mes])
+  }, [fetchDashboard, mes, data._lancMapById])
 
   const marcarClienteRecebido = useCallback(async (cliente) => {
-    const hoje = new Date()
-    const mesAtual = mes || format(hoje, 'yyyy-MM')
+    const mesAtual = mes || format(new Date(), 'yyyy-MM')
     const [mesAno, mesNum] = mesAtual.split('-').map(Number)
-    const dia = cliente.dia_vencimento || hoje.getDate()
+    const dia = cliente.dia_vencimento || new Date().getDate()
     const dataLanc = `${mesAtual}-${String(Math.min(dia, getDaysInMonth(new Date(mesAno, mesNum - 1)))).padStart(2, '0')}`
     await createLancamento({
       tipo: 'entrada',
@@ -278,7 +288,7 @@ export function useDashboard(mes) {
       categoria: 'receita_servico',
       forma_pagamento: 'transferencia',
       data: dataLanc,
-      contexto: 'empresa',
+      contexto: cliente.contexto || 'empresa',
       cliente_id: cliente.id,
     })
     fetchDashboard()

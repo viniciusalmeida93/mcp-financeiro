@@ -5,7 +5,7 @@ import { toDateString } from '../../utils/dateHelpers'
 import EmptyState from '../UI/EmptyState'
 import { cn } from '@/lib/utils'
 
-export default function ProximosVencimentosCard({ proximasContas, loading, pagosNomes = new Set(), onPagar, onDesmarcar }) {
+export default function ProximosVencimentosCard({ proximasContas, loading, pagosIds = new Set(), onPagar, onDesmarcar }) {
   const empresa = proximasContas.filter(c => c.contexto === 'empresa')
   const pessoal = proximasContas.filter(c => c.contexto === 'pessoal')
   const total = proximasContas.reduce((s, c) => s + Number(c.valor), 0)
@@ -15,7 +15,7 @@ export default function ProximosVencimentosCard({ proximasContas, loading, pagos
   const renderConta = (conta, contexto) => {
     const venc = toDateString(conta.proximoVencimento)
     const atrasado = venc < hoje
-    const pago = pagosNomes.has(conta.nome)
+    const pago = pagosIds.has(conta.id) || conta.forma_pagamento?.startsWith('cartao:')
 
     return (
       <div

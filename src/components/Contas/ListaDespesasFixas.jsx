@@ -27,6 +27,7 @@ export default function ListaDespesasFixas({
 }) {
   const [showForm, setShowForm] = useState(false)
   const [despesaEdit, setDespesaEdit] = useState(null)
+  const [search, setSearch] = useState('')
   const [categoriasOptions, setCategoriasOptions] = useState([{ value: 'todos', label: 'Todas categorias' }])
 
   useEffect(() => {
@@ -39,9 +40,13 @@ export default function ListaDespesasFixas({
     }).catch(() => {})
   }, [])
 
-  const filtered = categoriaFilter === 'todos'
+  let filtered = categoriaFilter === 'todos'
     ? despesas
     : despesas.filter(d => d.categoria === categoriaFilter)
+  if (search.trim()) {
+    const q = search.trim().toLowerCase()
+    filtered = filtered.filter(d => d.nome.toLowerCase().includes(q))
+  }
 
   const handleDelete = async (conta) => {
     if (!confirm(`Excluir "${conta.nome}"?`)) return
@@ -70,6 +75,13 @@ export default function ListaDespesasFixas({
 
   return (
     <div>
+      <input
+        type="text"
+        placeholder="Buscar despesa..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
+      />
       <div className="grid grid-cols-2 gap-3 mb-4">
         <SelectField
           options={CONTEXTO_OPTIONS}
