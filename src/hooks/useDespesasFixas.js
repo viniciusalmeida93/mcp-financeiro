@@ -162,14 +162,26 @@ export function useDespesasComStatus() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   const handleTogglePago = useCallback(async (conta) => {
-    // Despesas de cartão não podem ser desmarcadas
-    if (conta.forma_pagamento?.startsWith('cartao:')) return
-
     if (pagosIds.has(conta.id)) {
+      // DESMARCAR: buscar lançamento de várias formas
       let lancId = lancamentosMap[conta.id]
-      // Fallback: buscar por nome se não tem o ID mapeado
+
       if (!lancId) {
-        const { data: rows } = await supabase
+        // Buscar por despesa_id
+        const { data: rows1 } = await supabase
+          .from('lancamentos')
+          .select('id')
+          .eq('tipo', 'saida')
+          .eq('despesa_id', conta.id)
+          .gte('data', `${mes}-01`)
+          .lte('data', getLastDay(mes))
+          .limit(1)
+        lancId = rows1?.[0]?.id
+      }
+
+      if (!lancId) {
+        // Fallback: buscar por nome
+        const { data: rows2 } = await supabase
           .from('lancamentos')
           .select('id')
           .eq('tipo', 'saida')
@@ -177,12 +189,16 @@ export function useDespesasComStatus() {
           .gte('data', `${mes}-01`)
           .lte('data', getLastDay(mes))
           .limit(1)
-        lancId = rows?.[0]?.id
+        lancId = rows2?.[0]?.id
       }
-      if (lancId) await deleteLancamento(lancId)
+
+      if (lancId) {
+        await deleteLancamento(lancId)
+      }
       setPagosIds(prev => { const s = new Set(prev); s.delete(conta.id); return s })
       setLancamentosMap(prev => { const m = { ...prev }; delete m[conta.id]; return m })
     } else {
+      // MARCAR como pago
       const novoLanc = await createLancamento({
         tipo: 'saida',
         valor: conta.valor,
