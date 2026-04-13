@@ -2,7 +2,6 @@ import { useState } from 'react'
 import ListaLancamentos from '../components/Lancamentos/ListaLancamentos'
 import NovoLancamento from '../components/Lancamentos/NovoLancamento'
 import { useLancamentos } from '../hooks/useLancamentos'
-import { Button } from '@/components/UI/Button'
 import { Plus } from 'lucide-react'
 
 export default function LancamentosPage() {
@@ -17,14 +16,6 @@ export default function LancamentosPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Lançamentos</h1>
-        <Button onClick={() => setShowForm(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Novo
-        </Button>
-      </div>
-
       <ListaLancamentos
         lancamentos={lancamentos}
         loading={loading}
@@ -32,6 +23,15 @@ export default function LancamentosPage() {
         updateFilter={updateFilter}
         refresh={refresh}
       />
+
+      <button
+        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
+        style={{ backgroundColor: '#5ED0FF' }}
+        onClick={() => setShowForm(true)}
+        title="Novo lançamento"
+      >
+        <Plus size={20} />
+      </button>
 
       <NovoLancamento
         isOpen={showForm}

@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import LancamentoItem from './LancamentoItem'
-import ContextToggle from '../UI/ContextToggle'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
+import SelectField from '../UI/Select'
 import { Card, CardContent } from '@/components/UI/Card'
-import { Input } from '@/components/UI/Input'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,12 +15,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/UI/alert-dialog'
-import { Tabs, TabsList, TabsTrigger } from '@/components/UI/tabs'
 import { formatCurrency } from '../../utils/formatters'
 import { deleteLancamento, deleteGrupoParcelas } from '../../services/database'
-import { Search } from 'lucide-react'
 
-const TIPOS_FILTER = [
+const CONTEXTO_OPTIONS = [
+  { value: 'todos', label: 'Tudo' },
+  { value: 'empresa', label: 'Empresa' },
+  { value: 'pessoal', label: 'Pessoal' },
+]
+
+const TIPO_OPTIONS = [
   { value: 'todos', label: 'Todos' },
   { value: 'entrada', label: 'Entradas' },
   { value: 'saida', label: 'Saídas' },
@@ -61,81 +64,83 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
 
   return (
     <div className="space-y-3">
-      {/* Context toggle */}
-      <ContextToggle value={filters.contexto} onChange={v => updateFilter('contexto', v)} />
-
-      {/* Type filter tabs */}
-      <Tabs value={filters.tipo} onValueChange={v => updateFilter('tipo', v)}>
-        <TabsList className="w-full">
-          {TIPOS_FILTER.map(t => (
-            <TabsTrigger key={t.value} value={t.value} className="flex-1">
-              {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Buscar lançamento..."
-          value={filters.search}
-          onChange={e => updateFilter('search', e.target.value)}
+      <input
+        type="text"
+        placeholder="Buscar lançamento..."
+        value={filters.search}
+        onChange={e => updateFilter('search', e.target.value)}
+        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+
+      {/* Filters */}
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          options={CONTEXTO_OPTIONS}
+          value={filters.contexto}
+          onValueChange={v => updateFilter('contexto', v)}
+        />
+        <SelectField
+          options={TIPO_OPTIONS}
+          value={filters.tipo}
+          onValueChange={v => updateFilter('tipo', v)}
         />
       </div>
 
       {/* Summary */}
       {!loading && lancamentos.length > 0 && (
-        <Card>
-          <CardContent className="py-3 px-4 flex justify-between">
-            <span className="text-sm font-semibold text-green-500">↑ {formatCurrency(totalEntradas)}</span>
-            <span className="text-sm font-semibold text-red-500">↓ {formatCurrency(totalSaidas)}</span>
-            <span className="text-sm font-semibold">= {formatCurrency(totalEntradas - totalSaidas)}</span>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+            <div className="text-xs text-muted-foreground mb-1">Entradas</div>
+            <div className="text-sm font-semibold text-green-500">{formatCurrency(totalEntradas)}</div>
+          </div>
+          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+            <div className="text-xs text-muted-foreground mb-1">Saídas</div>
+            <div className="text-sm font-semibold text-red-500">{formatCurrency(totalSaidas)}</div>
+          </div>
+          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+            <div className="text-xs text-muted-foreground mb-1">Saldo</div>
+            <div className={`text-sm font-semibold ${totalEntradas - totalSaidas >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {formatCurrency(totalEntradas - totalSaidas)}
+            </div>
+          </div>
+        </div>
       )}
 
       {loading ? (
         <LoadingScreen />
       ) : lancamentos.length === 0 ? (
-        <EmptyState icon="📝" text="Nenhum lançamento encontrado" subtext="Tente ajustar os filtros ou adicione um novo lançamento" />
+        <EmptyState icon="📝" text="Nenhum lançamento encontrado" />
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            {lancamentos.map(l => (
-              <LancamentoItem key={l.id} lancamento={l} onDelete={handleDeleteRequest} />
-            ))}
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border bg-card overflow-hidden">
+          {lancamentos.map(l => (
+            <LancamentoItem key={l.id} lancamento={l} onDelete={handleDeleteRequest} />
+          ))}
+        </div>
       )}
 
-      {/* Delete single / all parcelas dialog */}
+      {/* Delete dialogs */}
       {deleteTarget?.grupo_parcela_id ? (
         <AlertDialog open={showParcelasDialog} onOpenChange={setShowParcelasDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir parcelas</AlertDialogTitle>
               <AlertDialogDescription>
-                "{deleteTarget?.descricao}" é uma compra parcelada. Deseja excluir todas as parcelas ou apenas esta?
+                "{deleteTarget?.descricao}" é parcelada. Excluir todas ou apenas esta?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
               <AlertDialogCancel onClick={() => { setDeleteTarget(null); setShowParcelasDialog(false) }}>
                 Cancelar
               </AlertDialogCancel>
-              <AlertDialogAction
-                variant="outline"
-                onClick={() => handleDeleteConfirm(false)}
-              >
+              <AlertDialogAction variant="outline" onClick={() => handleDeleteConfirm(false)}>
                 Só esta
               </AlertDialogAction>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => handleDeleteConfirm(true)}
               >
-                Todas as parcelas
+                Todas
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -146,7 +151,7 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
               <AlertDialogDescription>
-                Excluir "{deleteTarget?.descricao}"? Esta ação não pode ser desfeita.
+                Excluir "{deleteTarget?.descricao}"?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -142,13 +142,6 @@ export function useDespesasComStatus() {
         }
       })
 
-      // Despesas de cartão são automaticamente "pagas"
-      despData.forEach(d => {
-        if (d.forma_pagamento?.startsWith('cartao:')) {
-          pagoSet.add(d.id)
-        }
-      })
-
       setAllDespesas(despData)
       setPagosIds(new Set(pagoSet))
       setLancamentosMap(map)

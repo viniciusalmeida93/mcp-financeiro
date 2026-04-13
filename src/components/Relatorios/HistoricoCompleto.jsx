@@ -29,7 +29,7 @@ export default function HistoricoCompleto() {
     <div className="space-y-4 mt-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">📈 Últimos 12 meses</CardTitle>
+          <CardTitle className="text-base">Últimos 12 meses</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>

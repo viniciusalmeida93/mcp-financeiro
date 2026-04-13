@@ -19,7 +19,7 @@ export default function FluxoMensal() {
           {/* Empresa block */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">💼 Empresa</CardTitle>
+              <CardTitle className="text-base">Empresa</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -42,7 +42,7 @@ export default function FluxoMensal() {
           {/* Pessoal block */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">🏠 Pessoal</CardTitle>
+              <CardTitle className="text-base">Pessoal</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -65,7 +65,7 @@ export default function FluxoMensal() {
           {/* Consolidated */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">📊 Consolidado</CardTitle>
+              <CardTitle className="text-base">Consolidado</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">

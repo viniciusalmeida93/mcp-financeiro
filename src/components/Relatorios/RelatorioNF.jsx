@@ -72,7 +72,7 @@ export default function RelatorioNF() {
           />
         </div>
         {nfs.length > 0 && (
-          <Button variant="secondary" size="sm" onClick={exportCSV}>📥 CSV</Button>
+          <Button variant="secondary" size="sm" onClick={exportCSV}>CSV</Button>
         )}
       </div>
 

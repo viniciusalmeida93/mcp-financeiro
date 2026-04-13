@@ -121,11 +121,6 @@ export function useDashboard(mes) {
         }
       })
 
-      // Despesas de cartão = automaticamente pagas
-      despDoMes.forEach(d => {
-        if (d.forma_pagamento?.startsWith('cartao:')) pagosIds.add(d.id)
-      })
-
       const despesasPagasTotal = despDoMes
         .filter(d => pagosIds.has(d.id))
         .reduce((s, d) => s + Number(d.valor), 0)

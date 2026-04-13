@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
-import ContextToggle from '../UI/ContextToggle'
+import SelectField from '../UI/Select'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
 import { supabase } from '../../services/supabase'
@@ -49,7 +49,15 @@ export default function GastosPorCategoria() {
 
   return (
     <div className="space-y-4 mt-2">
-      <ContextToggle value={contexto} onChange={setContexto} />
+      <SelectField
+        options={[
+          { value: 'todos', label: 'Tudo' },
+          { value: 'empresa', label: 'Empresa' },
+          { value: 'pessoal', label: 'Pessoal' },
+        ]}
+        value={contexto}
+        onValueChange={setContexto}
+      />
 
       {loading ? <LoadingScreen /> : categorias.length === 0 ? (
         <EmptyState icon="📊" text="Sem gastos neste período" />
