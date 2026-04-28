@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Briefcase, Home, RefreshCw } from 'lucide-react'
 import Modal from '../UI/Modal'
 import Input from '../UI/Input'
 import Select from '../UI/Select'
@@ -81,7 +82,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} title={cartao ? 'Editar Cartão' : 'Novo Cartão'}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Apelido / Banco"
           required
@@ -146,32 +147,33 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Contexto</label>
-          <div className="flex gap-4 mt-1">
+          <div className="flex gap-5 flex-wrap">
             {[
-              { value: 'empresa', label: '💼 Empresa' },
-              { value: 'pessoal', label: '🏠 Pessoal' },
-              { value: 'ambos', label: '🔄 Ambos' },
-            ].map(opt => (
-              <label key={opt.value} className={`flex items-center gap-1.5 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
+              { value: 'empresa', label: 'Empresa', Icon: Briefcase },
+              { value: 'pessoal', label: 'Pessoal', Icon: Home },
+              { value: 'ambos', label: 'Ambos', Icon: RefreshCw },
+            ].map(({ value, label, Icon }) => (
+              <label key={value} className={`flex items-center gap-1.5 cursor-pointer text-sm ${form.contexto === value ? 'font-semibold' : ''}`}>
                 <input
                   type="radio"
                   name="contexto_cartao"
-                  value={opt.value}
-                  checked={form.contexto === opt.value}
-                  onChange={() => set('contexto', opt.value)}
+                  value={value}
+                  checked={form.contexto === value}
+                  onChange={() => set('contexto', value)}
                   className="accent-primary"
                 />
-                {opt.label}
+                <Icon className="h-3.5 w-3.5" />
+                {label}
               </label>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Cor do cartão</label>
-          <div className="flex gap-2 flex-wrap mt-1">
+          <div className="flex gap-2 flex-wrap">
             {COR_OPTIONS.map(opt => (
               <button key={opt.value} type="button"
                 onClick={() => set('cor', opt.value)}
@@ -187,9 +189,9 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
           </div>
         </div>
 
-        {errors.submit && <p className="text-destructive text-sm mb-3">{errors.submit}</p>}
+        {errors.submit && <p className="text-destructive text-sm">{errors.submit}</p>}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 border-t">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit" disabled={saving}>
             {saving ? 'Salvando...' : cartao ? 'Salvar' : 'Adicionar'}

@@ -6,11 +6,17 @@ import {
   DialogFooter,
 } from '@/components/UI/dialog'
 
-// Matches old Modal.jsx props: isOpen, onClose, title, children
-// Added: optional footer prop
+// Modal não fecha por clique fora ou Escape — só pelo botão X, Cancelar ou Salvar.
 export default function Modal({ isOpen, onClose, title, children, footer }) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={isOpen}
+      disablePointerDismissal
+      onOpenChange={(open, details) => {
+        if (!open && details?.reason === 'escapeKey') return
+        if (!open) onClose()
+      }}
+    >
       <DialogContent className="w-[calc(100%-32px)] max-w-md mx-auto">
         {title && (
           <DialogHeader>

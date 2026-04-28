@@ -3,11 +3,12 @@ import CartaoItem from '../components/Cartoes/CartaoItem'
 import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
 import SelectField from '../components/UI/Select'
-import { Plus } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+import FAB from '../components/UI/FAB'
 import { getCartoes, createCartao, updateCartao, deleteCartao, getDespesasFixas } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
-import { calcParcelaNoMes } from '../utils/cicloFatura'
+import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
 
 const CONTEXTO_OPTIONS = [
   { value: 'ambos', label: 'Todos' },
@@ -24,6 +25,7 @@ function getDespesasDoCartaoNoMes(despesas, cartao, mesSelecionado, cartoes) {
   const linked = despesas.filter(d => d.forma_pagamento === `cartao:${cartaoId}`)
 
   return linked.filter(d => {
+    if (despesaEncerrada(d, mesSelecionado)) return false
     // Parcelas: só se a parcela cabe no mês
     if (d.recorrencia === 'parcela') {
       return calcParcelaNoMes(d, mesSelecionado, cartoes) !== null
@@ -168,7 +170,7 @@ export default function CartoesPage() {
         <div className="flex justify-center py-8"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="💳"
+          icon={CreditCard}
           text="Nenhum cartão encontrado"
           subtext="Adicione seus cartões de crédito para acompanhar a fatura"
         />
@@ -191,15 +193,7 @@ export default function CartoesPage() {
         </div>
       )}
 
-      {/* FAB */}
-      <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
-        style={{ backgroundColor: '#5ED0FF' }}
-        onClick={() => setShowForm(true)}
-        title="Novo cartão"
-      >
-        <Plus size={20} />
-      </button>
+      <FAB onClick={() => setShowForm(true)} title="Novo cartão" />
 
       {showForm && (
         <NovoCartao

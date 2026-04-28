@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
+import { BarChart3, Pencil, Trash2 } from 'lucide-react'
 import NovaCategoria from '../components/Categorias/NovaCategoria'
 import Button from '../components/UI/Button'
+import FAB from '../components/UI/FAB'
 import { Card, CardHeader, CardContent, CardTitle } from '../components/UI/Card'
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatMesAno } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
 import { getCategoriaLabel } from '../constants/categorias'
+import { getCategoriaIcon } from '@/lib/categoriaIcons'
 import { getDespesasFixas, getClientes, getCartoes, createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
-import { calcParcelaNoMes } from '../utils/cicloFatura'
+import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
 
 function getMesDaPontual(despesa, cartoes) {
   if (!despesa.created_at) return null
@@ -30,6 +33,7 @@ function getMesDaPontual(despesa, cartoes) {
 }
 
 function despesaNoMes(d, mes, cartoes) {
+  if (despesaEncerrada(d, mes)) return false
   if (d.recorrencia === 'parcela') {
     return calcParcelaNoMes(d, mes, cartoes) !== null
   }
@@ -37,27 +41,6 @@ function despesaNoMes(d, mes, cartoes) {
     return getMesDaPontual(d, cartoes) === mes
   }
   return true // mensal
-}
-
-const CATEGORIA_ICONS = {
-  cliente: '👤',
-  projetos: '🎯',
-  assinaturas: '🔄',
-  time: '👥',
-  educacao: '📚',
-  infraestrutura: '🖥️',
-  outros_empresa: '📦',
-  receita_servico: '💼',
-  alimentacao: '🍽️',
-  supermercado: '🛒',
-  combustivel: '⛽',
-  transporte: '🚗',
-  saude: '🏥',
-  lazer: '🎮',
-  moradia: '🏠',
-  familia: '👨‍👩‍👧',
-  divida: '💳',
-  outros: '📋',
 }
 
 export default function CategoriasPage() {
@@ -171,8 +154,8 @@ export default function CategoriasPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${tipo === 'despesas' ? 'bg-primary/10' : 'bg-green-500/10'}`}>
-                      {CATEGORIA_ICONS[cat.categoria] || '📋'}
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tipo === 'despesas' ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                      {(() => { const Icon = getCategoriaIcon(cat.categoria); return <Icon className="h-4 w-4" /> })()}
                     </div>
                     <span className="font-medium text-sm">{cat.label}</span>
                   </div>
@@ -229,8 +212,8 @@ export default function CategoriasPage() {
             renderSection('Receitas', receitasCats, totais.receitas, 'receitas')}
 
           {despesasCats.length === 0 && receitasCats.length === 0 && (
-            <div className="flex flex-col items-center py-12 text-muted-foreground">
-              <div className="text-4xl mb-2">📊</div>
+            <div className="flex flex-col items-center py-12 text-muted-foreground gap-2">
+              <BarChart3 className="h-10 w-10" strokeWidth={1.5} />
               <div className="text-sm">Nenhum lançamento em {formatMesAno(mes)}</div>
             </div>
           )}
@@ -257,8 +240,12 @@ export default function CategoriasPage() {
                   </span>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleEditCategoria(cat)} title="Editar">✏️</Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCategoria(cat)} title="Excluir" className="text-destructive hover:text-destructive">🗑️</Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEditCategoria(cat)} title="Editar">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteCategoria(cat)} title="Excluir" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -266,13 +253,7 @@ export default function CategoriasPage() {
         </Card>
       )}
 
-      {/* FAB */}
-      <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white text-2xl flex items-center justify-center shadow-lg hover:opacity-90"
-        style={{ backgroundColor: '#5ED0FF' }}
-        onClick={() => setShowForm(true)}
-        title="Nova categoria"
-      >+</button>
+      <FAB onClick={() => setShowForm(true)} title="Nova categoria" />
 
       {showForm && (
         <NovaCategoria

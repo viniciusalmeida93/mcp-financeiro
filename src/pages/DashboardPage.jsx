@@ -6,9 +6,9 @@ import ClientesReceberCard from '../components/Dashboard/ClientesReceberCard'
 import NovoRegistroPicker from '../components/Dashboard/NovoRegistroPicker'
 import NovoCliente from '../components/Clientes/NovoCliente'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
+import FAB from '../components/UI/FAB'
 import { useDashboard } from '../hooks/useDashboard'
 import { useMes } from '../contexts/MesContext'
-import { Plus } from 'lucide-react'
 
 export default function DashboardPage() {
   const { mes } = useMes()
@@ -61,15 +61,7 @@ export default function DashboardPage() {
         loading={dashboard.loading}
       />
 
-      {/* FAB */}
-      <button
-        onClick={() => setShowPicker(true)}
-        className="fixed bottom-20 right-4 md:bottom-4 z-40 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-colors"
-        style={{ backgroundColor: '#5ED0FF' }}
-        title="Novo registro"
-      >
-        <Plus size={24} />
-      </button>
+      <FAB onClick={() => setShowPicker(true)} title="Novo registro" />
 
       <NovoRegistroPicker
         isOpen={showPicker}

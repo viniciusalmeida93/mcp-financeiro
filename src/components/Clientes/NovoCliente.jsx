@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Briefcase, Home, X } from 'lucide-react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
@@ -193,192 +194,195 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Receita' : 'Nova Receita'}>
-
-      {/* Contexto */}
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Contexto</label>
-        <div className="flex gap-4 mt-1">
-          {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
-            <label key={opt.value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
-              <input
-                type="radio"
-                name="contexto_cliente"
-                value={opt.value}
-                checked={form.contexto === opt.value}
-                onChange={() => set('contexto', opt.value)}
-                className="accent-primary"
-              />
-              {opt.label}
-            </label>
-          ))}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Contexto</label>
+          <div className="flex gap-5">
+            {[
+              { value: 'empresa', label: 'Empresa', Icon: Briefcase },
+              { value: 'pessoal', label: 'Pessoal', Icon: Home },
+            ].map(({ value, label, Icon }) => (
+              <label key={value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === value ? 'font-semibold' : ''}`}>
+                <input
+                  type="radio"
+                  name="contexto_cliente"
+                  value={value}
+                  checked={form.contexto === value}
+                  onChange={() => set('contexto', value)}
+                  className="accent-primary"
+                />
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <Input
-        label="Nome"
-        required
-        placeholder="Nome do cliente"
-        value={form.nome}
-        onChange={e => set('nome', e.target.value)}
-        error={errors.nome}
-      />
-
-      <Input
-        label="Email de Cobrança"
-        type="email"
-        placeholder="email@cliente.com"
-        value={form.email_cobranca || ''}
-        onChange={e => set('email_cobranca', e.target.value)}
-        error={errors.email_cobranca}
-      />
-
-      <SelectField
-        label="Tipo"
-        options={TIPOS}
-        value={form.tipo}
-        onValueChange={v => set('tipo', v)}
-      />
-
-      <div className="grid grid-cols-2 gap-3">
         <Input
-          label={isPontual ? 'Valor Total (R$)' : 'Valor Mensal (R$)'}
+          label="Nome"
           required
-          type="number"
-          step="0.01"
-          min="0"
-          placeholder="0,00"
-          value={form.valor}
-          onChange={e => set('valor', e.target.value)}
-          error={errors.valor}
+          placeholder="Nome do cliente"
+          value={form.nome}
+          onChange={e => set('nome', e.target.value)}
+          error={errors.nome}
         />
-        {!isPontual && (
+
+        <Input
+          label="Email de Cobrança"
+          type="email"
+          placeholder="email@cliente.com"
+          value={form.email_cobranca || ''}
+          onChange={e => set('email_cobranca', e.target.value)}
+          error={errors.email_cobranca}
+        />
+
+        <SelectField
+          label="Tipo"
+          options={TIPOS}
+          value={form.tipo}
+          onValueChange={v => set('tipo', v)}
+        />
+
+        <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Data Vencimento"
+            label={isPontual ? 'Valor Total (R$)' : 'Valor Mensal (R$)'}
             required
-            type="date"
-            value={form.data_vencimento}
-            onChange={e => set('data_vencimento', e.target.value)}
-            error={errors.data_vencimento}
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0,00"
+            value={form.valor}
+            onChange={e => set('valor', e.target.value)}
+            error={errors.valor}
+          />
+          {!isPontual && (
+            <Input
+              label="Data"
+              required
+              type="date"
+              value={form.data_vencimento}
+              onChange={e => set('data_vencimento', e.target.value)}
+              error={errors.data_vencimento}
+            />
+          )}
+        </div>
+
+        {isPontual && (
+          <div className="rounded-lg border bg-accent/30 p-3 space-y-3">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Parcelamento
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Valor de Entrada (R$)"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Opcional"
+                value={form.valor_entrada || ''}
+                onChange={e => set('valor_entrada', e.target.value)}
+              />
+              <Input
+                label="Nº de Parcelas"
+                type="number"
+                min="1"
+                max="24"
+                placeholder="1"
+                value={form.qtd_parcelas}
+                onChange={e => set('qtd_parcelas', e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {parcelas.map((p, i) => {
+                const valor = calcParcelaValor(i, form.valor, form.valor_entrada, qtd)
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                      {i + 1}
+                    </div>
+                    <Input
+                      type="date"
+                      value={p.data}
+                      onChange={e => setParcelaData(i, e.target.value)}
+                      error={errors[`parcela_${i}`]}
+                      className="flex-1"
+                    />
+                    <span className="text-sm font-semibold shrink-0 min-w-[80px] text-right">
+                      {Number(form.valor) > 0 ? formatCurrency(valor) : 'R$ -'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        <SelectField
+          label="Categoria"
+          options={categoriaOptions}
+          value={form.servico || undefined}
+          placeholder="Selecione..."
+          onValueChange={v => {
+            if (v === '__add__') {
+              setShowAddCat(true)
+            } else {
+              set('servico', v)
+              setShowAddCat(false)
+            }
+          }}
+        />
+
+        {showAddCat && (
+          <div className="flex gap-2">
+            <Input
+              placeholder="Nome da categoria"
+              value={novaCategoria}
+              onChange={e => setNovaCategoria(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
+              className="flex-1"
+            />
+            <Button onClick={handleAddCategoria} disabled={savingCat}>
+              {savingCat ? '...' : 'Salvar'}
+            </Button>
+            <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="precisa_nf"
+            checked={form.precisa_nf}
+            onChange={e => set('precisa_nf', e.target.checked)}
+            className="accent-primary"
+          />
+          <label htmlFor="precisa_nf" className="text-sm cursor-pointer">Precisa de Nota Fiscal</label>
+        </div>
+
+        {form.precisa_nf && (
+          <Input
+            label="Alíquota Imposto (%)"
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            value={form.aliquota_imposto}
+            onChange={e => set('aliquota_imposto', e.target.value)}
           />
         )}
-      </div>
 
-      {isPontual && (
-        <div className="rounded-lg border bg-accent/30 p-3">
-          <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-            Parcelamento
-          </div>
+        {errors.submit && <div className="text-sm text-destructive">{errors.submit}</div>}
 
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Valor de Entrada (R$)"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Opcional"
-              value={form.valor_entrada || ''}
-              onChange={e => set('valor_entrada', e.target.value)}
-            />
-            <Input
-              label="Nº de Parcelas"
-              type="number"
-              min="1"
-              max="24"
-              placeholder="1"
-              value={form.qtd_parcelas}
-              onChange={e => set('qtd_parcelas', e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2 mt-2">
-            {parcelas.map((p, i) => {
-              const valor = calcParcelaValor(i, form.valor, form.valor_entrada, qtd)
-              return (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                    {i + 1}
-                  </div>
-                  <Input
-                    type="date"
-                    value={p.data}
-                    onChange={e => setParcelaData(i, e.target.value)}
-                    error={errors[`parcela_${i}`]}
-                    className="flex-1"
-                  />
-                  <span className="text-sm font-semibold shrink-0 min-w-[80px] text-right">
-                    {Number(form.valor) > 0 ? formatCurrency(valor) : 'R$ -'}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Categoria */}
-      <SelectField
-        label="Categoria"
-        options={categoriaOptions}
-        value={form.servico || undefined}
-        placeholder="Selecione..."
-        onValueChange={v => {
-          if (v === '__add__') {
-            setShowAddCat(true)
-          } else {
-            set('servico', v)
-            setShowAddCat(false)
-          }
-        }}
-      />
-
-      {showAddCat && (
-        <div className="flex gap-2">
-          <Input
-            placeholder="Nome da categoria"
-            value={novaCategoria}
-            onChange={e => setNovaCategoria(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
-            className="flex-1"
-          />
-          <Button onClick={handleAddCategoria} disabled={savingCat}>
-            {savingCat ? '...' : 'Salvar'}
-          </Button>
-          <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
-            ✕
+        <div className="flex justify-end gap-2 pt-2 border-t">
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="default" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
           </Button>
         </div>
-      )}
-
-      <div className="flex items-center gap-2 py-1">
-        <input
-          type="checkbox"
-          id="precisa_nf"
-          checked={form.precisa_nf}
-          onChange={e => set('precisa_nf', e.target.checked)}
-          className="accent-primary"
-        />
-        <label htmlFor="precisa_nf" className="text-sm cursor-pointer">Precisa de Nota Fiscal</label>
-      </div>
-
-      {form.precisa_nf && (
-        <Input
-          label="Alíquota Imposto (%)"
-          type="number"
-          step="0.01"
-          min="0"
-          max="100"
-          value={form.aliquota_imposto}
-          onChange={e => set('aliquota_imposto', e.target.value)}
-        />
-      )}
-
-      {errors.submit && <div className="text-sm text-destructive mb-2">{errors.submit}</div>}
-
-      <div className="flex justify-end gap-2 pt-2">
-        <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button variant="default" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
-        </Button>
       </div>
     </Modal>
   )

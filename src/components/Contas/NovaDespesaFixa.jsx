@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Briefcase, Home, X } from 'lucide-react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
@@ -160,136 +161,140 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Despesa' : 'Nova Despesa'}>
-
-      {/* Contexto */}
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Tipo de Despesa</label>
-        <div className="flex gap-4 mt-1">
-          {[{ value: 'empresa', label: '💼 Empresa' }, { value: 'pessoal', label: '🏠 Pessoal' }].map(opt => (
-            <label key={opt.value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === opt.value ? 'font-semibold' : ''}`}>
-              <input
-                type="radio"
-                name="contexto_despesa"
-                value={opt.value}
-                checked={form.contexto === opt.value}
-                onChange={() => set('contexto', opt.value)}
-                className="accent-primary"
-              />
-              {opt.label}
-            </label>
-          ))}
+      <div className="space-y-4">
+        {/* Contexto */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tipo de Despesa</label>
+          <div className="flex gap-5">
+            {[
+              { value: 'empresa', label: 'Empresa', Icon: Briefcase },
+              { value: 'pessoal', label: 'Pessoal', Icon: Home },
+            ].map(({ value, label, Icon }) => (
+              <label key={value} className={`flex items-center gap-2 cursor-pointer text-sm ${form.contexto === value ? 'font-semibold' : ''}`}>
+                <input
+                  type="radio"
+                  name="contexto_despesa"
+                  value={value}
+                  checked={form.contexto === value}
+                  onChange={() => set('contexto', value)}
+                  className="accent-primary"
+                />
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <Input
-        label="Nome"
-        required
-        placeholder="Ex: Netflix, Aluguel..."
-        value={form.nome}
-        onChange={e => set('nome', e.target.value)}
-        error={errors.nome}
-      />
-
-      <div className="grid grid-cols-2 gap-3">
         <Input
-          label="Valor (R$)"
+          label="Nome"
           required
-          type="text"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={form.valor}
-          onChange={e => set('valor', e.target.value.replace(/[^0-9,.]/, ''))}
-          error={errors.valor}
+          placeholder="Ex: Netflix, Aluguel..."
+          value={form.nome}
+          onChange={e => set('nome', e.target.value)}
+          error={errors.nome}
         />
-        <Input
-          label="Data Vencimento"
-          required
-          type="date"
-          value={form.data_vencimento}
-          onChange={e => set('data_vencimento', e.target.value)}
-          error={errors.data_vencimento}
-        />
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          label="Tipo"
-          options={TIPOS}
-          value={form.recorrencia}
-          onValueChange={v => set('recorrencia', v)}
-        />
-        <SelectField
-          label="Forma de Pagamento"
-          options={buildFormasPagamento(cartoes)}
-          value={form.forma_pagamento}
-          onValueChange={v => set('forma_pagamento', v)}
-        />
-      </div>
-
-      {form.recorrencia === 'parcela' && (
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Parcela Atual"
-            type="number"
-            min="1"
-            placeholder="Ex: 2"
-            value={form.parcela_atual}
-            onChange={e => set('parcela_atual', e.target.value)}
-            error={errors.parcelas}
+            label="Valor (R$)"
+            required
+            type="text"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={form.valor}
+            onChange={e => set('valor', e.target.value.replace(/[^0-9,.]/, ''))}
+            error={errors.valor}
           />
           <Input
-            label="Total de Parcelas"
-            type="number"
-            min="1"
-            placeholder="Ex: 12"
-            value={form.parcela_total}
-            onChange={e => set('parcela_total', e.target.value)}
-            error={errors.parcelas}
+            label="Data"
+            required
+            type="date"
+            value={form.data_vencimento}
+            onChange={e => set('data_vencimento', e.target.value)}
+            error={errors.data_vencimento}
           />
         </div>
-      )}
 
-      {/* Categoria */}
-      <SelectField
-        label="Categoria"
-        options={categoriaOptions}
-        value={form.categoria || undefined}
-        placeholder="Selecione..."
-        onValueChange={v => {
-          if (v === '__add__') {
-            setShowAddCat(true)
-          } else {
-            set('categoria', v)
-            setShowAddCat(false)
-          }
-        }}
-      />
-
-      {showAddCat && (
-        <div className="flex gap-2">
-          <Input
-            placeholder="Nome da categoria"
-            value={novaCategoria}
-            onChange={e => setNovaCategoria(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
-            className="flex-1"
+        <div className="grid grid-cols-2 gap-3">
+          <SelectField
+            label="Tipo"
+            options={TIPOS}
+            value={form.recorrencia}
+            onValueChange={v => set('recorrencia', v)}
           />
-          <Button onClick={handleAddCategoria} disabled={savingCat}>
-            {savingCat ? '...' : 'Salvar'}
-          </Button>
-          <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
-            ✕
+          <SelectField
+            label="Forma de Pagamento"
+            options={buildFormasPagamento(cartoes)}
+            value={form.forma_pagamento}
+            onValueChange={v => set('forma_pagamento', v)}
+          />
+        </div>
+
+        {form.recorrencia === 'parcela' && (
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Parcela Atual"
+              type="number"
+              min="1"
+              placeholder="Ex: 2"
+              value={form.parcela_atual}
+              onChange={e => set('parcela_atual', e.target.value)}
+              error={errors.parcelas}
+            />
+            <Input
+              label="Total de Parcelas"
+              type="number"
+              min="1"
+              placeholder="Ex: 12"
+              value={form.parcela_total}
+              onChange={e => set('parcela_total', e.target.value)}
+              error={errors.parcelas}
+            />
+          </div>
+        )}
+
+        <SelectField
+          label="Categoria"
+          options={categoriaOptions}
+          value={form.categoria || undefined}
+          placeholder="Selecione..."
+          onValueChange={v => {
+            if (v === '__add__') {
+              setShowAddCat(true)
+            } else {
+              set('categoria', v)
+              setShowAddCat(false)
+            }
+          }}
+        />
+
+        {showAddCat && (
+          <div className="flex gap-2">
+            <Input
+              placeholder="Nome da categoria"
+              value={novaCategoria}
+              onChange={e => setNovaCategoria(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCategoria()}
+              className="flex-1"
+            />
+            <Button onClick={handleAddCategoria} disabled={savingCat}>
+              {savingCat ? '...' : 'Salvar'}
+            </Button>
+            <Button variant="ghost" onClick={() => { setShowAddCat(false); setNovaCategoria('') }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {errors.submit && <div className="text-sm text-destructive">{errors.submit}</div>}
+
+        <div className="flex justify-end gap-2 pt-2 border-t">
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="default" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
           </Button>
         </div>
-      )}
-
-      {errors.submit && <div className="text-sm text-destructive mb-2">{errors.submit}</div>}
-
-      <div className="flex justify-end gap-2 pt-2">
-        <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-        <Button variant="default" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
-        </Button>
       </div>
     </Modal>
   )
