@@ -27,9 +27,15 @@ CREATE TABLE IF NOT EXISTS clientes (
   precisa_nf BOOLEAN DEFAULT false,
   aliquota_imposto DECIMAL(5,2) DEFAULT 5.00,
   email_cobranca TEXT,
+  qtd_parcelas INTEGER DEFAULT 1 CHECK (qtd_parcelas >= 1),
+  valor_entrada DECIMAL(10,2),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Migrations for existing installs (idempotent)
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS qtd_parcelas INTEGER DEFAULT 1;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS valor_entrada DECIMAL(10,2);
 
 -- ================================
 -- GRUPOS DE PARCELAS

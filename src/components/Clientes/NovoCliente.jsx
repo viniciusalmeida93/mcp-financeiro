@@ -4,7 +4,7 @@ import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
 import SelectField from '../UI/Select'
-import { createCliente, updateCliente, createLancamento, createCategoriaCustomizada, getCategoriasCustomizadas } from '../../services/database'
+import { createCliente, updateCliente, createLancamento, createCategoriaCustomizada, getCategoriasCustomizadas, getLancamentosByCliente, deleteLancamentosByCliente } from '../../services/database'
 import { formatCurrency } from '../../utils/formatters'
 
 const TIPOS = [
@@ -55,27 +55,44 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
   }, [])
 
   useEffect(() => {
-    if (isOpen) {
-      setErrors({})
-      if (clienteEdit) {
-        setForm({
-          nome: clienteEdit.nome || '',
-          email_cobranca: clienteEdit.email_cobranca || '',
-          valor: clienteEdit.valor || '',
-          data_vencimento: '',
-          tipo: clienteEdit.tipo || 'mensal',
-          status: clienteEdit.status || 'ativo',
-          servico: clienteEdit.servico || '',
-          precisa_nf: clienteEdit.precisa_nf || false,
-          aliquota_imposto: clienteEdit.aliquota_imposto || 5,
-          valor_entrada: '',
-          qtd_parcelas: 1,
-          contexto: clienteEdit.contexto || 'empresa',
+    if (!isOpen) return
+    setErrors({})
+    if (!clienteEdit) {
+      setForm(EMPTY_FORM)
+      setParcelas([{ data: '' }])
+      return
+    }
+
+    const qtdSalva = Number(clienteEdit.qtd_parcelas) || 1
+    setForm({
+      nome: clienteEdit.nome || '',
+      email_cobranca: clienteEdit.email_cobranca || '',
+      valor: clienteEdit.valor || '',
+      data_vencimento: '',
+      tipo: clienteEdit.tipo || 'mensal',
+      status: clienteEdit.status || 'ativo',
+      servico: clienteEdit.servico || '',
+      precisa_nf: clienteEdit.precisa_nf || false,
+      aliquota_imposto: clienteEdit.aliquota_imposto || 5,
+      valor_entrada: clienteEdit.valor_entrada || '',
+      qtd_parcelas: qtdSalva,
+      contexto: clienteEdit.contexto || 'empresa',
+    })
+
+    if (clienteEdit.tipo === 'pontual') {
+      getLancamentosByCliente(clienteEdit.id)
+        .then(lancs => {
+          if (!lancs || lancs.length === 0) {
+            setParcelas(Array.from({ length: qtdSalva }, () => ({ data: '' })))
+            return
+          }
+          const datas = lancs.map(l => ({ data: l.data || '' }))
+          while (datas.length < qtdSalva) datas.push({ data: '' })
+          setParcelas(datas.slice(0, qtdSalva))
         })
-      } else {
-        setForm(EMPTY_FORM)
-        setParcelas([{ data: '' }])
-      }
+        .catch(() => setParcelas(Array.from({ length: qtdSalva }, () => ({ data: '' }))))
+    } else {
+      setParcelas([{ data: '' }])
     }
   }, [isOpen, clienteEdit])
 
@@ -102,7 +119,8 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
     }
     if (!form.valor || Number(form.valor) <= 0) errs.valor = 'Valor deve ser maior que zero'
     if (form.tipo === 'mensal') {
-      if (!form.data_vencimento) errs.data_vencimento = 'Informe a data'
+      const hasExistingDia = isEditing && clienteEdit?.dia_vencimento
+      if (!form.data_vencimento && !hasExistingDia) errs.data_vencimento = 'Informe a data'
     } else {
       parcelas.forEach((p, i) => {
         if (!p.data) errs[`parcela_${i}`] = 'Informe a data'
@@ -117,10 +135,13 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
 
     setLoading(true)
     try {
-      // Extrair dia da data selecionada
       const diaVenc = form.tipo === 'mensal' && form.data_vencimento
         ? Number(form.data_vencimento.split('-')[2])
-        : 1
+        : (clienteEdit?.dia_vencimento || 1)
+
+      const isPontualForm = form.tipo === 'pontual'
+      const qtd = Number(form.qtd_parcelas) || 1
+      const entradaNum = Number(form.valor_entrada) || 0
 
       const payload = {
         nome: form.nome.trim(),
@@ -133,28 +154,37 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
         precisa_nf: form.precisa_nf,
         aliquota_imposto: Number(form.aliquota_imposto) || 5,
         contexto: form.contexto,
+        qtd_parcelas: isPontualForm ? qtd : 1,
+        valor_entrada: isPontualForm && entradaNum > 0 ? entradaNum : null,
       }
 
-      if (isEditing) {
-        await updateCliente(clienteEdit.id, payload)
-      } else {
-        const novoCliente = await createCliente(payload)
-        if (form.tipo === 'pontual') {
-          const qtd = Number(form.qtd_parcelas) || 1
-          for (let i = 0; i < parcelas.length; i++) {
-            const valor = calcParcelaValor(i, form.valor, form.valor_entrada, qtd)
-            await createLancamento({
-              tipo: 'entrada',
-              valor,
-              descricao: form.nome,
-              categoria: form.servico || 'receita_servico',
-              forma_pagamento: 'transferencia',
-              data: parcelas[i].data,
-              contexto: form.contexto,
-              cliente_id: novoCliente.id,
-            })
-          }
+      const clienteId = isEditing
+        ? (await updateCliente(clienteEdit.id, payload), clienteEdit.id)
+        : (await createCliente(payload)).id
+
+      if (isPontualForm) {
+        if (isEditing) {
+          await deleteLancamentosByCliente(clienteId)
         }
+        for (let i = 0; i < parcelas.length; i++) {
+          const valorParcela = calcParcelaValor(i, form.valor, form.valor_entrada, qtd)
+          await createLancamento({
+            tipo: 'entrada',
+            valor: valorParcela,
+            descricao: form.nome,
+            categoria: form.servico || 'receita_servico',
+            forma_pagamento: 'transferencia',
+            data: parcelas[i].data,
+            contexto: form.contexto,
+            cliente_id: clienteId,
+            parcelado: qtd > 1,
+            parcela_atual: qtd > 1 ? i + 1 : null,
+            parcela_total: qtd > 1 ? qtd : null,
+            valor_parcela: qtd > 1 ? valorParcela : null,
+          })
+        }
+      } else if (isEditing && clienteEdit.tipo === 'pontual') {
+        await deleteLancamentosByCliente(clienteId)
       }
 
       setErrors({})

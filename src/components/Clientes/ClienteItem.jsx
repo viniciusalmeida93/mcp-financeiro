@@ -6,10 +6,22 @@ import { cn } from '@/lib/utils'
 export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
   const isAtivo = cliente.status === 'ativo'
   const isPontual = cliente.tipo === 'pontual'
+  const qtdParcelas = Number(cliente.qtd_parcelas) || 1
+  const entrada = Number(cliente.valor_entrada) || 0
 
-  const dateInfo = isPontual
-    ? `Pontual · ${formatCurrency(cliente.valor)}`
-    : `Dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
+  let dateInfo
+  if (!isPontual) {
+    dateInfo = `Dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
+  } else if (qtdParcelas > 1) {
+    const valorParcela = entrada > 0
+      ? (Number(cliente.valor) - entrada) / (qtdParcelas - 1)
+      : Number(cliente.valor) / qtdParcelas
+    const entradaTxt = entrada > 0 ? `${formatCurrency(entrada)} + ` : ''
+    const restoLabel = entrada > 0 ? qtdParcelas - 1 : qtdParcelas
+    dateInfo = `${formatCurrency(cliente.valor)} · ${entradaTxt}${restoLabel}x ${formatCurrency(valorParcela)}`
+  } else {
+    dateInfo = `Pontual · ${formatCurrency(cliente.valor)}`
+  }
 
   return (
     <div className={cn(

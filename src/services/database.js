@@ -102,6 +102,26 @@ export async function deleteLancamento(id) {
   if (error) throw error
 }
 
+export async function getLancamentosByCliente(clienteId) {
+  const { data, error } = await supabase
+    .from('lancamentos')
+    .select('*')
+    .eq('cliente_id', clienteId)
+    .eq('tipo', 'entrada')
+    .order('data', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export async function deleteLancamentosByCliente(clienteId) {
+  const { error } = await supabase
+    .from('lancamentos')
+    .delete()
+    .eq('cliente_id', clienteId)
+    .eq('tipo', 'entrada')
+  if (error) throw error
+}
+
 export async function deleteGrupoParcelas(grupoParcela_id) {
   const { error } = await supabase
     .from('lancamentos')
