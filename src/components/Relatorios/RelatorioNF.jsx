@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Clock, FileText, CheckCircle2, ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import Button from '../UI/Button'
 import LoadingScreen from '../UI/LoadingScreen'
@@ -7,7 +8,6 @@ import Select from '../UI/Select'
 import Badge from '../UI/Badge'
 import { getNotasFiscais } from '../../services/database'
 import { formatCurrency, formatDate, getLastNMeses, formatMesAno, getCurrentMes } from '../../utils/formatters'
-import { cn } from '@/lib/utils'
 
 export default function RelatorioNF() {
   const [mes, setMes] = useState(getCurrentMes())
@@ -59,7 +59,11 @@ export default function RelatorioNF() {
     URL.revokeObjectURL(url)
   }
 
-  const STATUS_LABEL = { pendente: '⏳ Pendente', emitida: '📄 Emitida', pago: '✅ Pago' }
+  const STATUS_META = {
+    pendente: { label: 'Pendente', Icon: Clock },
+    emitida: { label: 'Emitida', Icon: FileText },
+    pago: { label: 'Pago', Icon: CheckCircle2 },
+  }
 
   return (
     <div className="space-y-4 mt-2">
@@ -77,7 +81,7 @@ export default function RelatorioNF() {
       </div>
 
       {loading ? <LoadingScreen /> : nfs.length === 0 ? (
-        <EmptyState icon="📋" text="Nenhuma NF neste mês" />
+        <EmptyState icon={ClipboardList} text="Nenhuma NF neste mês" />
       ) : (
         <>
           <Card>
@@ -100,13 +104,17 @@ export default function RelatorioNF() {
             </CardContent>
           </Card>
 
-          {nfs.map(nf => (
+          {nfs.map(nf => {
+            const meta = STATUS_META[nf.status]
+            const StatusIcon = meta.Icon
+            return (
             <Card key={nf.id}>
               <CardContent className="py-3 space-y-2">
                 <div className="flex justify-between items-center">
                   <div className="font-semibold text-sm">{nf.clientes?.nome}</div>
-                  <Badge variant={nf.status === 'pago' ? 'success' : nf.status === 'emitida' ? 'neutral' : 'warning'}>
-                    {STATUS_LABEL[nf.status]}
+                  <Badge variant={nf.status === 'pago' ? 'success' : nf.status === 'emitida' ? 'neutral' : 'warning'} className="gap-1">
+                    <StatusIcon className="h-3 w-3" />
+                    {meta.label}
                   </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -120,7 +128,8 @@ export default function RelatorioNF() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </>
       )}
     </div>

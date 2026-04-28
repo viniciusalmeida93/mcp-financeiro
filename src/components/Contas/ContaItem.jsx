@@ -1,6 +1,6 @@
 import { formatCurrency } from '../../utils/formatters'
 import Badge from '../UI/Badge'
-import { Pencil, Copy, Trash2 } from 'lucide-react'
+import { Pencil, Copy, Trash2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useMes } from '../../contexts/MesContext'
 import { calcParcelaNoMes, formatDataVencimento } from '../../utils/cicloFatura'
@@ -26,7 +26,7 @@ export default function ContaItem({ conta, cartoes = [], onEdit, onDelete, onTog
     )}>
       <button
         className={cn(
-          'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+          'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
           isPago
             ? 'bg-green-500 border-green-500 text-white'
             : 'border-muted-foreground hover:border-green-500'
@@ -34,7 +34,7 @@ export default function ContaItem({ conta, cartoes = [], onEdit, onDelete, onTog
         onClick={() => onTogglePago && onTogglePago(conta)}
         title={isPago ? 'Clique para desmarcar' : 'Marcar como pago'}
       >
-        {isPago ? '✓' : ''}
+        {isPago && <Check className="h-3 w-3" strokeWidth={3} />}
       </button>
 
       <div className="flex-1 min-w-0">

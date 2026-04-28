@@ -1,3 +1,4 @@
+import { HandCoins, TrendingDown, Check, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Skeleton } from '@/components/UI/skeleton'
 import Badge from '../UI/Badge'
@@ -20,11 +21,14 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">💰 Clientes a Receber (7 dias)</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          <HandCoins className="h-4 w-4" />
+          Clientes a Receber (7 dias)
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         {clientesAReceber.length === 0 ? (
-          <EmptyState icon="💸" text="Nenhum recebimento nos próximos 7 dias" />
+          <EmptyState icon={TrendingDown} text="Nenhum recebimento nos próximos 7 dias" />
         ) : (
           <>
             {clientesAReceber.map(cliente => {
@@ -39,7 +43,7 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
                 >
                   <button
                     className={cn(
-                      'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+                      'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
                       recebido
                         ? 'bg-green-500 border-green-500 text-white'
                         : 'border-muted-foreground hover:border-green-500'
@@ -47,14 +51,17 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
                     onClick={() => recebido ? onDesreceber?.(cliente) : onReceber?.(cliente)}
                     title={recebido ? 'Clique para desmarcar' : 'Marcar como recebido'}
                   >
-                    {recebido ? '✓' : ''}
+                    {recebido && <Check className="h-3 w-3" strokeWidth={3} />}
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">{cliente.nome}</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       {formatDateShort(cliente.proximoVencimento)}
                       {cliente.precisa_nf && (
-                        <Badge variant="warning" className="ml-1">📋 NF</Badge>
+                        <Badge variant="warning" className="ml-1 gap-1">
+                          <FileText className="h-3 w-3" />
+                          NF
+                        </Badge>
                       )}
                     </div>
                   </div>

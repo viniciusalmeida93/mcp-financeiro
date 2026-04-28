@@ -2,16 +2,7 @@ import { useState } from 'react'
 import { formatCurrency } from '../../utils/formatters'
 import { Card, CardContent } from '../UI/Card'
 import Badge from '../UI/Badge'
-import { Pencil, Copy, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
-
-const BANDEIRA_ICONS = {
-  visa: '💳',
-  mastercard: '🟠',
-  elo: '⚡',
-  amex: '💎',
-  hipercard: '🔴',
-  outro: '💳',
-}
+import { Pencil, Copy, Trash2, ChevronDown, ChevronUp, CreditCard } from 'lucide-react'
 
 export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0, onEdit, onDelete, onDuplicate }) {
   const [open, setOpen] = useState(false)
@@ -29,7 +20,6 @@ export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0,
     : utilizacao >= 60
       ? 'bg-yellow-500'
       : 'bg-green-500'
-  const bandeira = cartao.bandeira?.toLowerCase() || 'outro'
 
   return (
     <Card className="overflow-hidden">
@@ -43,7 +33,7 @@ export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0,
         }
       >
         <div className="flex justify-between items-start mb-4">
-          <span className="text-2xl">{BANDEIRA_ICONS[bandeira] || '💳'}</span>
+          <CreditCard className="h-6 w-6 opacity-90" />
           <Badge variant="secondary" className="bg-white/20 text-white border-white/30 capitalize">
             {cartao.contexto}
           </Badge>

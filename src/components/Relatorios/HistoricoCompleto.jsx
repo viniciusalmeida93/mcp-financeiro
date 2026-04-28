@@ -1,3 +1,4 @@
+import { BarChart3, ArrowUp, ArrowDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import LoadingScreen from '../UI/LoadingScreen'
 import EmptyState from '../UI/EmptyState'
@@ -9,7 +10,7 @@ export default function HistoricoCompleto() {
   const { historico, loading } = useHistoricoMensal()
 
   if (loading) return <LoadingScreen />
-  if (!historico.length) return <EmptyState icon="📊" text="Sem histórico ainda" />
+  if (!historico.length) return <EmptyState icon={BarChart3} text="Sem histórico ainda" />
 
   const chartData = historico.map(h => ({
     mes: h.mes.slice(5), // MM
@@ -64,8 +65,12 @@ export default function HistoricoCompleto() {
           <CardContent className="py-3 flex justify-between items-center">
             <div>
               <div className="font-semibold text-sm">{formatMesAno(h.mes)}</div>
-              <div className="text-xs text-muted-foreground">
-                ↑ {formatCurrency(h.receitas)} · ↓ {formatCurrency(h.despesas)}
+              <div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
+                <ArrowUp className="h-3 w-3" />
+                {formatCurrency(h.receitas)}
+                <span>·</span>
+                <ArrowDown className="h-3 w-3" />
+                {formatCurrency(h.despesas)}
               </div>
             </div>
             <div className={`font-bold text-sm ${h.saldo >= 0 ? 'text-green-500' : 'text-red-500'}`}>

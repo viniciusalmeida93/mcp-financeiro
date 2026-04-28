@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import SelectField from '../UI/Select'
 import LoadingScreen from '../UI/LoadingScreen'
@@ -60,7 +61,7 @@ export default function GastosPorCategoria() {
       />
 
       {loading ? <LoadingScreen /> : categorias.length === 0 ? (
-        <EmptyState icon="📊" text="Sem gastos neste período" />
+        <EmptyState icon={BarChart3} text="Sem gastos neste período" />
       ) : (
         <>
           <Card>

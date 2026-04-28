@@ -1,3 +1,4 @@
+import { Wallet, Briefcase, Home } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatters'
 import { Card, CardContent } from '@/components/UI/Card'
 import { Skeleton } from '@/components/UI/skeleton'
@@ -23,7 +24,10 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
     <div className="grid grid-cols-3 gap-3">
       <Card>
         <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground mb-1">💰 Total</div>
+          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Wallet className="h-3 w-3" />
+            Total
+          </div>
           <div className={cn('font-bold text-sm', saldoTotal >= 0 ? 'text-green-500' : 'text-red-500')}>
             {formatCurrency(saldoTotal)}
           </div>
@@ -31,7 +35,10 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
       </Card>
       <Card>
         <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground mb-1">💼 Empresa</div>
+          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Briefcase className="h-3 w-3" />
+            Empresa
+          </div>
           <div className={cn('font-bold text-sm', saldoEmpresa < 0 ? 'text-red-500' : '')}>
             {formatCurrency(saldoEmpresa)}
           </div>
@@ -39,7 +46,10 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
       </Card>
       <Card>
         <CardContent className="p-4">
-          <div className="text-xs text-muted-foreground mb-1">🏠 Pessoal</div>
+          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Home className="h-3 w-3" />
+            Pessoal
+          </div>
           <div className={cn('font-bold text-sm', saldoPessoal < 0 ? 'text-red-500' : '')}>
             {formatCurrency(saldoPessoal)}
           </div>

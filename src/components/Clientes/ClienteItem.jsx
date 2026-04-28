@@ -1,6 +1,6 @@
 import { formatCurrency } from '../../utils/formatters'
 import Badge from '../UI/Badge'
-import { Pencil, Copy, Trash2, Mail, FileText } from 'lucide-react'
+import { Pencil, Copy, Trash2, Mail, FileText, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
@@ -11,8 +11,6 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
     ? `Pontual · ${formatCurrency(cliente.valor)}`
     : `Dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
 
-  const subtitle = isPago ? `✓ Recebido · ${dateInfo}` : dateInfo
-
   return (
     <div className={cn(
       'flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-accent/50 transition-colors',
@@ -20,7 +18,7 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
     )}>
       <button
         className={cn(
-          'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 transition-colors',
+          'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
           isPago
             ? 'bg-green-500 border-green-500 text-white'
             : 'border-muted-foreground hover:border-green-500'
@@ -28,7 +26,7 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
         onClick={() => onTogglePago && onTogglePago(cliente)}
         title={isPago ? 'Clique para desmarcar' : 'Marcar como recebido'}
       >
-        {isPago ? '✓' : ''}
+        {isPago && <Check className="h-3 w-3" strokeWidth={3} />}
       </button>
 
       <div className="flex-1 min-w-0">
@@ -44,8 +42,9 @@ export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF
             <Badge variant="secondary" className="text-xs">Inativo</Badge>
           )}
         </div>
-        <div className={cn('text-xs text-muted-foreground mt-0.5', isPago && 'text-green-500')}>
-          {subtitle}
+        <div className={cn('text-xs text-muted-foreground mt-0.5 flex items-center gap-1', isPago && 'text-green-500')}>
+          {isPago && <><Check className="h-3 w-3" strokeWidth={3} /> Recebido · </>}
+          {dateInfo}
         </div>
       </div>
 

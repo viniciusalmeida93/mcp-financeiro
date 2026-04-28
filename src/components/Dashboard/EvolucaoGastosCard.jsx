@@ -1,4 +1,5 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { TrendingUp, BarChart3, ArrowUp, ArrowDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Skeleton } from '@/components/UI/skeleton'
 import { formatCurrency } from '../../utils/formatters'
@@ -8,12 +9,18 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div className="rounded-lg border bg-card p-2 text-xs shadow-md min-w-[140px]">
       <div className="font-semibold mb-1">Dia {label}</div>
-      {payload.map(p => (
-        <div key={p.dataKey} style={{ color: p.color }} className="flex justify-between gap-3">
-          <span>{p.dataKey === 'receitas' ? '↑ Receitas' : '↓ Despesas'}</span>
-          <span>{formatCurrency(p.value)}</span>
-        </div>
-      ))}
+      {payload.map(p => {
+        const Arrow = p.dataKey === 'receitas' ? ArrowUp : ArrowDown
+        return (
+          <div key={p.dataKey} style={{ color: p.color }} className="flex justify-between gap-3 items-center">
+            <span className="flex items-center gap-1">
+              <Arrow className="h-3 w-3" />
+              {p.dataKey === 'receitas' ? 'Receitas' : 'Despesas'}
+            </span>
+            <span>{formatCurrency(p.value)}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -32,14 +39,17 @@ export default function EvolucaoGastosCard({ evolucaoDiaria, totalDespesas, load
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">📈 Evolução de Gastos</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Evolução de Gastos
+          </CardTitle>
           <span className="text-lg font-bold text-red-500">{formatCurrency(totalDespesas)}</span>
         </div>
       </CardHeader>
       <CardContent>
         {evolucaoDiaria.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-            <div className="text-3xl mb-2">📊</div>
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2">
+            <BarChart3 className="h-8 w-8" strokeWidth={1.5} />
             <div className="text-sm">Nenhum lançamento este mês</div>
           </div>
         ) : (

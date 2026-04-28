@@ -79,7 +79,7 @@ export async function enviarLembreteNF(nf, clienteNome) {
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #e65c00;">⚠️ Emitir Nota Fiscal</h2>
+      <h2 style="color: #e65c00;">Emitir Nota Fiscal</h2>
       <p>Lembrete: É necessário emitir a nota fiscal para:</p>
       <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
         <tr>
@@ -111,7 +111,7 @@ export async function enviarLembreteNF(nf, clienteNome) {
 
   return callSendEmail({
     to: viniciusEmail,
-    subject: `⚠️ Emitir NF – ${clienteNome} – Vencimento ${dataVenc}`,
+    subject: `Emitir NF – ${clienteNome} – Vencimento ${dataVenc}`,
     html,
     tipo: 'lembrete_nf',
     cliente_id: nf.cliente_id,

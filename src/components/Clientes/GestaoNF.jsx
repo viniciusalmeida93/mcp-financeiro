@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Clock, FileText, CheckCircle2, ClipboardList, Mail, Check } from 'lucide-react'
 import { Card, CardContent } from '../UI/Card'
 import Button from '../UI/Button'
 import Badge from '../UI/Badge'
@@ -77,7 +78,11 @@ export default function GestaoNF({ clientes }) {
   const totalImposto = nfs.reduce((s, nf) => s + Number(nf.valor_imposto), 0)
   const totalLiquido = nfs.reduce((s, nf) => s + Number(nf.valor_liquido), 0)
 
-  const STATUS_LABEL = { pendente: '⏳ Pendente', emitida: '📄 Emitida', pago: '✅ Pago' }
+  const STATUS_META = {
+    pendente: { label: 'Pendente', Icon: Clock },
+    emitida: { label: 'Emitida', Icon: FileText },
+    pago: { label: 'Pago', Icon: CheckCircle2 },
+  }
   const STATUS_BADGE_VARIANT = { pendente: 'outline', emitida: 'secondary', pago: 'default' }
 
   const filteredNfs = nfTab === 'todas' ? nfs : nfs.filter(nf => nf.status === nfTab)
@@ -93,8 +98,9 @@ export default function GestaoNF({ clientes }) {
               {nf.numero_nf && ` · NF ${nf.numero_nf}`}
             </div>
           </div>
-          <Badge variant={STATUS_BADGE_VARIANT[nf.status]}>
-            {STATUS_LABEL[nf.status]}
+          <Badge variant={STATUS_BADGE_VARIANT[nf.status]} className="gap-1">
+            {(() => { const I = STATUS_META[nf.status].Icon; return <I className="h-3 w-3" /> })()}
+            {STATUS_META[nf.status].label}
           </Badge>
         </div>
 
@@ -115,16 +121,19 @@ export default function GestaoNF({ clientes }) {
 
         {nf.status !== 'pago' && (
           <div className="flex gap-2 flex-wrap">
-            <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleEnviarLembrete(nf)}>
-              ✉️ Enviar Lembrete
+            <Button variant="secondary" size="sm" className="flex-1 gap-1" onClick={() => handleEnviarLembrete(nf)}>
+              <Mail className="h-3.5 w-3.5" />
+              Enviar Lembrete
             </Button>
             {nf.status === 'pendente' && (
-              <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleRegistrarEmissao(nf)}>
-                📄 Registrar Emissão
+              <Button variant="secondary" size="sm" className="flex-1 gap-1" onClick={() => handleRegistrarEmissao(nf)}>
+                <FileText className="h-3.5 w-3.5" />
+                Registrar Emissão
               </Button>
             )}
-            <Button variant="default" size="sm" className="flex-1" onClick={() => handleMarcarPago(nf)}>
-              ✓ Marcar como Pago
+            <Button variant="default" size="sm" className="flex-1 gap-1" onClick={() => handleMarcarPago(nf)}>
+              <Check className="h-3.5 w-3.5" />
+              Marcar como Pago
             </Button>
           </div>
         )}
@@ -149,7 +158,7 @@ export default function GestaoNF({ clientes }) {
 
       {loading ? <LoadingScreen /> : nfs.length === 0 ? (
         <EmptyState
-          icon="📋"
+          icon={ClipboardList}
           text="Nenhuma NF neste mês"
           subtext='Clique em "Gerar NFs do Mês" para criar as notas'
         />
@@ -179,20 +188,23 @@ export default function GestaoNF({ clientes }) {
           <Tabs value={nfTab} onValueChange={setNfTab} className="mb-4">
             <TabsList>
               <TabsTrigger value="todas">Todas ({nfs.length})</TabsTrigger>
-              <TabsTrigger value="pendente">
-                ⏳ Pendente ({nfs.filter(n => n.status === 'pendente').length})
+              <TabsTrigger value="pendente" className="gap-1">
+                <Clock className="h-3 w-3" />
+                Pendente ({nfs.filter(n => n.status === 'pendente').length})
               </TabsTrigger>
-              <TabsTrigger value="emitida">
-                📄 Emitida ({nfs.filter(n => n.status === 'emitida').length})
+              <TabsTrigger value="emitida" className="gap-1">
+                <FileText className="h-3 w-3" />
+                Emitida ({nfs.filter(n => n.status === 'emitida').length})
               </TabsTrigger>
-              <TabsTrigger value="pago">
-                ✅ Pago ({nfs.filter(n => n.status === 'pago').length})
+              <TabsTrigger value="pago" className="gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                Pago ({nfs.filter(n => n.status === 'pago').length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           {filteredNfs.length === 0 ? (
-            <EmptyState icon="📋" text="Nenhuma NF nesta categoria" />
+            <EmptyState icon={ClipboardList} text="Nenhuma NF nesta categoria" />
           ) : (
             filteredNfs.map(renderNFCard)
           )}

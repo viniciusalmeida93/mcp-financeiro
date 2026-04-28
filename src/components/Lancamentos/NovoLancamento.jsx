@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import Modal from '../UI/Modal'
 import Button from '../UI/Button'
 import Input from '../UI/Input'
@@ -14,8 +15,8 @@ import { createLancamento, createLancamentosParcelados, getCartoes } from '../..
 import { toDateString } from '../../utils/dateHelpers'
 
 const TIPOS = [
-  { value: 'saida', label: '💸 Saída' },
-  { value: 'entrada', label: '💰 Entrada' },
+  { value: 'saida', label: 'Saída', Icon: TrendingDown },
+  { value: 'entrada', label: 'Entrada', Icon: TrendingUp },
 ]
 
 const FORM_INICIAL = {
@@ -125,20 +126,21 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
         </div>
 
         <div className="flex gap-2">
-          {TIPOS.map(t => (
+          {TIPOS.map(({ value, label, Icon }) => (
             <button
-              key={t.value}
+              key={value}
               type="button"
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors ${
-                form.tipo === t.value
-                  ? t.value === 'saida'
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
+                form.tipo === value
+                  ? value === 'saida'
                     ? 'bg-red-500/20 border-red-500 text-red-400'
                     : 'bg-green-500/20 border-green-500 text-green-400'
                   : 'border-input bg-background hover:bg-accent'
               }`}
-              onClick={() => set('tipo', t.value)}
+              onClick={() => set('tipo', value)}
             >
-              {t.label}
+              <Icon className="h-4 w-4" />
+              {label}
             </button>
           ))}
         </div>
