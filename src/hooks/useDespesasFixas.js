@@ -3,7 +3,7 @@ import { getDespesasFixas, getCartoes, createLancamento, deleteLancamento } from
 import { supabase } from '../services/supabase'
 import { useMes } from '../contexts/MesContext'
 import { getDaysInMonth } from 'date-fns'
-import { calcParcelaNoMes, getDataRealDaDespesa } from '../utils/cicloFatura'
+import { calcParcelaNoMes, getDataRealDaDespesa, despesaEncerrada } from '../utils/cicloFatura'
 
 function getLastDay(mes) {
   const [y, m] = mes.split('-').map(Number)
@@ -46,6 +46,8 @@ function getMesDaPontual(despesa, cartoes) {
  */
 function filtrarDespesasPorMes(despesas, mesSelecionado, cartoes) {
   return despesas.filter(d => {
+    // Encerrada: não aparece a partir do mês de término
+    if (despesaEncerrada(d, mesSelecionado)) return false
     // Parcelas: verificar se existe parcela para este mês
     if (d.recorrencia === 'parcela') {
       const p = calcParcelaNoMes(d, mesSelecionado, cartoes)

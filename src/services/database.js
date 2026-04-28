@@ -10,7 +10,7 @@ function getLastDayOfMes(mes) {
 // LANCAMENTOS
 // ================================
 
-export async function getLancamentos({ mes, contexto, tipo, categoria, search } = {}) {
+export async function getLancamentos({ mes, contexto, tipo, categoria, search, forma_pagamento } = {}) {
   let query = supabase
     .from('lancamentos')
     .select('*, clientes(nome)')
@@ -27,6 +27,9 @@ export async function getLancamentos({ mes, contexto, tipo, categoria, search } 
   }
   if (categoria) {
     query = query.eq('categoria', categoria)
+  }
+  if (forma_pagamento && forma_pagamento !== 'todos') {
+    query = query.eq('forma_pagamento', forma_pagamento)
   }
   if (search) {
     query = query.ilike('descricao', `%${search}%`)
@@ -248,8 +251,15 @@ export async function updateDespesaFixa(id, updates) {
   return data
 }
 
-export async function deleteDespesaFixa(id) {
-  const { error } = await supabase.from('despesas_fixas').delete().eq('id', id)
+// Soft-end: marca data_termino no primeiro dia do mês informado.
+// Preserva lançamentos passados (vinculados via despesa_id) e mantém a despesa
+// visível em meses anteriores; só não aparece a partir do mês de término.
+export async function deleteDespesaFixa(id, mes) {
+  const dataTermino = mes ? `${mes}-01` : new Date().toISOString().slice(0, 10)
+  const { error } = await supabase
+    .from('despesas_fixas')
+    .update({ data_termino: dataTermino })
+    .eq('id', id)
   if (error) throw error
 }
 

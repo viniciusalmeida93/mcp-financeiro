@@ -4,7 +4,7 @@ import { getDiasRestantesNoMes, toDateString } from '../utils/dateHelpers'
 import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
-import { calcParcelaNoMes } from '../utils/cicloFatura'
+import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
 
 function getLastDayOfMes(mes) {
   const [year, month] = mes.split('-').map(Number)
@@ -32,6 +32,7 @@ function getMesDaPontual(despesa, cartoes) {
 }
 
 function despesaNoMes(d, mes, cartoes) {
+  if (despesaEncerrada(d, mes)) return false
   if (d.recorrencia === 'parcela') return calcParcelaNoMes(d, mes, cartoes) !== null
   if (d.recorrencia === 'pontual') {
     if (d.mes_referencia) return d.mes_referencia === mes

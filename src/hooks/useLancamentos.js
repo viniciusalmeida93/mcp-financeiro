@@ -13,6 +13,7 @@ export function useLancamentos() {
     contexto: 'todos',
     tipo: 'todos',
     categoria: '',
+    forma_pagamento: 'todos',
     search: '',
   })
 

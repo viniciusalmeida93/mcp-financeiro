@@ -1,4 +1,14 @@
 /**
+ * Verifica se a despesa "encerrou" antes ou no mês selecionado.
+ * Despesa com data_termino = '2026-04-15' não aparece em mes >= '2026-04'.
+ */
+export function despesaEncerrada(despesa, mesSelecionado) {
+  if (!despesa.data_termino) return false
+  const terminoMes = String(despesa.data_termino).slice(0, 7) // 'YYYY-MM'
+  return mesSelecionado >= terminoMes
+}
+
+/**
  * Calcula em qual mês de fatura uma despesa cai, considerando:
  * - Despesas não-cartão (PIX, boleto, etc): cai no mês do dia_vencimento
  * - Despesas no cartão: cai baseado no dia_fechamento do cartão

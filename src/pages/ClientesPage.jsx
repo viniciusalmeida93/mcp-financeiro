@@ -1,24 +1,42 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import ListaClientes from '../components/Clientes/ListaClientes'
 import NovoCliente from '../components/Clientes/NovoCliente'
 import { useClientesComStatus } from '../hooks/useClientes'
 import { formatCurrency } from '../utils/formatters'
-import { TrendingUp, CheckCircle, Clock, Plus } from 'lucide-react'
+import { TrendingUp, CheckCircle, Clock } from 'lucide-react'
+import FAB from '../components/UI/FAB'
 
 export default function ClientesPage() {
   const [contexto, setContexto] = useState('todos')
   const [tipoFilter, setTipoFilter] = useState('todos')
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const { clientes, pagosIds, loading, error, refresh, handleTogglePago, calcTotais } = useClientesComStatus()
+  const { clientes, pagosIds, loading, error, refresh, handleTogglePago } = useClientesComStatus()
 
-  let filtered = contexto === 'todos'
-    ? clientes
-    : clientes.filter(c => (c.contexto || 'empresa') === contexto)
-  if (tipoFilter !== 'todos') {
-    filtered = filtered.filter(c => c.tipo === tipoFilter)
-  }
+  // Lista final visível: aplica contexto + tipo + busca, ignorando inativos.
+  // Os cards no topo refletem exatamente o que a lista mostra.
+  const filteredClientes = useMemo(() => {
+    let list = clientes.filter(c => c.status === 'ativo')
+    if (contexto !== 'todos') {
+      list = list.filter(c => (c.contexto || 'empresa') === contexto)
+    }
+    if (tipoFilter !== 'todos') {
+      list = list.filter(c => c.tipo === tipoFilter)
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      list = list.filter(c => c.nome.toLowerCase().includes(q))
+    }
+    return list
+  }, [clientes, contexto, tipoFilter, search])
 
-  const { total: receitaTotal, recebido: receitaRecebida, futuro: receitaFutura } = calcTotais(contexto, tipoFilter)
+  const { total, recebido, pendente } = useMemo(() => {
+    const t = filteredClientes.reduce((s, c) => s + Number(c.valor), 0)
+    const r = filteredClientes
+      .filter(c => pagosIds.has(c.id))
+      .reduce((s, c) => s + Number(c.valor), 0)
+    return { total: t, recebido: r, pendente: t - r }
+  }, [filteredClientes, pagosIds])
 
   return (
     <>
@@ -30,7 +48,7 @@ export default function ClientesPage() {
             Total
           </div>
           <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(receitaTotal)}
+            {loading ? '...' : formatCurrency(total)}
           </div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
@@ -39,7 +57,7 @@ export default function ClientesPage() {
             Recebido
           </div>
           <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(receitaRecebida)}
+            {loading ? '...' : formatCurrency(recebido)}
           </div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
@@ -47,8 +65,8 @@ export default function ClientesPage() {
             <Clock size={12} />
             Pendente
           </div>
-          <div className={`text-lg font-semibold ${receitaFutura > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
-            {loading ? '...' : formatCurrency(receitaFutura)}
+          <div className={`text-lg font-semibold ${pendente > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+            {loading ? '...' : formatCurrency(pendente)}
           </div>
         </div>
       </div>
@@ -60,7 +78,7 @@ export default function ClientesPage() {
       )}
 
       <ListaClientes
-        clientes={filtered}
+        clientes={filteredClientes}
         loading={loading}
         refresh={refresh}
         pagosIds={pagosIds}
@@ -69,16 +87,11 @@ export default function ClientesPage() {
         setContexto={setContexto}
         tipoFilter={tipoFilter}
         setTipoFilter={setTipoFilter}
+        search={search}
+        setSearch={setSearch}
       />
 
-      <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
-        style={{ backgroundColor: '#5ED0FF' }}
-        onClick={() => setShowForm(true)}
-        title="Novo cliente"
-      >
-        <Plus size={20} />
-      </button>
+      <FAB onClick={() => setShowForm(true)} title="Novo cliente" />
       <NovoCliente
         isOpen={showForm}
         onClose={() => setShowForm(false)}

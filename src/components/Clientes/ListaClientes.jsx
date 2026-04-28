@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Users } from 'lucide-react'
 import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
 import EmptyState from '../UI/EmptyState'
@@ -20,14 +21,21 @@ const TIPO_OPTIONS = [
   { value: 'pontual', label: 'Pontual' },
 ]
 
-export default function ListaClientes({ clientes, loading, refresh, pagosIds = new Set(), onTogglePago, contexto, setContexto, tipoFilter, setTipoFilter }) {
+export default function ListaClientes({
+  clientes,
+  loading,
+  refresh,
+  pagosIds = new Set(),
+  onTogglePago,
+  contexto,
+  setContexto,
+  tipoFilter,
+  setTipoFilter,
+  search,
+  setSearch,
+}) {
   const [showForm, setShowForm] = useState(false)
   const [clienteEdit, setClienteEdit] = useState(null)
-  const [search, setSearch] = useState('')
-
-  const filtered = search.trim()
-    ? clientes.filter(c => c.nome.toLowerCase().includes(search.trim().toLowerCase()))
-    : clientes
 
   const handleCobrar = async (cliente) => {
     if (!cliente.email_cobranca) {
@@ -78,15 +86,15 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
   }
 
   return (
-    <div>
+    <div className="space-y-3">
       <input
         type="text"
         placeholder="Buscar receita..."
         value={search}
         onChange={e => setSearch(e.target.value)}
-        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
+        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3">
         <SelectField
           options={CONTEXTO_OPTIONS}
           value={contexto}
@@ -101,11 +109,11 @@ export default function ListaClientes({ clientes, loading, refresh, pagosIds = n
 
       {loading ? (
         <LoadingScreen />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon="👥" text="Nenhum cliente encontrado" />
+      ) : clientes.length === 0 ? (
+        <EmptyState icon={Users} text="Nenhum cliente encontrado" />
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
-          {filtered.map(c => (
+          {clientes.map(c => (
             <ClienteItem
               key={c.id}
               cliente={c}

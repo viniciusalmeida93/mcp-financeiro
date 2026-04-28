@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { FileText } from 'lucide-react'
 import LancamentoItem from './LancamentoItem'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import SelectField from '../UI/Select'
 import { Card, CardContent } from '@/components/UI/Card'
+import { getCartoes } from '../../services/database'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +35,21 @@ const TIPO_OPTIONS = [
 export default function ListaLancamentos({ lancamentos, loading, filters, updateFilter, refresh }) {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [showParcelasDialog, setShowParcelasDialog] = useState(false)
+  const [cartoes, setCartoes] = useState([])
+
+  useEffect(() => {
+    getCartoes({}).then(setCartoes).catch(() => {})
+  }, [])
+
+  const formaPagamentoOptions = [
+    { value: 'todos', label: 'Todas formas' },
+    { value: 'pix', label: 'PIX' },
+    { value: 'debito', label: 'Débito' },
+    { value: 'boleto', label: 'Boleto' },
+    { value: 'dinheiro', label: 'Dinheiro' },
+    { value: 'transferencia', label: 'Transferência' },
+    ...cartoes.map(c => ({ value: `cartao:${c.id}`, label: c.nome })),
+  ]
 
   const handleDeleteRequest = (lancamento) => {
     setDeleteTarget(lancamento)
@@ -64,16 +81,22 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
 
   return (
     <div className="space-y-3">
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Buscar lançamento..."
-        value={filters.search}
-        onChange={e => updateFilter('search', e.target.value)}
-        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          type="text"
+          placeholder="Buscar lançamento..."
+          value={filters.search}
+          onChange={e => updateFilter('search', e.target.value)}
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <SelectField
+          options={formaPagamentoOptions}
+          value={filters.forma_pagamento || 'todos'}
+          onValueChange={v => updateFilter('forma_pagamento', v)}
+          placeholder="Forma de pagamento"
+        />
+      </div>
 
-      {/* Filters */}
       <div className="grid grid-cols-2 gap-3">
         <SelectField
           options={CONTEXTO_OPTIONS}
@@ -110,7 +133,7 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
       {loading ? (
         <LoadingScreen />
       ) : lancamentos.length === 0 ? (
-        <EmptyState icon="📝" text="Nenhum lançamento encontrado" />
+        <EmptyState icon={FileText} text="Nenhum lançamento encontrado" />
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
           {lancamentos.map(l => (

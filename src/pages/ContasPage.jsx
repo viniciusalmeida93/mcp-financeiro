@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import ListaDespesasFixas from '../components/Contas/ListaDespesasFixas'
 import NovaDespesaFixa from '../components/Contas/NovaDespesaFixa'
 import { useDespesasComStatus } from '../hooks/useDespesasFixas'
 import { formatCurrency } from '../utils/formatters'
-import { TrendingDown, CheckCircle, Clock, Plus } from 'lucide-react'
+import { TrendingDown, CheckCircle, Clock } from 'lucide-react'
+import FAB from '../components/UI/FAB'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
   const [categoriaFilter, setCategoriaFilter] = useState('todos')
+  const [cartaoFilter, setCartaoFilter] = useState('todos')
+  const [search, setSearch] = useState('')
   const {
     despesas,
-    allDespesas,
     cartoes,
     pagosIds,
     loading,
@@ -19,10 +21,32 @@ export default function ContasPage() {
     setContextoFilter,
     refresh,
     handleTogglePago,
-    calcTotais,
   } = useDespesasComStatus()
 
-  const { total: despesasTotal, pago: despesasPagas, futuro: despesasFuturas } = calcTotais(contextoFilter, categoriaFilter)
+  // Lista final visível: aplica categoria + forma de pagamento + busca
+  // sobre as despesas já filtradas por mês + contexto pelo hook.
+  const filteredDespesas = useMemo(() => {
+    let list = despesas
+    if (categoriaFilter !== 'todos') {
+      list = list.filter(d => d.categoria === categoriaFilter)
+    }
+    if (cartaoFilter !== 'todos') {
+      list = list.filter(d => d.forma_pagamento === cartaoFilter)
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      list = list.filter(d => d.nome.toLowerCase().includes(q))
+    }
+    return list
+  }, [despesas, categoriaFilter, cartaoFilter, search])
+
+  const { total, pago, pendente } = useMemo(() => {
+    const t = filteredDespesas.reduce((s, d) => s + Number(d.valor), 0)
+    const p = filteredDespesas
+      .filter(d => pagosIds.has(d.id))
+      .reduce((s, d) => s + Number(d.valor), 0)
+    return { total: t, pago: p, pendente: t - p }
+  }, [filteredDespesas, pagosIds])
 
   return (
     <>
@@ -34,7 +58,7 @@ export default function ContasPage() {
             Total
           </div>
           <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(despesasTotal)}
+            {loading ? '...' : formatCurrency(total)}
           </div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
@@ -43,7 +67,7 @@ export default function ContasPage() {
             Pago
           </div>
           <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(despesasPagas)}
+            {loading ? '...' : formatCurrency(pago)}
           </div>
         </div>
         <div className="rounded-lg border bg-card p-4 shadow-sm">
@@ -51,8 +75,8 @@ export default function ContasPage() {
             <Clock size={12} />
             Pendente
           </div>
-          <div className={`text-lg font-semibold ${despesasFuturas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
-            {loading ? '...' : formatCurrency(despesasFuturas)}
+          <div className={`text-lg font-semibold ${pendente > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+            {loading ? '...' : formatCurrency(pendente)}
           </div>
         </div>
       </div>
@@ -64,27 +88,23 @@ export default function ContasPage() {
       )}
 
       <ListaDespesasFixas
-        despesas={despesas}
-        allDespesas={allDespesas}
+        despesas={filteredDespesas}
         cartoes={cartoes}
         loading={loading}
         contextoFilter={contextoFilter}
         setContextoFilter={setContextoFilter}
         categoriaFilter={categoriaFilter}
         setCategoriaFilter={setCategoriaFilter}
+        cartaoFilter={cartaoFilter}
+        setCartaoFilter={setCartaoFilter}
+        search={search}
+        setSearch={setSearch}
         refresh={refresh}
         pagosIds={pagosIds}
         onTogglePago={handleTogglePago}
       />
 
-      <button
-        className="fixed bottom-20 right-4 md:bottom-4 z-10 w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg hover:opacity-90"
-        style={{ backgroundColor: '#5ED0FF' }}
-        onClick={() => setShowForm(true)}
-        title="Nova despesa"
-      >
-        <Plus size={20} />
-      </button>
+      <FAB onClick={() => setShowForm(true)} title="Nova despesa" />
 
       <NovaDespesaFixa
         isOpen={showForm}

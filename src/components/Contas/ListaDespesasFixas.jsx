@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { CreditCard } from 'lucide-react'
 import ContaItem from './ContaItem'
 import NovaDespesaFixa from './NovaDespesaFixa'
 import EmptyState from '../UI/EmptyState'
 import LoadingScreen from '../UI/LoadingScreen'
 import SelectField from '../UI/Select'
+import { useMes } from '../../contexts/MesContext'
 import { deleteDespesaFixa, createDespesaFixa, getCategoriasCustomizadas } from '../../services/database'
 
 const CONTEXTO_OPTIONS = [
@@ -14,20 +16,23 @@ const CONTEXTO_OPTIONS = [
 
 export default function ListaDespesasFixas({
   despesas,
-  allDespesas,
   cartoes = [],
   loading,
   contextoFilter,
   setContextoFilter,
   categoriaFilter,
   setCategoriaFilter,
+  cartaoFilter,
+  setCartaoFilter,
+  search,
+  setSearch,
   refresh,
   pagosIds = new Set(),
   onTogglePago,
 }) {
+  const { mes } = useMes()
   const [showForm, setShowForm] = useState(false)
   const [despesaEdit, setDespesaEdit] = useState(null)
-  const [search, setSearch] = useState('')
   const [categoriasOptions, setCategoriasOptions] = useState([{ value: 'todos', label: 'Todas categorias' }])
 
   useEffect(() => {
@@ -40,18 +45,19 @@ export default function ListaDespesasFixas({
     }).catch(() => {})
   }, [])
 
-  let filtered = categoriaFilter === 'todos'
-    ? despesas
-    : despesas.filter(d => d.categoria === categoriaFilter)
-  if (search.trim()) {
-    const q = search.trim().toLowerCase()
-    filtered = filtered.filter(d => d.nome.toLowerCase().includes(q))
-  }
+  const cartaoOptions = [
+    { value: 'todos', label: 'Todas formas' },
+    { value: 'pix', label: 'PIX' },
+    { value: 'debito', label: 'Débito' },
+    { value: 'boleto', label: 'Boleto' },
+    { value: 'dinheiro', label: 'Dinheiro' },
+    ...cartoes.map(c => ({ value: `cartao:${c.id}`, label: c.nome })),
+  ]
 
   const handleDelete = async (conta) => {
-    if (!confirm(`Excluir "${conta.nome}"?`)) return
+    if (!confirm(`Excluir "${conta.nome}"? Os registros de meses anteriores serão preservados.`)) return
     try {
-      await deleteDespesaFixa(conta.id)
+      await deleteDespesaFixa(conta.id, mes)
       refresh()
     } catch (err) {
       alert('Erro ao excluir: ' + err.message)
@@ -74,15 +80,23 @@ export default function ListaDespesasFixas({
   }
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Buscar despesa..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
-      />
-      <div className="grid grid-cols-2 gap-3 mb-4">
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          type="text"
+          placeholder="Buscar despesa..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <SelectField
+          options={cartaoOptions}
+          value={cartaoFilter}
+          onValueChange={setCartaoFilter}
+          placeholder="Forma de pagamento"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <SelectField
           options={CONTEXTO_OPTIONS}
           value={contextoFilter}
@@ -97,11 +111,11 @@ export default function ListaDespesasFixas({
 
       {loading ? (
         <LoadingScreen />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon="💳" text="Nenhuma despesa fixa encontrada" />
+      ) : despesas.length === 0 ? (
+        <EmptyState icon={CreditCard} text="Nenhuma despesa fixa encontrada" />
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
-          {filtered.map(d => (
+          {despesas.map(d => (
             <ContaItem
               key={d.id}
               conta={d}
