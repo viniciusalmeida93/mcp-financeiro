@@ -3,64 +3,15 @@ import { getDespesasFixas, getCartoes, createLancamento, deleteLancamento } from
 import { supabase } from '../services/supabase'
 import { useMes } from '../contexts/MesContext'
 import { getDaysInMonth } from 'date-fns'
-import { calcParcelaNoMes, getDataRealDaDespesa, despesaEncerrada } from '../utils/cicloFatura'
+import { getDataRealDaDespesa, despesaAparecemNoMes } from '../utils/cicloFatura'
 
 function getLastDay(mes) {
   const [y, m] = mes.split('-').map(Number)
   return `${mes}-${String(getDaysInMonth(new Date(y, m - 1))).padStart(2, '0')}`
 }
 
-/**
- * Retorna o "YYYY-MM" em que uma despesa pontual deve aparecer,
- * considerando o ciclo de fechamento do cartão.
- */
-function getMesDaPontual(despesa, cartoes) {
-  if (!despesa.created_at) return null
-  const created = new Date(despesa.created_at)
-  const createdYear = created.getFullYear()
-  const createdMonth = created.getMonth() + 1
-  const createdDay = created.getDate()
-
-  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
-
-  // Se é cartão, verificar se passou do fechamento → mês seguinte
-  if (despesa.forma_pagamento?.startsWith('cartao:')) {
-    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
-    const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
-      // Cai no mês seguinte
-      let nextMonth = createdMonth + 1
-      let nextYear = createdYear
-      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
-      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
-    }
-  }
-  return mesAno
-}
-
-/**
- * Filtra despesas que devem aparecer no mês selecionado.
- * - Mensal: sempre aparece (recorrente)
- * - Pontual: só aparece no mês em que foi criada (respeitando ciclo do cartão)
- * - Parcela: só aparece se a parcela calculada está no range
- */
 function filtrarDespesasPorMes(despesas, mesSelecionado, cartoes) {
-  return despesas.filter(d => {
-    // Encerrada: não aparece a partir do mês de término
-    if (despesaEncerrada(d, mesSelecionado)) return false
-    // Parcelas: verificar se existe parcela para este mês
-    if (d.recorrencia === 'parcela') {
-      const p = calcParcelaNoMes(d, mesSelecionado, cartoes)
-      return p !== null
-    }
-    // Pontual: só aparece no mês em que foi criada
-    if (d.recorrencia === 'pontual') {
-      const mesDaPontual = getMesDaPontual(d, cartoes)
-      return mesDaPontual === mesSelecionado
-    }
-    // Mensal: aparece todo mês
-    return true
-  })
+  return despesas.filter(d => despesaAparecemNoMes(d, mesSelecionado, cartoes))
 }
 
 export function useDespesasFixas() {

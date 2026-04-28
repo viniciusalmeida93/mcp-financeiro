@@ -9,6 +9,51 @@ export function despesaEncerrada(despesa, mesSelecionado) {
 }
 
 /**
+ * Fallback para despesas pontuais sem mes_referencia (legacy).
+ * Deriva o mês a partir do created_at, ajustando ciclo do cartão.
+ */
+export function getMesDaPontual(despesa, cartoes = []) {
+  if (!despesa.created_at) return null
+  const created = new Date(despesa.created_at)
+  const createdYear = created.getFullYear()
+  const createdMonth = created.getMonth() + 1
+  const createdDay = created.getDate()
+
+  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
+
+  if (despesa.forma_pagamento?.startsWith('cartao:')) {
+    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
+    const cartao = cartoes.find(c => c.id === cartaoId)
+    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
+      let nextMonth = createdMonth + 1
+      let nextYear = createdYear
+      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
+      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
+    }
+  }
+  return mesAno
+}
+
+/**
+ * Verdade única: a despesa aparece no mês selecionado?
+ * - Encerrada: não aparece a partir do mês de término
+ * - Mensal: sempre aparece
+ * - Parcela: só se a parcela calculada cabe no range
+ * - Pontual: usa mes_referencia (escolha do usuário) ou created_at como fallback
+ */
+export function despesaAparecemNoMes(despesa, mesSelecionado, cartoes = []) {
+  if (despesaEncerrada(despesa, mesSelecionado)) return false
+  if (despesa.recorrencia === 'parcela') {
+    return calcParcelaNoMes(despesa, mesSelecionado, cartoes) !== null
+  }
+  if (despesa.recorrencia === 'pontual') {
+    if (despesa.mes_referencia) return despesa.mes_referencia === mesSelecionado
+    return getMesDaPontual(despesa, cartoes) === mesSelecionado
+  }
+  return true // mensal
+}
+
+/**
  * Calcula em qual mês de fatura uma despesa cai, considerando:
  * - Despesas não-cartão (PIX, boleto, etc): cai no mês do dia_vencimento
  * - Despesas no cartão: cai baseado no dia_fechamento do cartão

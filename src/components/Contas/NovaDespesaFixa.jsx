@@ -48,9 +48,11 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
     if (isOpen) {
       setErrors({})
       if (despesaEdit) {
-        // Converter dia_vencimento (number) pra data completa usando o mês selecionado
+        // Converter dia_vencimento (number) pra data completa.
+        // Pontual/parcela usa mes_referencia salvo; mensal cai no mês selecionado.
         const diaStr = String(despesaEdit.dia_vencimento || 1).padStart(2, '0')
-        const dataVenc = `${mes}-${diaStr}`
+        const mesBase = despesaEdit.mes_referencia || mes
+        const dataVenc = `${mesBase}-${diaStr}`
         setForm({
           nome: despesaEdit.nome,
           valor: despesaEdit.valor,

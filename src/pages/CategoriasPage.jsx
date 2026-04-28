@@ -10,38 +10,7 @@ import { useMes } from '../contexts/MesContext'
 import { getCategoriaLabel } from '../constants/categorias'
 import { getCategoriaIcon } from '@/lib/categoriaIcons'
 import { getDespesasFixas, getClientes, getCartoes, createCategoriaCustomizada, updateCategoriaCustomizada, deleteCategoriaCustomizada, getCategoriasCustomizadas } from '../services/database'
-import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
-
-function getMesDaPontual(despesa, cartoes) {
-  if (!despesa.created_at) return null
-  const created = new Date(despesa.created_at)
-  const createdYear = created.getFullYear()
-  const createdMonth = created.getMonth() + 1
-  const createdDay = created.getDate()
-  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
-  if (despesa.forma_pagamento?.startsWith('cartao:')) {
-    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
-    const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
-      let nextMonth = createdMonth + 1
-      let nextYear = createdYear
-      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
-      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
-    }
-  }
-  return mesAno
-}
-
-function despesaNoMes(d, mes, cartoes) {
-  if (despesaEncerrada(d, mes)) return false
-  if (d.recorrencia === 'parcela') {
-    return calcParcelaNoMes(d, mes, cartoes) !== null
-  }
-  if (d.recorrencia === 'pontual') {
-    return getMesDaPontual(d, cartoes) === mes
-  }
-  return true // mensal
-}
+import { despesaAparecemNoMes } from '../utils/cicloFatura'
 
 export default function CategoriasPage() {
   const { mes } = useMes()
@@ -64,7 +33,7 @@ export default function CategoriasPage() {
       ])
 
       // Despesas: filtrar por ciclo do mês
-      const despDoMes = despesas.filter(d => despesaNoMes(d, mes, cartoes))
+      const despDoMes = despesas.filter(d => despesaAparecemNoMes(d, mes, cartoes))
       // Receitas: só clientes mensais ativos
       const clientesDoMes = clientes.filter(c => c.tipo === 'mensal')
 

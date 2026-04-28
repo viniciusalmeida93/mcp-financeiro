@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import { getCurrentMes, getLastNMeses } from '../utils/formatters'
 import { getDaysInMonth } from 'date-fns'
+import { getCartoes } from '../services/database'
+import { despesaAparecemNoMes } from '../utils/cicloFatura'
 
 function getLastDayOfMes(mes) {
   const [year, month] = mes.split('-').map(Number)
@@ -18,16 +20,17 @@ export function useFluxoMensal(mes) {
     setLoading(true)
     setError(null)
     try {
-      const [lancRes, despRes] = await Promise.all([
+      const [lancRes, despRes, cartoes] = await Promise.all([
         supabase.from('lancamentos').select('*').gte('data', `${mes}-01`).lte('data', getLastDayOfMes(mes)),
         supabase.from('despesas_fixas').select('*').eq('status', 'ativo'),
+        getCartoes(),
       ])
 
       if (lancRes.error) throw lancRes.error
       if (despRes.error) throw despRes.error
 
       const lancs = lancRes.data
-      const desps = despRes.data
+      const desps = (despRes.data || []).filter(d => despesaAparecemNoMes(d, mes, cartoes))
 
       const receitasEmpresa = lancs.filter(l => l.contexto === 'empresa' && l.tipo === 'entrada').reduce((s, l) => s + Number(l.valor), 0)
       const receitasPessoal = lancs.filter(l => l.contexto === 'pessoal' && l.tipo === 'entrada').reduce((s, l) => s + Number(l.valor), 0)

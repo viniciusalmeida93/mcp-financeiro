@@ -4,41 +4,11 @@ import { getDiasRestantesNoMes, toDateString } from '../utils/dateHelpers'
 import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
-import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
+import { despesaAparecemNoMes } from '../utils/cicloFatura'
 
 function getLastDayOfMes(mes) {
   const [year, month] = mes.split('-').map(Number)
   return `${mes}-${String(getDaysInMonth(new Date(year, month - 1))).padStart(2, '0')}`
-}
-
-function getMesDaPontual(despesa, cartoes) {
-  if (!despesa.created_at) return null
-  const created = new Date(despesa.created_at)
-  const createdYear = created.getFullYear()
-  const createdMonth = created.getMonth() + 1
-  const createdDay = created.getDate()
-  let mesAno = `${createdYear}-${String(createdMonth).padStart(2, '0')}`
-  if (despesa.forma_pagamento?.startsWith('cartao:')) {
-    const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
-    const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
-      let nextMonth = createdMonth + 1
-      let nextYear = createdYear
-      if (nextMonth > 12) { nextMonth = 1; nextYear++ }
-      mesAno = `${nextYear}-${String(nextMonth).padStart(2, '0')}`
-    }
-  }
-  return mesAno
-}
-
-function despesaNoMes(d, mes, cartoes) {
-  if (despesaEncerrada(d, mes)) return false
-  if (d.recorrencia === 'parcela') return calcParcelaNoMes(d, mes, cartoes) !== null
-  if (d.recorrencia === 'pontual') {
-    if (d.mes_referencia) return d.mes_referencia === mes
-    return getMesDaPontual(d, cartoes) === mes
-  }
-  return true
 }
 
 export function useDashboard(mes) {
@@ -91,7 +61,7 @@ export function useDashboard(mes) {
       const clientes = clientesData.filter(c => c.tipo === 'mensal')
 
       // Despesas do mês (com ciclo do cartão)
-      const despDoMes = despesasData.filter(d => despesaNoMes(d, mesAtual, cartoesData))
+      const despDoMes = despesasData.filter(d => despesaAparecemNoMes(d, mesAtual, cartoesData))
 
       // Receitas e gastos dos lançamentos
       const totalReceitas = lancamentos
@@ -131,11 +101,25 @@ export function useDashboard(mes) {
         lancamentos.filter(l => l.tipo === 'entrada' && l.cliente_id).map(l => l.cliente_id)
       )
 
+      // Constrói Date do vencimento ajustando offset do ciclo de cartão
+      const dataVencimentoCartao = (forma_pagamento, dia) => {
+        let y = mesAno, m = mesNum - 1
+        if (forma_pagamento?.startsWith('cartao:')) {
+          const cartaoId = forma_pagamento.replace('cartao:', '')
+          const cartao = cartoesData.find(c => c.id === cartaoId)
+          if (cartao?.dia_fechamento && dia > cartao.dia_fechamento) {
+            m -= 1
+            if (m < 0) { m = 11; y -= 1 }
+          }
+        }
+        return new Date(y, m, dia)
+      }
+
       // Próximas contas do mês
       const proximasContas = despDoMes
         .map(d => {
           const dia = d.dia_vencimento || 1
-          const vencimento = new Date(mesAno, mesNum - 1, dia)
+          const vencimento = dataVencimentoCartao(d.forma_pagamento, dia)
           return { ...d, proximoVencimento: vencimento }
         })
         .filter(d => {
@@ -152,7 +136,7 @@ export function useDashboard(mes) {
       const clientesAReceber = clientes
         .map(c => {
           const dia = c.dia_vencimento || 1
-          const vencimento = new Date(mesAno, mesNum - 1, dia)
+          const vencimento = dataVencimentoCartao(c.forma_pagamento, dia)
           return { ...c, proximoVencimento: vencimento }
         })
         .filter(c => {
