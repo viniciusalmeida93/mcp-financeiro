@@ -3,34 +3,33 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
-/* Variáveis sempre disponíveis — independente do tema */
+/* Variáveis sempre disponíveis, independente do tema */
 :root {
-  --background: #0d1117;
+  --background: #0A0A0A;
   --foreground: #c9d1d9;
-  --card: #0C1A23;
+  --card: #111318;
   --card-foreground: #c9d1d9;
-  --popover: #0C1A23;
+  --popover: #111318;
   --popover-foreground: #c9d1d9;
   --border: #00c8ff40;
   --input: #00c8ff40;
-  --radius: 0.625rem;
-  --muted: #161b22;
+  --radius: 0.375rem;
+  --muted: #1a1d24;
   --muted-foreground: #8b949e;
   --destructive: #f85149;
   --destructive-foreground: #ffffff;
 
-  --primary: #5ED0FF;
-  --primary-foreground: #ffffff;
-  --secondary: #161b22;
+  --primary: #00C8FF;
+  --primary-foreground: #0A0A0A;
+  --secondary: #1a1d24;
   --secondary-foreground: #c9d1d9;
   --accent: #1c2128;
   --accent-foreground: #c9d1d9;
   --ring: #00c8ff80;
-  --sidebar-background: #090d12;
+  --sidebar-background: #0D1117;
   --sidebar-foreground: #c9d1d9;
   --sidebar-primary: #00c8ff40;
   --sidebar-primary-foreground: #ffffff;
@@ -38,12 +37,12 @@
   --sidebar-accent-foreground: #c9d1d9;
   --sidebar-border: #00c8ff40;
   --sidebar-ring: #00c8ff80;
-  --chart-1: #00c8ff;
+  --chart-1: #00C8FF;
   --chart-2: #8b949e;
   --chart-3: #1c2128;
-  --chart-4: #161b22;
-  --chart-5: #0C1A23;
-  --sidebar: #090d12;
+  --chart-4: #1a1d24;
+  --chart-5: #111318;
+  --sidebar: #0D1117;
 }
 
 /* Tema Empresa — azul */
@@ -127,8 +126,8 @@ body {
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-heading: 'Pathway Extreme', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
