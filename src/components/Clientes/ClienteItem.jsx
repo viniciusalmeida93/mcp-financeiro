@@ -3,22 +3,23 @@ import Badge from '../UI/Badge'
 import { Pencil, Copy, Trash2, Mail, FileText, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function ClienteItem({ cliente, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
+export default function ClienteItem({ cliente, parcelaDoMes, onTogglePago, onCobrar, onGerarNF, onEdit, onDuplicate, onDelete, isPago }) {
   const isAtivo = cliente.status === 'ativo'
   const isPontual = cliente.tipo === 'pontual'
   const qtdParcelas = Number(cliente.qtd_parcelas) || 1
-  const entrada = Number(cliente.valor_entrada) || 0
 
   let dateInfo
   if (!isPontual) {
     dateInfo = `Dia ${cliente.dia_vencimento} · ${formatCurrency(cliente.valor)}/mês`
+  } else if (parcelaDoMes && parcelaDoMes.parcela_total) {
+    // Parcela cai neste mes: mostra a parcela atual com o valor dela
+    const dia = parcelaDoMes.data ? parcelaDoMes.data.slice(8, 10) : ''
+    dateInfo = `Dia ${dia} · ${formatCurrency(parcelaDoMes.valor)} · Parcela ${parcelaDoMes.parcela_atual}/${parcelaDoMes.parcela_total}`
+  } else if (parcelaDoMes) {
+    const dia = parcelaDoMes.data ? parcelaDoMes.data.slice(8, 10) : ''
+    dateInfo = `Dia ${dia} · ${formatCurrency(parcelaDoMes.valor)}`
   } else if (qtdParcelas > 1) {
-    const valorParcela = entrada > 0
-      ? (Number(cliente.valor) - entrada) / (qtdParcelas - 1)
-      : Number(cliente.valor) / qtdParcelas
-    const entradaTxt = entrada > 0 ? `${formatCurrency(entrada)} + ` : ''
-    const restoLabel = entrada > 0 ? qtdParcelas - 1 : qtdParcelas
-    dateInfo = `${formatCurrency(cliente.valor)} · ${entradaTxt}${restoLabel}x ${formatCurrency(valorParcela)}`
+    dateInfo = `Pontual · ${qtdParcelas}x · Total ${formatCurrency(cliente.valor)}`
   } else {
     dateInfo = `Pontual · ${formatCurrency(cliente.valor)}`
   }

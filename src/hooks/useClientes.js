@@ -36,6 +36,7 @@ export function useClientesComStatus() {
   const [clientes, setClientes] = useState([])
   const [pagosIds, setPagosIds] = useState(new Set())
   const [lancamentosMap, setLancamentosMap] = useState({})
+  const [lancsPorCliente, setLancsPorCliente] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -49,7 +50,7 @@ export function useClientesComStatus() {
         getClientes(),
         supabase
           .from('lancamentos')
-          .select('id, cliente_id, valor, contexto')
+          .select('id, cliente_id, valor, contexto, data, parcela_atual, parcela_total')
           .eq('tipo', 'entrada')
           .not('cliente_id', 'is', null)
           .gte('data', `${mes}-01`)
@@ -58,12 +59,16 @@ export function useClientesComStatus() {
       setClientes(clientesData)
       const ids = new Set()
       const map = {}
+      const byCliente = {}
       ;(lancs || []).forEach(l => {
         ids.add(l.cliente_id)
         map[l.cliente_id] = l.id
+        if (!byCliente[l.cliente_id]) byCliente[l.cliente_id] = []
+        byCliente[l.cliente_id].push(l)
       })
       setPagosIds(ids)
       setLancamentosMap(map)
+      setLancsPorCliente(byCliente)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -135,6 +140,7 @@ export function useClientesComStatus() {
     clientes,
     pagosIds,
     lancamentosMap,
+    lancsPorCliente,
     loading,
     error,
     refresh: fetchAll,

@@ -26,6 +26,7 @@ export default function ListaClientes({
   loading,
   refresh,
   pagosIds = new Set(),
+  lancsPorCliente = {},
   onTogglePago,
   contexto,
   setContexto,
@@ -117,6 +118,7 @@ export default function ListaClientes({
             <ClienteItem
               key={c.id}
               cliente={c}
+              parcelaDoMes={lancsPorCliente[c.id]?.[0]}
               onTogglePago={onTogglePago}
               onGerarNF={handleGerarNF}
               onEdit={handleEdit}

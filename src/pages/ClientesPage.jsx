@@ -11,12 +11,17 @@ export default function ClientesPage() {
   const [tipoFilter, setTipoFilter] = useState('todos')
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const { clientes, pagosIds, loading, error, refresh, handleTogglePago } = useClientesComStatus()
+  const { clientes, pagosIds, lancsPorCliente, loading, error, refresh, handleTogglePago } = useClientesComStatus()
 
-  // Lista final visível: aplica contexto + tipo + busca, ignorando inativos.
-  // Os cards no topo refletem exatamente o que a lista mostra.
+  // Soma das parcelas de um pontual no mes selecionado
+  const valorPontualNoMes = (clienteId) =>
+    (lancsPorCliente[clienteId] || []).reduce((s, l) => s + Number(l.valor), 0)
+
+  // Lista final visivel: aplica contexto + tipo + busca, ignorando inativos.
+  // Pontuais sem parcela no mes selecionado nao aparecem (cada parcela e um lancamento com data propria).
   const filteredClientes = useMemo(() => {
     let list = clientes.filter(c => c.status === 'ativo')
+    list = list.filter(c => c.tipo === 'mensal' || (lancsPorCliente[c.id]?.length > 0))
     if (contexto !== 'todos') {
       list = list.filter(c => (c.contexto || 'empresa') === contexto)
     }
@@ -28,15 +33,16 @@ export default function ClientesPage() {
       list = list.filter(c => c.nome.toLowerCase().includes(q))
     }
     return list
-  }, [clientes, contexto, tipoFilter, search])
+  }, [clientes, contexto, tipoFilter, search, lancsPorCliente])
 
   const { total, recebido, pendente } = useMemo(() => {
-    const t = filteredClientes.reduce((s, c) => s + Number(c.valor), 0)
+    const valorMes = (c) => c.tipo === 'pontual' ? valorPontualNoMes(c.id) : Number(c.valor)
+    const t = filteredClientes.reduce((s, c) => s + valorMes(c), 0)
     const r = filteredClientes
       .filter(c => pagosIds.has(c.id))
-      .reduce((s, c) => s + Number(c.valor), 0)
+      .reduce((s, c) => s + valorMes(c), 0)
     return { total: t, recebido: r, pendente: t - r }
-  }, [filteredClientes, pagosIds])
+  }, [filteredClientes, pagosIds, lancsPorCliente])
 
   return (
     <>
@@ -82,6 +88,7 @@ export default function ClientesPage() {
         loading={loading}
         refresh={refresh}
         pagosIds={pagosIds}
+        lancsPorCliente={lancsPorCliente}
         onTogglePago={handleTogglePago}
         contexto={contexto}
         setContexto={setContexto}
