@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../services/supabase'
 import { getDiasRestantesNoMes, toDateString } from '../utils/dateHelpers'
-import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento } from '../services/database'
+import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento, updateLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
 import { despesaAparecemNoMes } from '../utils/cicloFatura'
@@ -63,9 +63,9 @@ export function useDashboard(mes) {
       // Despesas do mês (com ciclo do cartão)
       const despDoMes = despesasData.filter(d => despesaAparecemNoMes(d, mesAtual, cartoesData))
 
-      // Receitas e gastos dos lançamentos
+      // Receitas e gastos dos lançamentos (so conta entrada efetivamente paga)
       const totalReceitas = lancamentos
-        .filter(l => l.tipo === 'entrada')
+        .filter(l => l.tipo === 'entrada' && l.pago !== false)
         .reduce((s, l) => s + Number(l.valor), 0)
 
       const totalDespesas = lancamentos
@@ -96,9 +96,11 @@ export function useDashboard(mes) {
         .filter(d => pagosIds.has(d.id))
         .reduce((s, d) => s + Number(d.valor), 0)
 
-      // Clientes recebidos
+      // Clientes recebidos: lancamento entrada com cliente_id e pago != false
       const pagosClienteIds = new Set(
-        lancamentos.filter(l => l.tipo === 'entrada' && l.cliente_id).map(l => l.cliente_id)
+        lancamentos
+          .filter(l => l.tipo === 'entrada' && l.cliente_id && l.pago !== false)
+          .map(l => l.cliente_id)
       )
 
       // Constrói Date do vencimento ajustando offset do ciclo de cartão
@@ -258,6 +260,21 @@ export function useDashboard(mes) {
 
   const marcarClienteRecebido = useCallback(async (cliente) => {
     const mesAtual = mes || format(new Date(), 'yyyy-MM')
+    // Se ja existe lancamento no mes (ex: parcela pontual com pago=false), so liga o flag
+    const { data: rows } = await supabase
+      .from('lancamentos')
+      .select('id')
+      .eq('tipo', 'entrada')
+      .eq('cliente_id', cliente.id)
+      .gte('data', `${mesAtual}-01`)
+      .lte('data', getLastDayOfMes(mesAtual))
+      .limit(1)
+    if (rows?.[0]) {
+      await updateLancamento(rows[0].id, { pago: true })
+      fetchDashboard()
+      return
+    }
+
     const [mesAno, mesNum] = mesAtual.split('-').map(Number)
     const dia = cliente.dia_vencimento || new Date().getDate()
     const dataLanc = `${mesAtual}-${String(Math.min(dia, getDaysInMonth(new Date(mesAno, mesNum - 1)))).padStart(2, '0')}`
@@ -270,6 +287,7 @@ export function useDashboard(mes) {
       data: dataLanc,
       contexto: cliente.contexto || 'empresa',
       cliente_id: cliente.id,
+      pago: true,
     })
     fetchDashboard()
   }, [fetchDashboard, mes])
@@ -278,14 +296,20 @@ export function useDashboard(mes) {
     const mesAtual = mes || format(new Date(), 'yyyy-MM')
     const { data: rows } = await supabase
       .from('lancamentos')
-      .select('id')
+      .select('id, parcelado, parcela_total')
       .eq('tipo', 'entrada')
       .eq('cliente_id', cliente.id)
       .gte('data', `${mesAtual}-01`)
       .lte('data', getLastDayOfMes(mesAtual))
       .limit(1)
     if (rows?.[0]) {
-      await deleteLancamento(rows[0].id)
+      // Parcela: nao deleta, so marca como nao pago. Avulso (mensal sem parcela): deleta.
+      const isParcela = rows[0].parcelado || rows[0].parcela_total
+      if (isParcela) {
+        await updateLancamento(rows[0].id, { pago: false })
+      } else {
+        await deleteLancamento(rows[0].id)
+      }
       fetchDashboard()
     }
   }, [fetchDashboard, mes])

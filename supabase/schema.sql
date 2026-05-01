@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 -- Migrations for existing installs (idempotent)
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS qtd_parcelas INTEGER DEFAULT 1;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS valor_entrada DECIMAL(10,2);
+ALTER TABLE lancamentos ADD COLUMN IF NOT EXISTS pago BOOLEAN DEFAULT true;
 
 -- ================================
 -- GRUPOS DE PARCELAS
@@ -73,6 +74,7 @@ CREATE TABLE IF NOT EXISTS lancamentos (
   parcela_atual INTEGER,
   parcela_total INTEGER,
   valor_parcela DECIMAL(10,2),
+  pago BOOLEAN DEFAULT true,
   grupo_parcela_id UUID REFERENCES grupos_parcelas(id) ON DELETE SET NULL,
   CONSTRAINT chk_parcela_lancamentos CHECK (
     (parcelado = false AND parcela_atual IS NULL AND parcela_total IS NULL)

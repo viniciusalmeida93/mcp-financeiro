@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getClientes, createLancamento, deleteLancamento } from '../services/database'
+import { getClientes, createLancamento, deleteLancamento, updateLancamento } from '../services/database'
 import { supabase } from '../services/supabase'
 import { useMes } from '../contexts/MesContext'
 import { getDaysInMonth } from 'date-fns'
@@ -50,7 +50,7 @@ export function useClientesComStatus() {
         getClientes(),
         supabase
           .from('lancamentos')
-          .select('id, cliente_id, valor, contexto, data, parcela_atual, parcela_total')
+          .select('id, cliente_id, valor, contexto, data, parcela_atual, parcela_total, pago')
           .eq('tipo', 'entrada')
           .not('cliente_id', 'is', null)
           .gte('data', `${mes}-01`)
@@ -61,7 +61,9 @@ export function useClientesComStatus() {
       const map = {}
       const byCliente = {}
       ;(lancs || []).forEach(l => {
-        ids.add(l.cliente_id)
+        // pago=true (default) ou ausente conta como pago, pago=false explicito nao conta
+        const isPago = l.pago !== false
+        if (isPago) ids.add(l.cliente_id)
         map[l.cliente_id] = l.id
         if (!byCliente[l.cliente_id]) byCliente[l.cliente_id] = []
         byCliente[l.cliente_id].push(l)
@@ -79,45 +81,54 @@ export function useClientesComStatus() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   const handleTogglePago = useCallback(async (cliente) => {
-    if (pagosIds.has(cliente.id)) {
-      let lancId = lancamentosMap[cliente.id]
-      if (!lancId) {
-        const { data: rows } = await supabase
-          .from('lancamentos')
-          .select('id')
-          .eq('tipo', 'entrada')
-          .eq('cliente_id', cliente.id)
-          .gte('data', `${mes}-01`)
-          .lte('data', getLastDay(mes))
-          .limit(1)
-        lancId = rows?.[0]?.id
-      }
-      if (lancId) await deleteLancamento(lancId)
-      setPagosIds(prev => { const s = new Set(prev); s.delete(cliente.id); return s })
-      setLancamentosMap(prev => { const m = { ...prev }; delete m[cliente.id]; return m })
-    } else {
-      // Data dentro do mês selecionado
-      const dia = cliente.dia_vencimento || 1
-      const [y, m] = mes.split('-').map(Number)
-      const maxDia = getDaysInMonth(new Date(y, m - 1))
-      const dataLanc = `${mes}-${String(Math.min(dia, maxDia)).padStart(2, '0')}`
+    const lancsCliente = lancsPorCliente[cliente.id] || []
+    const isPontual = cliente.tipo === 'pontual'
 
-      const novoLanc = await createLancamento({
-        tipo: 'entrada',
-        valor: cliente.valor,
-        descricao: cliente.nome,
-        categoria: cliente.servico || 'servicos',
-        forma_pagamento: 'pix',
-        data: dataLanc,
-        contexto: cliente.contexto,
-        cliente_id: cliente.id,
+    // Se ja tem lancamento(s) no mes, alterna o flag pago no primeiro (parcela ou avulso ja criado)
+    if (lancsCliente.length > 0) {
+      const lanc = lancsCliente[0]
+      const novoPago = lanc.pago === false  // pago=false -> true, pago=true/null -> false
+      await updateLancamento(lanc.id, { pago: novoPago })
+      setLancsPorCliente(prev => ({
+        ...prev,
+        [cliente.id]: prev[cliente.id].map(l => l.id === lanc.id ? { ...l, pago: novoPago } : l)
+      }))
+      setPagosIds(prev => {
+        const s = new Set(prev)
+        if (novoPago) s.add(cliente.id); else s.delete(cliente.id)
+        return s
       })
-      if (novoLanc) {
-        setPagosIds(prev => new Set([...prev, cliente.id]))
-        setLancamentosMap(prev => ({ ...prev, [cliente.id]: novoLanc.id }))
-      }
+      return
     }
-  }, [pagosIds, lancamentosMap, mes])
+
+    // Sem lancamento no mes: so faz sentido para mensal (pontual nao deveria estar visivel)
+    if (isPontual) return
+
+    const dia = cliente.dia_vencimento || 1
+    const [y, m] = mes.split('-').map(Number)
+    const maxDia = getDaysInMonth(new Date(y, m - 1))
+    const dataLanc = `${mes}-${String(Math.min(dia, maxDia)).padStart(2, '0')}`
+
+    const novoLanc = await createLancamento({
+      tipo: 'entrada',
+      valor: cliente.valor,
+      descricao: cliente.nome,
+      categoria: cliente.servico || 'servicos',
+      forma_pagamento: 'pix',
+      data: dataLanc,
+      contexto: cliente.contexto,
+      cliente_id: cliente.id,
+      pago: true,
+    })
+    if (novoLanc) {
+      setPagosIds(prev => new Set([...prev, cliente.id]))
+      setLancamentosMap(prev => ({ ...prev, [cliente.id]: novoLanc.id }))
+      setLancsPorCliente(prev => ({
+        ...prev,
+        [cliente.id]: [...(prev[cliente.id] || []), novoLanc],
+      }))
+    }
+  }, [pagosIds, lancsPorCliente, mes])
 
   // Compute totals for a given contexto ('todos'|'empresa'|'pessoal') e tipo ('todos'|'mensal'|'pontual')
   const calcTotais = useCallback((contexto, tipoFiltro = 'todos') => {

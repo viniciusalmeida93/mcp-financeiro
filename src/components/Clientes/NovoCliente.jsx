@@ -181,6 +181,7 @@ export default function NovoCliente({ isOpen, onClose, onSuccess, clienteEdit })
             parcela_atual: qtd > 1 ? i + 1 : null,
             parcela_total: qtd > 1 ? qtd : null,
             valor_parcela: qtd > 1 ? valorParcela : null,
+            pago: false,
           })
         }
       } else if (isEditing && clienteEdit.tipo === 'pontual') {

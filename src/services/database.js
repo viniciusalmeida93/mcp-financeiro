@@ -97,6 +97,17 @@ export async function createLancamentosParcelados(base, numeroParcelas) {
   return { grupo: grupoData, lancamentos: data }
 }
 
+export async function updateLancamento(id, updates) {
+  const { data, error } = await supabase
+    .from('lancamentos')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function deleteLancamento(id) {
   const { error } = await supabase.from('lancamentos').delete().eq('id', id)
   if (error) throw error
