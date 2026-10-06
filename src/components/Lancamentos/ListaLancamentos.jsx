@@ -113,17 +113,17 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
       {/* Summary */}
       {!loading && lancamentos.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+          <div className="ds-vidro rounded-xl border p-3 text-center">
             <div className="text-xs text-muted-foreground mb-1">Entradas</div>
-            <div className="text-sm font-semibold text-green-500">{formatCurrency(totalEntradas)}</div>
+            <div className="text-sm font-semibold text-success">{formatCurrency(totalEntradas)}</div>
           </div>
-          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+          <div className="ds-vidro rounded-xl border p-3 text-center">
             <div className="text-xs text-muted-foreground mb-1">Saídas</div>
-            <div className="text-sm font-semibold text-red-500">{formatCurrency(totalSaidas)}</div>
+            <div className="text-sm font-semibold text-destructive">{formatCurrency(totalSaidas)}</div>
           </div>
-          <div className="rounded-lg border bg-card p-3 shadow-sm text-center">
+          <div className="ds-vidro rounded-xl border p-3 text-center">
             <div className="text-xs text-muted-foreground mb-1">Saldo</div>
-            <div className={`text-sm font-semibold ${totalEntradas - totalSaidas >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <div className={`text-sm font-semibold ${totalEntradas - totalSaidas >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(totalEntradas - totalSaidas)}
             </div>
           </div>
@@ -135,7 +135,7 @@ export default function ListaLancamentos({ lancamentos, loading, filters, update
       ) : lancamentos.length === 0 ? (
         <EmptyState icon={FileText} text="Nenhum lançamento encontrado" />
       ) : (
-        <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="ds-vidro rounded-xl border overflow-hidden">
           {lancamentos.map(l => (
             <LancamentoItem key={l.id} lancamento={l} onDelete={handleDeleteRequest} />
           ))}

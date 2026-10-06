@@ -45,8 +45,8 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
                     className={cn(
                       'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
                       recebido
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : 'border-muted-foreground hover:border-green-500'
+                        ? 'bg-success border-success text-black'
+                        : 'border-muted-foreground hover:border-success'
                     )}
                     onClick={() => recebido ? onDesreceber?.(cliente) : onReceber?.(cliente)}
                     title={recebido ? 'Clique para desmarcar' : 'Marcar como recebido'}
@@ -58,14 +58,14 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       {formatDateShort(cliente.proximoVencimento)}
                       {cliente.precisa_nf && (
-                        <Badge variant="warning" className="ml-1 gap-1">
+                        <Badge variant="warning-light" className="ml-1">
                           <FileText className="h-3 w-3" />
                           NF
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className={cn('text-sm font-semibold', recebido ? 'text-green-500' : '')}>
+                  <div className={cn('text-sm font-semibold', recebido ? 'text-success' : '')}>
                     {formatCurrency(cliente.valor)}
                   </div>
                 </div>
@@ -74,7 +74,7 @@ export default function ClientesReceberCard({ clientesAReceber, loading, pagosCl
 
             <div className="flex justify-between text-sm font-semibold pt-2">
               <span>Total 7 dias</span>
-              <span className="text-green-500">{formatCurrency(total)}</span>
+              <span className="text-success">{formatCurrency(total)}</span>
             </div>
           </>
         )}

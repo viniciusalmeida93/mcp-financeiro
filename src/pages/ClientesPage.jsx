@@ -5,6 +5,7 @@ import { useClientesComStatus } from '../hooks/useClientes'
 import { formatCurrency } from '../utils/formatters'
 import { TrendingUp, CheckCircle, Clock } from 'lucide-react'
 import FAB from '../components/UI/FAB'
+import StatCard from '../components/UI/StatCard'
 
 export default function ClientesPage() {
   const [contexto, setContexto] = useState('todos')
@@ -47,34 +48,10 @@ export default function ClientesPage() {
   return (
     <>
       {/* Metric cards */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <TrendingUp size={12} />
-            Total
-          </div>
-          <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(total)}
-          </div>
-        </div>
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <CheckCircle size={12} />
-            Recebido
-          </div>
-          <div className="text-lg font-semibold text-green-600">
-            {loading ? '...' : formatCurrency(recebido)}
-          </div>
-        </div>
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <Clock size={12} />
-            Pendente
-          </div>
-          <div className={`text-lg font-semibold ${pendente > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
-            {loading ? '...' : formatCurrency(pendente)}
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-2.5 mb-4 sm:grid-cols-3 sm:gap-3">
+        <StatCard className="col-span-2 sm:col-span-1" label="Total" icon={TrendingUp} tone="success" loading={loading} value={formatCurrency(total)} />
+        <StatCard label="Recebido" icon={CheckCircle} tone="success" loading={loading} value={formatCurrency(recebido)} />
+        <StatCard label="Pendente" icon={Clock} tone={pendente > 0 ? 'warning' : 'neutral'} loading={loading} value={formatCurrency(pendente)} />
       </div>
 
       {error && (

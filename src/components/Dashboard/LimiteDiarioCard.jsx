@@ -28,11 +28,11 @@ export default function LimiteDiarioCard({ receitasEmpresa, despesasFixasEmpresa
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="rounded-md border p-3">
-          <div className="text-xs font-semibold text-blue-400 mb-1 flex items-center gap-1">
+          <div className="text-xs font-semibold text-primary mb-1 flex items-center gap-1">
             <Briefcase className="h-3 w-3" />
             EMPRESA
           </div>
-          <div className={cn('text-xl font-bold', limiteEmpresa >= 0 ? 'text-green-500' : 'text-red-500')}>
+          <div className={cn('text-xl font-bold', limiteEmpresa >= 0 ? 'text-success' : 'text-destructive')}>
             {formatCurrency(limiteEmpresa)}/dia
           </div>
           <div className="text-xs text-muted-foreground">{diasRestantes} dias restantes</div>
@@ -43,7 +43,7 @@ export default function LimiteDiarioCard({ receitasEmpresa, despesasFixasEmpresa
             <Home className="h-3 w-3" />
             PESSOAL
           </div>
-          <div className={cn('text-xl font-bold', limitePessoal >= 0 ? 'text-green-500' : 'text-red-500')}>
+          <div className={cn('text-xl font-bold', limitePessoal >= 0 ? 'text-success' : 'text-destructive')}>
             {formatCurrency(limitePessoal)}/dia
           </div>
           {limitePessoal < 0 && (

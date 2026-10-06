@@ -17,16 +17,18 @@ export default function RelatoriosPage() {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div role="tablist" className="grid grid-cols-4 gap-[3px] mb-4 rounded-md border bg-field p-[3px] md:w-fit md:min-w-[28rem]">
         {TABS.map(t => (
           <button
             key={t.value}
+            role="tab"
+            aria-selected={tab === t.value}
             onClick={() => setTab(t.value)}
             className={cn(
-              'h-10 rounded-md text-sm font-medium border transition-colors',
+              'h-9 cursor-pointer rounded-sm px-3 text-sm font-medium transition-colors',
               tab === t.value
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background text-muted-foreground border-border hover:bg-accent'
+                ? 'bg-primary/12 text-primary shadow-[inset_0_0_0_1px_rgba(0,200,255,0.3)]'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             )}
           >
             {t.label}

@@ -3,8 +3,9 @@ import CartaoItem from '../components/Cartoes/CartaoItem'
 import NovoCartao from '../components/Cartoes/NovoCartao'
 import EmptyState from '../components/UI/EmptyState'
 import SelectField from '../components/UI/Select'
-import { CreditCard } from 'lucide-react'
+import { CreditCard, Receipt, Gauge } from 'lucide-react'
 import FAB from '../components/UI/FAB'
+import StatCard from '../components/UI/StatCard'
 import { getCartoes, createCartao, updateCartao, deleteCartao, getDespesasFixas } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
@@ -136,23 +137,10 @@ export default function CartoesPage() {
     <>
       {/* Resumo geral */}
       {cartoes.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">Limite</div>
-            <div className="text-lg font-semibold">{formatCurrency(totalLimite)}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">Fatura</div>
-            <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : ''}`}>
-              {formatCurrency(totalFatura)}
-            </div>
-          </div>
-          <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="text-xs text-muted-foreground mb-1">Utilização</div>
-            <div className={`text-lg font-semibold ${utilizacaoGeral >= 80 ? 'text-destructive' : utilizacaoGeral >= 60 ? 'text-yellow-600' : 'text-green-600'}`}>
-              {utilizacaoGeral}%
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-2.5 mb-4 sm:grid-cols-3 sm:gap-3">
+          <StatCard className="col-span-2 sm:col-span-1" label="Limite" icon={CreditCard} tone="neutral" value={formatCurrency(totalLimite)} />
+          <StatCard label="Fatura" icon={Receipt} tone={utilizacaoGeral >= 80 ? 'destructive' : 'neutral'} value={formatCurrency(totalFatura)} />
+          <StatCard label="Utilização" icon={Gauge} tone={utilizacaoGeral >= 80 ? 'destructive' : utilizacaoGeral >= 60 ? 'warning' : 'success'} value={`${utilizacaoGeral}%`} />
         </div>
       )}
 
@@ -167,7 +155,7 @@ export default function CartoesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-8"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
+        <div className="flex justify-center py-12"><div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full" /></div>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={CreditCard}

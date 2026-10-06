@@ -17,7 +17,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }) {
         if (!open) onClose()
       }}
     >
-      <DialogContent className="w-[calc(100%-32px)] max-w-md mx-auto">
+      <DialogContent>
         {title && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

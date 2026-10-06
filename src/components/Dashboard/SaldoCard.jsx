@@ -28,7 +28,7 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
             <Wallet className="h-3 w-3" />
             Total
           </div>
-          <div className={cn('font-bold text-sm', saldoTotal >= 0 ? 'text-green-500' : 'text-red-500')}>
+          <div className={cn('font-bold text-sm', saldoTotal >= 0 ? 'text-success' : 'text-destructive')}>
             {formatCurrency(saldoTotal)}
           </div>
         </CardContent>
@@ -39,7 +39,7 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
             <Briefcase className="h-3 w-3" />
             Empresa
           </div>
-          <div className={cn('font-bold text-sm', saldoEmpresa < 0 ? 'text-red-500' : '')}>
+          <div className={cn('font-bold text-sm', saldoEmpresa < 0 ? 'text-destructive' : '')}>
             {formatCurrency(saldoEmpresa)}
           </div>
         </CardContent>
@@ -50,7 +50,7 @@ export default function SaldoCard({ saldoEmpresa, saldoPessoal, saldoTotal, load
             <Home className="h-3 w-3" />
             Pessoal
           </div>
-          <div className={cn('font-bold text-sm', saldoPessoal < 0 ? 'text-red-500' : '')}>
+          <div className={cn('font-bold text-sm', saldoPessoal < 0 ? 'text-destructive' : '')}>
             {formatCurrency(saldoPessoal)}
           </div>
         </CardContent>

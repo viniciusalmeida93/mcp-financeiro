@@ -13,13 +13,13 @@ export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0,
   const utilizacaoColor = utilizacao >= 80
     ? 'text-destructive'
     : utilizacao >= 60
-      ? 'text-yellow-600'
-      : 'text-green-600'
+      ? 'text-warning'
+      : 'text-success'
   const progressColor = utilizacao >= 80
     ? 'bg-destructive'
     : utilizacao >= 60
-      ? 'bg-yellow-500'
-      : 'bg-green-500'
+      ? 'bg-warning'
+      : 'bg-success'
 
   return (
     <Card className="overflow-hidden">
@@ -119,7 +119,7 @@ export default function CartaoItem({ cartao, despesas = [], faturaCalculada = 0,
               <Copy size={14} />
             </button>
           )}
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent transition-colors ml-auto" onClick={() => onDelete(cartao.id)} title="Excluir">
+          <button className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-accent transition-colors ml-auto" onClick={() => onDelete(cartao.id)} title="Excluir">
             <Trash2 size={14} />
           </button>
         </div>

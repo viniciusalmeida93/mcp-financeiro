@@ -15,7 +15,7 @@ export default function FluxoMensal() {
       {loading ? <LoadingScreen /> : error ? (
         <p className="text-sm text-destructive">{error}</p>
       ) : data && (
-        <>
+        <div className="grid gap-4 lg:grid-cols-3">
           {/* Empresa block */}
           <Card>
             <CardHeader className="pb-2">
@@ -24,15 +24,15 @@ export default function FluxoMensal() {
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Receitas</span>
-                <span className="font-semibold text-green-500">{formatCurrency(data.receitasEmpresa)}</span>
+                <span className="font-semibold text-success">{formatCurrency(data.receitasEmpresa)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Despesas</span>
-                <span className="font-semibold text-red-500">-{formatCurrency(data.despesasEmpresa)}</span>
+                <span className="font-semibold text-destructive">-{formatCurrency(data.despesasEmpresa)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Saldo</span>
-                <span className={data.receitasEmpresa - data.despesasEmpresa >= 0 ? 'text-green-500' : 'text-red-500'}>
+                <span className={data.receitasEmpresa - data.despesasEmpresa >= 0 ? 'text-success' : 'text-destructive'}>
                   {formatCurrency(data.receitasEmpresa - data.despesasEmpresa)}
                 </span>
               </div>
@@ -47,15 +47,15 @@ export default function FluxoMensal() {
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Receitas</span>
-                <span className="font-semibold text-green-500">{formatCurrency(data.receitasPessoal)}</span>
+                <span className="font-semibold text-success">{formatCurrency(data.receitasPessoal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Despesas</span>
-                <span className="font-semibold text-red-500">-{formatCurrency(data.despesasPessoal)}</span>
+                <span className="font-semibold text-destructive">-{formatCurrency(data.despesasPessoal)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Saldo</span>
-                <span className={data.receitasPessoal - data.despesasPessoal >= 0 ? 'text-green-500' : 'text-red-500'}>
+                <span className={data.receitasPessoal - data.despesasPessoal >= 0 ? 'text-success' : 'text-destructive'}>
                   {formatCurrency(data.receitasPessoal - data.despesasPessoal)}
                 </span>
               </div>
@@ -70,24 +70,24 @@ export default function FluxoMensal() {
             <CardContent className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Receitas</span>
-                <span className="font-semibold text-green-500">{formatCurrency(data.totalReceitas)}</span>
+                <span className="font-semibold text-success">{formatCurrency(data.totalReceitas)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Despesas</span>
-                <span className="font-semibold text-red-500">-{formatCurrency(data.totalDespesas)}</span>
+                <span className="font-semibold text-destructive">-{formatCurrency(data.totalDespesas)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Saldo Final</span>
-                <span className={data.saldoFinal >= 0 ? 'text-green-500' : 'text-red-500'}>
+                <span className={data.saldoFinal >= 0 ? 'text-success' : 'text-destructive'}>
                   {formatCurrency(data.saldoFinal)}
                 </span>
               </div>
-              <div className={`text-center text-sm mt-1 ${data.margemLucro >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <div className={`text-center text-sm mt-1 ${data.margemLucro >= 0 ? 'text-success' : 'text-destructive'}`}>
                 Margem: {formatPercent(data.margemLucro)}
               </div>
             </CardContent>
           </Card>
-        </>
+        </div>
       )}
     </div>
   )

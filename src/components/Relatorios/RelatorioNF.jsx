@@ -95,11 +95,11 @@ export default function RelatorioNF() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Impostos</span>
-                <span className="font-medium text-red-500">-{formatCurrency(totalImposto)}</span>
+                <span className="font-medium text-destructive">-{formatCurrency(totalImposto)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Total Líquido</span>
-                <span className="text-green-500">{formatCurrency(totalLiquido)}</span>
+                <span className="text-success">{formatCurrency(totalLiquido)}</span>
               </div>
             </CardContent>
           </Card>
@@ -112,7 +112,7 @@ export default function RelatorioNF() {
               <CardContent className="py-3 space-y-2">
                 <div className="flex justify-between items-center">
                   <div className="font-semibold text-sm">{nf.clientes?.nome}</div>
-                  <Badge variant={nf.status === 'pago' ? 'success' : nf.status === 'emitida' ? 'neutral' : 'warning'} className="gap-1">
+                  <Badge variant={nf.status === 'pago' ? 'success-light' : nf.status === 'emitida' ? 'info-light' : 'warning-light'} className="gap-1">
                     <StatusIcon className="h-3 w-3" />
                     {meta.label}
                   </Badge>
@@ -123,7 +123,7 @@ export default function RelatorioNF() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Bruto → Líquido</span>
                   <span>
-                    {formatCurrency(nf.valor_bruto)} → <span className="text-green-500 font-semibold">{formatCurrency(nf.valor_liquido)}</span>
+                    {formatCurrency(nf.valor_bruto)} → <span className="text-success font-semibold">{formatCurrency(nf.valor_liquido)}</span>
                   </span>
                 </div>
               </CardContent>

@@ -1,0 +1,73 @@
+/* ===================================================================
+   Tokens da area de gestao -- adaptados do antsports-design-system
+   (src/tokens.css) para a VA Studio.
+
+   Mesma estrutura de la: vinheta escura no fundo, cards de vidro, uma
+   borda azul universal, escala de raio do ReUI e uma familia so. O que
+   muda e a cor de acao: no lugar do vermelho Arena, o azul padrao da
+   VA Studio (#00C8FF) em botoes, foco e estados ativos.
+
+   CSS puro: o mapeamento nos tokens do shadcn mora em globals.css.
+   =================================================================== */
+
+:root {
+  /* --- Marca VA Studio ---------------------------------------------- */
+  --va-blue: #00C8FF;
+  --va-blue-hover: #33D3FF;
+
+  /* --- Tinta ----------------------------------------------------------- */
+  --ds-ink: #F5F9FC;
+  --ds-mute: rgba(245, 249, 252, 0.55);
+  --ds-faint: rgba(245, 249, 252, 0.34);
+
+  /* --- Superficies ------------------------------------------------------
+     O fundo nao e chapado: e uma vinheta presa a viewport, com o azul
+     subindo nos cantos de cima. `--ds-bg-holofote` vai no <body>. */
+  --ds-bg-base: #010609;
+  --ds-bg-holofote:
+    radial-gradient(120% 80% at 12% 8%, #04182a 0%, transparent 55%),
+    radial-gradient(120% 90% at 88% 18%, #030f1a 0%, transparent 50%),
+    radial-gradient(150% 130% at 50% 108%, #01070d 0%, transparent 60%);
+
+  /* O vidro: material dos cards e da sidebar sobre a vinheta. */
+  --ds-glass-bg: rgba(6, 30, 47, 0.3);
+  --ds-glass-border: rgba(16, 93, 148, 0.3);
+
+  /* Campo de formulario: um poco mais escuro que o card, senao some. */
+  --ds-field-bg: #051D2E;
+
+  /* Superficie solida de menus, dialogos e popovers (ficam por cima de
+     tudo, entao nao podem ser transparentes como o vidro). */
+  --ds-overlay-bg: #04172A;
+
+  /* Cabecalho de tabela -- solido, gruda no topo ao rolar. */
+  --ds-table-head-bg: #032136;
+
+  /* A borda universal: card, input, tabela, dialogo, sidebar, menu. */
+  --ds-border: hsl(200 70% 22%);
+
+  /* --- Semanticas (financeiro) --------------------------------------- */
+  --ds-success: #22C55E;
+  --ds-warning: #F5B83D;
+  --ds-danger: #F25C5C;
+  --ds-info: #8B7CF6;
+
+  /* --- Raio (escala do ReUI / shadcn v4, base 0.625rem) --------------- */
+  --ds-radius: 0.625rem;                          /* 10px */
+  --ds-radius-sm: calc(var(--ds-radius) - 4px);   /* 6px  */
+  --ds-radius-md: calc(var(--ds-radius) - 2px);   /* 8px  */
+  --ds-radius-lg: var(--ds-radius);               /* 10px */
+  --ds-radius-xl: calc(var(--ds-radius) + 4px);   /* 14px */
+  --ds-radius-2xl: 1rem;                          /* 16px */
+  --ds-radius-3xl: 1.5rem;                        /* 24px */
+
+  /* --- Tipografia: uma familia so -- UI, titulo e dado. ---------------- */
+  --ds-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Tempo e curva --------------------------------------------------- */
+  --ds-duration-abertura: 350ms;
+  --ds-ease-abertura: ease-in-out;
+
+  --ds-duration-folha: 260ms;
+  --ds-ease-folha: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

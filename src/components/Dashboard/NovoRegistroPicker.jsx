@@ -7,21 +7,21 @@ export default function NovoRegistroPicker({ isOpen, onClose, onSelectReceita, o
       <div className="grid grid-cols-2 gap-4 py-2">
         <button
           onClick={() => { onClose(); onSelectReceita() }}
-          className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-green-500/30 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+          className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-success/30 bg-success/10 hover:bg-success/20 transition-colors"
         >
-          <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-            <TrendingUp size={24} className="text-green-500" />
+          <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+            <TrendingUp size={24} className="text-success" />
           </div>
-          <span className="font-semibold text-green-500">Receita</span>
+          <span className="font-semibold text-success">Receita</span>
         </button>
         <button
           onClick={() => { onClose(); onSelectDespesa() }}
-          className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-red-500/30 bg-red-500/10 hover:bg-red-500/20 transition-colors"
+          className="flex flex-col items-center gap-3 p-6 rounded-lg border-2 border-destructive/30 bg-destructive/10 hover:bg-destructive/20 transition-colors"
         >
-          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-            <TrendingDown size={24} className="text-red-500" />
+          <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center">
+            <TrendingDown size={24} className="text-destructive" />
           </div>
-          <span className="font-semibold text-red-500">Despesa</span>
+          <span className="font-semibold text-destructive">Despesa</span>
         </button>
       </div>
     </Modal>

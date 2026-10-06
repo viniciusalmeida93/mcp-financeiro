@@ -89,7 +89,7 @@ export default function NovaCategoria({ onSave, onClose, categoriaEdit }) {
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
                   background: c,
-                  border: cor === c ? '3px solid hsl(var(--foreground))' : '3px solid transparent',
+                  border: cor === c ? '3px solid var(--foreground)' : '3px solid transparent',
                   cursor: 'pointer',
                   outline: 'none',
                   flexShrink: 0,

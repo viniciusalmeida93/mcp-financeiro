@@ -83,7 +83,7 @@ export default function GestaoNF({ clientes }) {
     emitida: { label: 'Emitida', Icon: FileText },
     pago: { label: 'Pago', Icon: CheckCircle2 },
   }
-  const STATUS_BADGE_VARIANT = { pendente: 'outline', emitida: 'secondary', pago: 'default' }
+  const STATUS_BADGE_VARIANT = { pendente: 'warning-light', emitida: 'info-light', pago: 'success-light' }
 
   const filteredNfs = nfTab === 'todas' ? nfs : nfs.filter(nf => nf.status === nfTab)
 
@@ -115,7 +115,7 @@ export default function GestaoNF({ clientes }) {
           </div>
           <div className="flex justify-between font-semibold">
             <span className="text-muted-foreground">Líquido</span>
-            <span className="text-green-600">{formatCurrency(nf.valor_liquido)}</span>
+            <span className="text-success">{formatCurrency(nf.valor_liquido)}</span>
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export default function GestaoNF({ clientes }) {
                 </div>
                 <div className="flex justify-between border-t pt-2 mt-2">
                   <span className="font-bold">Total Líquido</span>
-                  <span className="font-bold text-green-600">{formatCurrency(totalLiquido)}</span>
+                  <span className="font-bold text-success">{formatCurrency(totalLiquido)}</span>
                 </div>
               </div>
             </CardContent>

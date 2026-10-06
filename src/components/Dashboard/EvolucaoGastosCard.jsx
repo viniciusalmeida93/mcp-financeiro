@@ -7,7 +7,7 @@ import { formatCurrency } from '../../utils/formatters'
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border bg-card p-2 text-xs shadow-md min-w-[140px]">
+    <div className="rounded-lg border bg-popover p-2.5 text-xs shadow-[0_16px_40px_-12px_rgba(0,0,0,0.9)] min-w-[150px]">
       <div className="font-semibold mb-1">Dia {label}</div>
       {payload.map(p => {
         const Arrow = p.dataKey === 'receitas' ? ArrowUp : ArrowDown
@@ -43,7 +43,7 @@ export default function EvolucaoGastosCard({ evolucaoDiaria, totalDespesas, load
             <TrendingUp className="h-4 w-4" />
             Evolução de Gastos
           </CardTitle>
-          <span className="text-lg font-bold text-red-500">{formatCurrency(totalDespesas)}</span>
+          <span className="text-lg font-bold text-destructive">{formatCurrency(totalDespesas)}</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -61,16 +61,16 @@ export default function EvolucaoGastosCard({ evolucaoDiaria, totalDespesas, load
                   <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradDespesas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-empresa-primary)" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="var(--color-empresa-primary)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-destructive)" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="var(--color-destructive)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
-              <XAxis dataKey="dia" tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }} tickLine={false} axisLine={false} interval={4} />
+              <XAxis dataKey="dia" tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} tickLine={false} axisLine={false} interval={4} />
               <YAxis hide />
               <Tooltip content={<CustomTooltip />} />
               <Area type="monotone" dataKey="receitas" stroke="var(--color-success)" fill="url(#gradReceitas)" strokeWidth={2} dot={false} />
-              <Area type="monotone" dataKey="despesas" stroke="var(--color-empresa-primary)" fill="url(#gradDespesas)" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="despesas" stroke="var(--color-destructive)" fill="url(#gradDespesas)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         )}

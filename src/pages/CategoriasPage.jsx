@@ -105,8 +105,8 @@ export default function CategoriasPage() {
 
   const renderSection = (titulo, categorias, total, tipo) => {
     if (categorias.length === 0) return null
-    const progressColor = tipo === 'despesas' ? 'bg-primary' : 'bg-green-500'
-    const valueColor = tipo === 'despesas' ? 'text-destructive' : 'text-green-600'
+    const progressColor = tipo === 'despesas' ? 'bg-primary' : 'bg-success'
+    const valueColor = tipo === 'despesas' ? 'text-destructive' : 'text-success'
 
     return (
       <Card className="mb-4">
@@ -123,7 +123,7 @@ export default function CategoriasPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tipo === 'despesas' ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tipo === 'despesas' ? 'bg-primary/10 text-primary' : 'bg-success/10 text-success'}`}>
                       {(() => { const Icon = getCategoriaIcon(cat.categoria); return <Icon className="h-4 w-4" /> })()}
                     </div>
                     <span className="font-medium text-sm">{cat.label}</span>

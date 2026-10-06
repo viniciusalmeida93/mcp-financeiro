@@ -18,7 +18,7 @@ export default function LancamentoItem({ lancamento, onDelete }) {
         <div className="flex items-center gap-1.5 font-medium text-sm">
           {lancamento.descricao}
           {lancamento.parcelado && (
-            <Badge variant="neutral" className="ml-1">
+            <Badge variant="secondary" className="ml-1 num">
               {lancamento.parcela_atual}/{lancamento.parcela_total}
             </Badge>
           )}
@@ -30,7 +30,7 @@ export default function LancamentoItem({ lancamento, onDelete }) {
 
       <div className={cn(
         'font-semibold text-sm tabular-nums',
-        isEntrada ? 'text-green-500' : 'text-red-500'
+        isEntrada ? 'text-success' : 'text-destructive'
       )}>
         {isEntrada ? '+' : '-'}{formatCurrency(lancamento.valor)}
       </div>

@@ -10,7 +10,7 @@ import { formatCurrency, formatPercent } from '../../utils/formatters'
 import { useMes } from '../../contexts/MesContext'
 import { getCategoriaLabel } from '../../constants/categorias'
 
-const COLORS = ['#00D9FF', '#FF6B35', '#70AD47', '#C00000', '#FFD700', '#9B59B6', '#E67E22', '#1ABC9C', '#E74C3C', '#3498DB']
+const COLORS = ['#00C8FF', '#22C55E', '#F5B83D', '#F25C5C', '#8B7CF6', '#FF8A4C', '#2DD4BF', '#F472B6', '#94A3B8', '#3B82F6']
 
 export default function GastosPorCategoria() {
   const { mes } = useMes()
@@ -71,10 +71,10 @@ export default function GastosPorCategoria() {
             <CardContent>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={52} outerRadius={84} paddingAngle={2} stroke="none" dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                     {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }} />
+                  <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--foreground)' }} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>

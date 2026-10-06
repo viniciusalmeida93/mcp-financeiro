@@ -40,7 +40,7 @@ export default function PrincipaisCategoriasCard({ categoriasDespesas, loading }
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-blue-500"
+                      className="h-full rounded-full bg-primary"
                       style={{ width: `${Math.min(cat.percentual, 100)}%` }}
                     />
                   </div>

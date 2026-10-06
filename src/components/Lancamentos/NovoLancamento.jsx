@@ -133,8 +133,8 @@ export default function NovoLancamento({ isOpen, onClose, onSuccess }) {
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
                 form.tipo === value
                   ? value === 'saida'
-                    ? 'bg-red-500/20 border-red-500 text-red-400'
-                    : 'bg-green-500/20 border-green-500 text-green-400'
+                    ? 'bg-destructive/20 border-destructive text-destructive'
+                    : 'bg-success/20 border-success text-success'
                   : 'border-input bg-background hover:bg-accent'
               }`}
               onClick={() => set('tipo', value)}

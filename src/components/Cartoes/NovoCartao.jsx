@@ -180,7 +180,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
                 style={{
                   width: 32, height: 32, borderRadius: '50%',
                   background: opt.value,
-                  border: form.cor === opt.value ? '3px solid hsl(var(--foreground))' : '3px solid transparent',
+                  border: form.cor === opt.value ? '3px solid var(--foreground)' : '3px solid transparent',
                   cursor: 'pointer',
                 }}
                 title={opt.label}

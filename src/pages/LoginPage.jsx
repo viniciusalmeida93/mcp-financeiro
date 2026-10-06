@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/UI/Card'
 import Input from '../components/UI/Input'
 import Button from '../components/UI/Button'
-import { Eye, EyeOff, TrendingUp } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const { signIn } = useAuth()
@@ -28,22 +28,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-dvh flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <TrendingUp size={20} className="text-primary-foreground" />
-          </div>
-          <div>
-            <span className="font-bold text-xl text-foreground">VA Studio</span>
-            <span className="ml-1 text-sm text-muted-foreground font-medium">Financeiro</span>
-          </div>
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <img src="/logo.png" alt="VA Studio" className="h-10 w-auto" />
+          <span className="text-[0.7rem] font-medium uppercase tracking-[0.24em] text-muted-foreground">Financeiro</span>
         </div>
 
-        <Card>
+        <Card className="p-1">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Entrar</CardTitle>
+            <CardTitle className="text-2xl">Entrar</CardTitle>
             <CardDescription>Acesse sua conta para continuar</CardDescription>
           </CardHeader>
           <CardContent>
@@ -70,7 +65,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-[34px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-1.5 top-[26px] flex size-8 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -81,7 +76,7 @@ export default function LoginPage() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="w-full" disabled={loading}>
                 {loading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>

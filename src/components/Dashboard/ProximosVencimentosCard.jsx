@@ -30,8 +30,8 @@ export default function ProximosVencimentosCard({ proximasContas, loading, pagos
           className={cn(
             'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
             pago
-              ? 'bg-green-500 border-green-500 text-white'
-              : 'border-muted-foreground hover:border-green-500'
+              ? 'bg-success border-success text-black'
+              : 'border-muted-foreground hover:border-success'
           )}
           onClick={() => pago ? onDesmarcar?.(conta) : onPagar?.(conta)}
           title={pago ? 'Clique para desmarcar' : 'Marcar como pago'}
@@ -44,7 +44,7 @@ export default function ProximosVencimentosCard({ proximasContas, loading, pagos
         </div>
         <div className={cn(
           'text-sm font-semibold flex items-center gap-1',
-          atrasado && !pago ? 'text-red-500' : ''
+          atrasado && !pago ? 'text-destructive' : ''
         )}>
           {formatCurrency(conta.valor)}
           {atrasado && !pago && <AlertTriangle className="h-3.5 w-3.5" />}
@@ -77,7 +77,7 @@ export default function ProximosVencimentosCard({ proximasContas, loading, pagos
           <>
             {empresa.length > 0 && (
               <div className="mb-2">
-                <div className="text-xs font-semibold text-blue-400 mb-1 flex items-center gap-1">
+                <div className="text-xs font-semibold text-primary mb-1 flex items-center gap-1">
                   <Briefcase className="h-3 w-3" />
                   EMPRESA
                 </div>

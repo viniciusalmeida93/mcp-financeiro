@@ -3,78 +3,72 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./ds/tokens.css";
+@import "./ds/animations.css";
 
 @custom-variant dark (&:is(.dark *));
 
-/* Variáveis sempre disponíveis, independente do tema */
+/* ===================================================================
+   Mapeamento: tokens do design system -> tokens do shadcn/ReUI.
+   O app e sempre escuro (<html class="dark">), entao so ha um tema.
+   Azul VA Studio em tudo que e acao: botao, foco, item ativo.
+   =================================================================== */
 :root {
-  --background: #0A0A0A;
-  --foreground: #c9d1d9;
-  --card: #111318;
-  --card-foreground: #c9d1d9;
-  --popover: #111318;
-  --popover-foreground: #c9d1d9;
-  --border: #00c8ff40;
-  --input: #00c8ff40;
-  --radius: 0.375rem;
-  --muted: #1a1d24;
-  --muted-foreground: #8b949e;
-  --destructive: #f85149;
-  --destructive-foreground: #ffffff;
+  --background: var(--ds-bg-base);
+  --foreground: var(--ds-ink);
 
-  --primary: #00C8FF;
-  --primary-foreground: #0A0A0A;
-  --secondary: #1a1d24;
-  --secondary-foreground: #c9d1d9;
-  --accent: #1c2128;
-  --accent-foreground: #c9d1d9;
-  --ring: #00c8ff80;
-  --sidebar-background: #0D1117;
-  --sidebar-foreground: #c9d1d9;
-  --sidebar-primary: #00c8ff40;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1c2128;
-  --sidebar-accent-foreground: #c9d1d9;
-  --sidebar-border: #00c8ff40;
-  --sidebar-ring: #00c8ff80;
-  --chart-1: #00C8FF;
-  --chart-2: #8b949e;
-  --chart-3: #1c2128;
-  --chart-4: #1a1d24;
-  --chart-5: #111318;
-  --sidebar: #0D1117;
+  --card: var(--ds-glass-bg);
+  --card-foreground: var(--ds-ink);
+  --popover: var(--ds-overlay-bg);
+  --popover-foreground: var(--ds-ink);
+
+  --primary: var(--va-blue);
+  --primary-foreground: #01131C;
+  --secondary: var(--ds-field-bg);
+  --secondary-foreground: var(--ds-ink);
+  --muted: rgba(16, 93, 148, 0.16);
+  --muted-foreground: var(--ds-mute);
+  --accent: rgba(0, 200, 255, 0.08);
+  --accent-foreground: var(--ds-ink);
+
+  --destructive: var(--ds-danger);
+  --destructive-foreground: var(--ds-danger);
+  --success: var(--ds-success);
+  --success-foreground: var(--ds-success);
+  --warning: var(--ds-warning);
+  --warning-foreground: var(--ds-warning);
+  --info: var(--ds-info);
+  --info-foreground: var(--ds-info);
+  --invert: #1E3A4F;
+  --invert-foreground: var(--ds-ink);
+  --focus: var(--va-blue);
+  --focus-foreground: var(--va-blue);
+
+  --border: var(--ds-border);
+  --input: var(--ds-border);
+  --ring: var(--va-blue);
+  --radius: var(--ds-radius);
+
+  --sidebar: rgba(3, 16, 27, 0.55);
+  --sidebar-foreground: var(--ds-mute);
+  --sidebar-primary: var(--va-blue);
+  --sidebar-primary-foreground: #01131C;
+  --sidebar-accent: rgba(0, 200, 255, 0.08);
+  --sidebar-accent-foreground: var(--ds-ink);
+  --sidebar-border: var(--ds-border);
+  --sidebar-ring: var(--va-blue);
+
+  --chart-1: var(--va-blue);
+  --chart-2: var(--ds-success);
+  --chart-3: var(--ds-danger);
+  --chart-4: var(--ds-warning);
+  --chart-5: var(--ds-info);
 }
 
-/* Tema Empresa — azul */
-[data-theme="empresa"] {
-  --primary: 210 60% 30%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 210 60% 95%;
-  --secondary-foreground: 210 60% 30%;
-  --accent: 210 60% 95%;
-  --accent-foreground: 210 60% 30%;
-  --ring: 210 60% 30%;
-  --sidebar-primary: 210 60% 30%;
-  --sidebar-accent: 210 60% 95%;
-  --sidebar-ring: 210 60% 30%;
-}
+@theme inline {
+  --font-sans: var(--ds-font-sans);
+  --font-heading: var(--ds-font-sans);
 
-/* Tema Pessoal — laranja */
-[data-theme="pessoal"] {
-  --primary: 18 100% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 18 100% 97%;
-  --secondary-foreground: 18 100% 60%;
-  --accent: 18 100% 97%;
-  --accent-foreground: 18 100% 60%;
-  --ring: 18 100% 60%;
-  --sidebar-primary: 18 100% 60%;
-  --sidebar-accent: 18 100% 97%;
-  --sidebar-ring: 18 100% 60%;
-}
-
-/* Tailwind v4: registrar todas as cores como utilities */
-@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -91,9 +85,22 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
+  --color-focus: var(--focus);
+  --color-focus-foreground: var(--focus-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-field: var(--ds-field-bg);
+  --color-table-head: var(--ds-table-head-bg);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -102,18 +109,55 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: var(--ds-radius-sm);
+  --radius-md: var(--ds-radius-md);
+  --radius-lg: var(--ds-radius-lg);
+  --radius-xl: var(--ds-radius-xl);
+  --radius-2xl: var(--ds-radius-2xl);
+  --radius-3xl: var(--ds-radius-3xl);
 }
 
-/* Base styles */
-* {
-  border-color: var(--border);
-  box-sizing: border-box;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply text-foreground;
+    background-color: var(--ds-bg-base);
+    background-image: var(--ds-bg-holofote);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: rgba(0, 200, 255, 0.28);
+  }
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: Inter, system-ui, sans-serif;
+/* Valores em dinheiro alinham coluna com coluna. */
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* O vidro: material de card e sidebar sobre a vinheta. */
+.ds-vidro {
+  background-color: var(--ds-glass-bg);
+  border-color: var(--ds-glass-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .scrollbar-none {
@@ -125,91 +169,74 @@ body {
   display: none;
 }
 
-@theme inline {
-  --font-heading: 'Pathway Extreme', sans-serif;
-  --font-sans: 'Inter', sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+/* Barra de rolagem discreta, no tom da borda. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ds-glass-border) transparent;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ===================================================================
+   Movimento -- o projeto diz QUANDO anima; os keyframes vem do DS.
+   =================================================================== */
+
+/* Caixa de menu suspenso (select do Radix, popover do Base UI). */
+[data-slot='select-content'][data-state='open'],
+[data-slot='popover-content'][data-open] {
+  animation: ds-abertura-caixa var(--ds-duration-abertura) var(--ds-ease-abertura);
+}
+[data-slot='popover-content'][data-closed] {
+  animation: ds-fechamento-caixa var(--ds-duration-abertura) var(--ds-ease-abertura) forwards;
+}
+[data-slot='select-content'][data-state='open'] .ds-revela {
+  animation: ds-abertura-revela var(--ds-duration-abertura) var(--ds-ease-abertura);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+/* Fundo dos dialogos. */
+[data-slot='dialog-overlay'][data-open],
+[data-slot='alert-dialog-overlay'][data-open] {
+  animation: ds-fade-in var(--ds-duration-folha) var(--ds-ease-folha);
+}
+[data-slot='dialog-overlay'][data-closed],
+[data-slot='alert-dialog-overlay'][data-closed] {
+  animation: ds-fade-out 200ms ease-in forwards;
+}
+
+/* Dialogo no desktop: sobe 12px e acende. */
+@keyframes ds-dialogo-entra {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ds-dialogo-sai {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@keyframes ds-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ds-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+[data-slot='dialog-content'][data-open],
+[data-slot='alert-dialog-content'][data-open] {
+  animation: ds-dialogo-entra var(--ds-duration-folha) var(--ds-ease-folha);
+}
+[data-slot='dialog-content'][data-closed],
+[data-slot='alert-dialog-content'][data-closed] {
+  animation: ds-dialogo-sai 200ms ease-in forwards;
+}
+
+/* No celular a gestao e um aplicativo: o modal e uma folha que sobe. */
+@media (max-width: 767px) {
+  [data-slot='dialog-content'][data-open] {
+    animation: ds-folha-sobe var(--ds-duration-folha) var(--ds-ease-folha);
   }
-  body {
-    @apply bg-background text-foreground;
+  [data-slot='dialog-content'][data-closed] {
+    animation: ds-folha-desce 220ms var(--ds-ease-folha) forwards;
   }
-  html {
-    @apply font-sans;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
   }
 }

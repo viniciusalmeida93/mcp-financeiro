@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SearchInput from '../UI/SearchInput'
 import { Users } from 'lucide-react'
 import ClienteItem from './ClienteItem'
 import NovoCliente from './NovoCliente'
@@ -88,13 +89,7 @@ export default function ListaClientes({
 
   return (
     <div className="space-y-3">
-      <input
-        type="text"
-        placeholder="Buscar receita..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-      />
+      <SearchInput placeholder="Buscar receita..." value={search} onChange={e => setSearch(e.target.value)} />
       <div className="grid grid-cols-2 gap-3">
         <SelectField
           options={CONTEXTO_OPTIONS}
@@ -113,7 +108,7 @@ export default function ListaClientes({
       ) : clientes.length === 0 ? (
         <EmptyState icon={Users} text="Nenhum cliente encontrado" />
       ) : (
-        <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="ds-vidro rounded-xl border overflow-hidden">
           {clientes.map(c => (
             <ClienteItem
               key={c.id}

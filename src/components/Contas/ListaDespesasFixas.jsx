@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import SearchInput from '../UI/SearchInput'
 import { CreditCard } from 'lucide-react'
 import ContaItem from './ContaItem'
 import NovaDespesaFixa from './NovaDespesaFixa'
@@ -82,13 +83,7 @@ export default function ListaDespesasFixas({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
-        <input
-          type="text"
-          placeholder="Buscar despesa..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        <SearchInput placeholder="Buscar despesa..." value={search} onChange={e => setSearch(e.target.value)} />
         <SelectField
           options={cartaoOptions}
           value={cartaoFilter}
@@ -114,7 +109,7 @@ export default function ListaDespesasFixas({
       ) : despesas.length === 0 ? (
         <EmptyState icon={CreditCard} text="Nenhuma despesa fixa encontrada" />
       ) : (
-        <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="ds-vidro rounded-xl border overflow-hidden">
           {despesas.map(d => (
             <ContaItem
               key={d.id}

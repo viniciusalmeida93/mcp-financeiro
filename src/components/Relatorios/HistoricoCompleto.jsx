@@ -35,17 +35,17 @@ export default function HistoricoCompleto() {
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis dataKey="mes" tick={{ fill: '#888', fontSize: 11 }} />
-              <YAxis tick={{ fill: '#888', fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="mes" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} tickLine={false} axisLine={false} />
               <Tooltip
-                contentStyle={{ background: '#1A1A1A', border: '1px solid #333', borderRadius: 8 }}
-                labelStyle={{ color: '#ccc' }}
+                contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--foreground)' }}
+                labelStyle={{ color: 'var(--muted-foreground)' }} cursor={{ fill: 'rgba(0, 200, 255, 0.06)' }}
                 formatter={(v) => formatCurrency(v)}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="Receitas" fill="#70AD47" radius={[3,3,0,0]} />
-              <Bar dataKey="Despesas" fill="#C00000" radius={[3,3,0,0]} />
+              <Bar dataKey="Receitas" fill="var(--success)" radius={[4,4,0,0]} />
+              <Bar dataKey="Despesas" fill="var(--destructive)" radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -53,10 +53,10 @@ export default function HistoricoCompleto() {
 
       <Card>
         <CardContent className="space-y-2 pt-4">
-          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Receitas</span><span className="font-semibold text-green-500">{formatCurrency(mediaReceitas)}</span></div>
-          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Despesas</span><span className="font-semibold text-red-500">{formatCurrency(mediaDespesas)}</span></div>
-          <div className="flex justify-between text-sm font-semibold border-t pt-2"><span>Melhor mês</span><span className="text-green-500">{formatMesAno(melhor.mes)}</span></div>
-          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Pior mês</span><span className="text-red-500">{formatMesAno(pior.mes)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Receitas</span><span className="font-semibold text-success">{formatCurrency(mediaReceitas)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Média Despesas</span><span className="font-semibold text-destructive">{formatCurrency(mediaDespesas)}</span></div>
+          <div className="flex justify-between text-sm font-semibold border-t pt-2"><span>Melhor mês</span><span className="text-success">{formatMesAno(melhor.mes)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-muted-foreground">Pior mês</span><span className="text-destructive">{formatMesAno(pior.mes)}</span></div>
         </CardContent>
       </Card>
 
@@ -73,7 +73,7 @@ export default function HistoricoCompleto() {
                 {formatCurrency(h.despesas)}
               </div>
             </div>
-            <div className={`font-bold text-sm ${h.saldo >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <div className={`font-bold text-sm ${h.saldo >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(h.saldo)}
             </div>
           </CardContent>

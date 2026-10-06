@@ -1,5 +1,6 @@
 import { formatCurrency } from '../../utils/formatters'
 import Badge from '../UI/Badge'
+import RowActions from '../UI/RowActions'
 import { Pencil, Copy, Trash2, Mail, FileText, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -33,8 +34,8 @@ export default function ClienteItem({ cliente, parcelaDoMes, onTogglePago, onCob
         className={cn(
           'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
           isPago
-            ? 'bg-green-500 border-green-500 text-white'
-            : 'border-muted-foreground hover:border-green-500'
+            ? 'bg-success border-success text-black'
+            : 'border-muted-foreground hover:border-success'
         )}
         onClick={() => onTogglePago && onTogglePago(cliente)}
         title={isPago ? 'Clique para desmarcar' : 'Marcar como recebido'}
@@ -45,49 +46,31 @@ export default function ClienteItem({ cliente, parcelaDoMes, onTogglePago, onCob
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap font-medium text-sm">
           {cliente.nome}
-          <Badge variant={isPontual ? 'secondary' : 'default'} className="text-xs">
+          <Badge variant={isPontual ? 'info-light' : 'primary-light'}>
             {isPontual ? 'Pontual' : 'Recorrente'}
           </Badge>
           {cliente.precisa_nf && (
-            <Badge variant="outline" className="text-xs">NF</Badge>
+            <Badge variant="warning-light">NF</Badge>
           )}
           {!isAtivo && (
-            <Badge variant="secondary" className="text-xs">Inativo</Badge>
+            <Badge variant="secondary">Inativo</Badge>
           )}
         </div>
-        <div className={cn('text-xs text-muted-foreground mt-0.5 flex items-center gap-1', isPago && 'text-green-500')}>
+        <div className={cn('text-xs text-muted-foreground mt-0.5 flex items-center gap-1', isPago && 'text-success')}>
           {isPago && <><Check className="h-3 w-3" strokeWidth={3} /> Recebido · </>}
           {dateInfo}
         </div>
       </div>
 
-      <div className="flex items-center gap-0.5 shrink-0">
-        {onEdit && (
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onEdit(cliente)} title="Editar">
-            <Pencil size={14} />
-          </button>
-        )}
-        {onDuplicate && (
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onDuplicate(cliente)} title="Duplicar">
-            <Copy size={14} />
-          </button>
-        )}
-        {onCobrar && (
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onCobrar(cliente)} title="Enviar cobrança">
-            <Mail size={14} />
-          </button>
-        )}
-        {onGerarNF && cliente.precisa_nf && (
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" onClick={() => onGerarNF(cliente)} title="Gerar NF">
-            <FileText size={14} />
-          </button>
-        )}
-        {onDelete && (
-          <button className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-accent transition-colors" onClick={() => onDelete(cliente)} title="Excluir">
-            <Trash2 size={14} />
-          </button>
-        )}
-      </div>
+      <RowActions
+        actions={[
+          onEdit && { icon: Pencil, label: 'Editar', onClick: () => onEdit(cliente) },
+          onDuplicate && { icon: Copy, label: 'Duplicar', onClick: () => onDuplicate(cliente) },
+          onCobrar && { icon: Mail, label: 'Enviar cobrança', onClick: () => onCobrar(cliente) },
+          onGerarNF && cliente.precisa_nf && { icon: FileText, label: 'Gerar NF', onClick: () => onGerarNF(cliente) },
+          onDelete && { icon: Trash2, label: 'Excluir', onClick: () => onDelete(cliente), destructive: true },
+        ]}
+      />
     </div>
   )
 }

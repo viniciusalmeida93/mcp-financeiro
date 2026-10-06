@@ -5,6 +5,7 @@ import { useDespesasComStatus } from '../hooks/useDespesasFixas'
 import { formatCurrency } from '../utils/formatters'
 import { TrendingDown, CheckCircle, Clock } from 'lucide-react'
 import FAB from '../components/UI/FAB'
+import StatCard from '../components/UI/StatCard'
 
 export default function ContasPage() {
   const [showForm, setShowForm] = useState(false)
@@ -51,34 +52,10 @@ export default function ContasPage() {
   return (
     <>
       {/* Metric cards */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <TrendingDown size={12} />
-            Total
-          </div>
-          <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(total)}
-          </div>
-        </div>
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <CheckCircle size={12} />
-            Pago
-          </div>
-          <div className="text-lg font-semibold text-destructive">
-            {loading ? '...' : formatCurrency(pago)}
-          </div>
-        </div>
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <Clock size={12} />
-            Pendente
-          </div>
-          <div className={`text-lg font-semibold ${pendente > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
-            {loading ? '...' : formatCurrency(pendente)}
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-2.5 mb-4 sm:grid-cols-3 sm:gap-3">
+        <StatCard className="col-span-2 sm:col-span-1" label="Total" icon={TrendingDown} tone="destructive" loading={loading} value={formatCurrency(total)} />
+        <StatCard label="Pago" icon={CheckCircle} tone="destructive" loading={loading} value={formatCurrency(pago)} />
+        <StatCard label="Pendente" icon={Clock} tone={pendente > 0 ? 'warning' : 'neutral'} loading={loading} value={formatCurrency(pendente)} />
       </div>
 
       {error && (

@@ -1,0 +1,132 @@
+/* Copiado sem alteracoes de antsports-design-system/src/animations.css.
+   Mudou la, atualize aqui (e o gemeo em JS, se um dia for usado). */
+
+/* ===================================================================
+   O movimento de abertura da area de gestao.
+
+   Nasceu na tabela de Alunos do AntBox no celular: a altura abre espaco,
+   uma mascara em gradiente revela o conteudo de cima para baixo e um
+   deslize curto de 20px da direcao ao gesto. 350ms, ease-in-out. Virou o
+   padrao de TODA gaveta do painel -- accordion, collapsible, menu
+   suspenso, select, popover -- e agora tambem do organizador do AntCamp.
+
+   Aqui moram so os `@keyframes` e a mecanica da mascara. Quem diz QUANDO
+   anima e cada projeto, na propria folha de estilo, dentro do escopo dele
+   (`.org`):
+
+     .org .org-abertura[data-state="open"] {
+       animation: ds-abertura var(--ds-duration-abertura) var(--ds-ease-abertura);
+     }
+     .org .org-abertura[data-state="closed"] {
+       animation: ds-fechamento var(--ds-duration-abertura) var(--ds-ease-abertura) forwards;
+     }
+
+   Esse recorte e de proposito: as classes daqui nao pintam nada sozinhas,
+   entao um componente compartilhado pode carregar a classe sem afetar as
+   areas que ficam fora do escopo de gestao (atleta, aluno, checkout).
+
+   O gemeo em JS, para o que anima com motion, esta em `motion/abertura.ts`.
+   Mudou de um lado, muda do outro.
+   =================================================================== */
+
+/* A mascara so anda se o navegador souber que isto e uma porcentagem; sem
+   o @property ela pularia de 0% para 100% no fim da animacao. */
+@property --ds-mask-stop {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+/* --- Gaveta inline -------------------------------------------------
+   A altura vem do Radix, que so a mede com o conteudo montado: cada
+   gaveta diz em `--ds-altura-aberta` qual variavel do Radix ler
+   (`--radix-accordion-content-height`, `--radix-collapsible-content-height`). */
+@keyframes ds-abertura {
+  from { height: 0; opacity: 0; transform: translateY(20px); --ds-mask-stop: 0%; }
+  to { height: var(--ds-altura-aberta); opacity: 1; transform: none; --ds-mask-stop: 100%; }
+}
+
+/* O fechar e o mesmo caminho de volta, mas com NOME proprio. Com o mesmo
+   nome e `reverse`, o Presence do Radix compara o `animation-name` de
+   antes e depois, acha que nao ha animacao de saida e desmonta na hora --
+   a gaveta sumia num estalo. */
+@keyframes ds-fechamento {
+  from { height: var(--ds-altura-aberta); opacity: 1; transform: none; --ds-mask-stop: 100%; }
+  to { height: 0; opacity: 0; transform: translateY(20px); --ds-mask-stop: 0%; }
+}
+
+/* --- Caixa de menu suspenso ----------------------------------------
+   Sem altura de proposito: quem posiciona o menu e o Radix, e crescer no
+   meio da abertura o faria se recolocar na tela. No lugar da altura, um
+   recorte que desce de cima para baixo. O deslize e `transform`, e nao
+   `translate`, porque em modo popper o menu ja usa `translate` como
+   afastamento do gatilho. Sem fade: saindo de opacidade 0 o menu ficava
+   quase invisivel no comeco e parecia demorar. As sobras de 16px deixam a
+   sombra fora do corte. */
+@keyframes ds-abertura-caixa {
+  from { clip-path: inset(0 -16px 100% -16px); transform: translateY(20px); }
+  to { clip-path: inset(-16px); transform: none; }
+}
+
+@keyframes ds-fechamento-caixa {
+  from { clip-path: inset(-16px); transform: none; }
+  to { clip-path: inset(0 -16px 100% -16px); transform: translateY(20px); }
+}
+
+/* O conteudo dentro dessa caixa. A mascara fica aqui, e nao na caixa,
+   porque mascara cobre a border-box e cortaria a sombra do menu. */
+@keyframes ds-abertura-revela {
+  from { --ds-mask-stop: 0%; }
+  to { --ds-mask-stop: 100%; }
+}
+
+@keyframes ds-fechamento-revela {
+  from { --ds-mask-stop: 100%; }
+  to { --ds-mask-stop: 0%; }
+}
+
+/* --- Folha do celular ----------------------------------------------
+   No celular a area de gestao e um aplicativo, e num aplicativo modal nao
+   nasce no meio da tela: sobe de baixo. Mesma curva e mesmo tempo da
+   folha do app do aluno. */
+@keyframes ds-folha-sobe {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@keyframes ds-folha-desce {
+  from { transform: none; }
+  to { transform: translateY(100%); }
+}
+
+/* --- A mecanica da mascara -----------------------------------------
+   Inerte por si so: com `--ds-mask-stop` em 100% a mascara e opaca e nao
+   muda nada. So quando o projeto liga uma das animacoes acima e que o
+   ponto de corte anda. */
+.ds-abertura,
+.ds-revela {
+  mask-image: linear-gradient(black var(--ds-mask-stop), transparent var(--ds-mask-stop));
+  -webkit-mask-image: linear-gradient(black var(--ds-mask-stop), transparent var(--ds-mask-stop));
+}
+
+.ds-abertura {
+  overflow: hidden;
+}
+
+/* No celular a mascara sai do gesto.
+ *
+ * Animar `mask-image` -- reescrever `--ds-mask-stop` quadro a quadro --
+ * nao vai para a GPU: no desktop passa despercebido, no celular a gaveta
+ * engasga no comeco e no fim de cada abertura. A altura e o deslize de
+ * 20px continuam, entao o movimento e o mesmo; o que nao acontece e a
+ * revelacao em degrade.
+ *
+ * O gemeo em JS faz o mesmo corte, em `ponteiroGrosso()`
+ * (motion/abertura.ts). Mudou de um lado, muda do outro. */
+@media (hover: none) {
+  .ds-abertura,
+  .ds-revela {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}

@@ -57,7 +57,7 @@ export default function UltimasTransacoesCard({ ultimasTransacoes, loading }) {
                   <div key={t.id} className="flex items-center gap-3 py-2 border-b last:border-b-0 min-h-[52px]">
                     <div className={cn(
                       'w-9 h-9 rounded-full flex items-center justify-center shrink-0',
-                      t.tipo === 'entrada' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+                      t.tipo === 'entrada' ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'
                     )}>
                       <Icon className="h-4 w-4" />
                     </div>
@@ -69,7 +69,7 @@ export default function UltimasTransacoesCard({ ultimasTransacoes, loading }) {
                         <span className={cn(
                           'text-xs font-semibold px-1.5 py-0.5 rounded',
                           t.contexto === 'empresa'
-                            ? 'bg-blue-500/10 text-blue-400'
+                            ? 'bg-primary/10 text-primary'
                             : 'bg-orange-500/10 text-orange-400'
                         )}>
                           {getCategoriaLabel(t.categoria)}
@@ -81,7 +81,7 @@ export default function UltimasTransacoesCard({ ultimasTransacoes, loading }) {
                     </div>
                     <div className={cn(
                       'text-sm font-semibold tabular-nums',
-                      t.tipo === 'entrada' ? 'text-green-500' : 'text-red-500'
+                      t.tipo === 'entrada' ? 'text-success' : 'text-destructive'
                     )}>
                       {t.tipo === 'entrada' ? '+' : '-'}{formatCurrency(t.valor)}
                     </div>
