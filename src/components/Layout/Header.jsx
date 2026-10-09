@@ -3,23 +3,27 @@ import { useLocation } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useMes } from '../../contexts/MesContext'
-import { formatMesAno } from '../../utils/formatters'
 import Select from '../UI/Select'
 import { navItems } from './navItems'
 
 const pageTitles = Object.fromEntries(navItems.map(i => [i.to, i.label]))
 
-// Janela dinâmica em torno do mês atual: 12 meses para trás + 6 meses para frente.
-function buildMesesWindow(back = 12, forward = 6) {
-  const meses = []
-  const now = new Date()
-  for (let i = forward; i >= -back; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    meses.push(`${y}-${m}`)
-  }
-  return meses
+const NOMES_MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const MES_OPTIONS = NOMES_MESES.map((label, i) => ({ value: String(i + 1).padStart(2, '0'), label }))
+
+// Anos disponíveis: de 2026 (início do sistema) até 2 anos à frente do atual.
+const ANO_INICIAL = 2026
+function buildAnos(forward = 2) {
+  const fim = Math.max(ANO_INICIAL, new Date().getFullYear() + forward)
+  const anos = []
+  for (let y = ANO_INICIAL; y <= fim; y++) anos.push(String(y))
+  return anos
+}
+
+function somarMes(mes, delta) {
+  const [y, m] = mes.split('-').map(Number)
+  const d = new Date(y, m - 1 + delta, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 const navBtn =
@@ -31,9 +35,10 @@ export default function Header() {
   const { mes, setMes } = useMes()
   const title = pageTitles[location.pathname] || 'VA Studio'
 
-  const meses = useMemo(() => buildMesesWindow(), [])
-  // A lista vai do mais novo (índice 0) para o mais antigo.
-  const idx = meses.indexOf(mes)
+  const anos = useMemo(() => buildAnos(), [])
+  const [anoSel, mesSel] = mes.split('-')
+  const primeiroMes = `${anos[0]}-01`
+  const ultimoMes = `${anos[anos.length - 1]}-12`
 
   return (
     <header className="ds-vidro shrink-0 sticky top-0 z-30 border-b">
@@ -46,23 +51,29 @@ export default function Header() {
           <button
             type="button"
             className={navBtn}
-            onClick={() => setMes(meses[idx + 1])}
-            disabled={idx < 0 || idx >= meses.length - 1}
+            onClick={() => setMes(somarMes(mes, -1))}
+            disabled={mes <= primeiroMes}
             aria-label="Mês anterior"
           >
             <ChevronLeft size={16} />
           </button>
           <Select
-            options={meses.map(m => ({ value: m, label: formatMesAno(m) }))}
-            value={mes}
-            onChange={e => setMes(e.target.value)}
-            className="w-36 md:w-44"
+            options={MES_OPTIONS}
+            value={mesSel}
+            onChange={e => setMes(`${anoSel}-${e.target.value}`)}
+            className="w-32 md:w-36"
+          />
+          <Select
+            options={anos.map(a => ({ value: a, label: a }))}
+            value={anoSel}
+            onChange={e => setMes(`${e.target.value}-${mesSel}`)}
+            className="w-24"
           />
           <button
             type="button"
             className={navBtn}
-            onClick={() => setMes(meses[idx - 1])}
-            disabled={idx <= 0}
+            onClick={() => setMes(somarMes(mes, 1))}
+            disabled={mes >= ultimoMes}
             aria-label="Próximo mês"
           >
             <ChevronRight size={16} />
