@@ -124,7 +124,7 @@ export default function NovoCartao({ cartao, onSave, onClose }) {
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Dia fechamento fatura"
+            label="Dia fechamento fatura (mês 31)"
             required
             type="number"
             min="1"

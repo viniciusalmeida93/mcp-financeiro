@@ -9,6 +9,19 @@ export function despesaEncerrada(despesa, mesSelecionado) {
 }
 
 /**
+ * Dia em que o cartão fecha num mês específico.
+ * O dia_fechamento cadastrado vale para meses de 31 dias; meses de 30 dias
+ * (e fevereiro, tratado como 30) fecham um dia antes. Ex.: cadastro 7 → fecha
+ * 07/10 (outubro tem 31) e 06/09 (setembro tem 30).
+ * @param {number} mes - 1 a 12
+ */
+export function getDiaFechamento(cartao, ano, mes) {
+  const base = Number(cartao.dia_fechamento)
+  const diasNoMes = new Date(ano, mes, 0).getDate()
+  return diasNoMes >= 31 ? base : Math.max(1, base - 1)
+}
+
+/**
  * Fallback para despesas pontuais sem mes_referencia (legacy).
  * Deriva o mês a partir do created_at, ajustando ciclo do cartão.
  */
@@ -24,7 +37,7 @@ export function getMesDaPontual(despesa, cartoes = []) {
   if (despesa.forma_pagamento?.startsWith('cartao:')) {
     const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
     const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && createdDay > cartao.dia_fechamento) {
+    if (cartao?.dia_fechamento && createdDay > getDiaFechamento(cartao, createdYear, createdMonth)) {
       let nextMonth = createdMonth + 1
       let nextYear = createdYear
       if (nextMonth > 12) { nextMonth = 1; nextYear++ }
@@ -178,9 +191,12 @@ export function formatDataVencimento(dia, mesSelecionado, despesa, cartoes = [])
   if (despesa?.forma_pagamento?.startsWith('cartao:')) {
     const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
     const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && dia > cartao.dia_fechamento) {
-      month -= 1
-      if (month < 1) { month = 12; year -= 1 }
+    // A compra é do mês anterior; compara com o fechamento daquele mês
+    const prevMonth = month === 1 ? 12 : month - 1
+    const prevYear = month === 1 ? year - 1 : year
+    if (cartao?.dia_fechamento && dia > getDiaFechamento(cartao, prevYear, prevMonth)) {
+      month = prevMonth
+      year = prevYear
     }
   }
 
@@ -200,9 +216,12 @@ export function getDataRealDaDespesa(despesa, mesSelecionado, cartoes = []) {
   if (despesa.forma_pagamento?.startsWith('cartao:')) {
     const cartaoId = despesa.forma_pagamento.replace('cartao:', '')
     const cartao = cartoes.find(c => c.id === cartaoId)
-    if (cartao?.dia_fechamento && dia > cartao.dia_fechamento) {
-      month -= 1
-      if (month < 1) { month = 12; year -= 1 }
+    // A compra é do mês anterior; compara com o fechamento daquele mês
+    const prevMonth = month === 1 ? 12 : month - 1
+    const prevYear = month === 1 ? year - 1 : year
+    if (cartao?.dia_fechamento && dia > getDiaFechamento(cartao, prevYear, prevMonth)) {
+      month = prevMonth
+      year = prevYear
     }
   }
 

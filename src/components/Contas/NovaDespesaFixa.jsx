@@ -7,6 +7,7 @@ import SelectField from '../UI/Select'
 import { buildFormasPagamento } from '../../constants/formasPagamento'
 import { createDespesaFixa, updateDespesaFixa, getCategoriasCustomizadas, createCategoriaCustomizada, getCartoes } from '../../services/database'
 import { useMes } from '../../contexts/MesContext'
+import { getDiaFechamento } from '../../utils/cicloFatura'
 
 const TIPOS = [
   { value: 'pontual', label: 'Pontual' },
@@ -101,7 +102,7 @@ export default function NovaDespesaFixa({ isOpen, onClose, onSuccess, despesaEdi
       if (form.recorrencia !== 'mensal' && form.forma_pagamento?.startsWith('cartao:')) {
         const cartaoId = form.forma_pagamento.replace('cartao:', '')
         const cartaoSel = cartoes.find(c => c.id === cartaoId)
-        if (cartaoSel?.dia_fechamento && diaVenc > cartaoSel.dia_fechamento) {
+        if (cartaoSel?.dia_fechamento && diaVenc > getDiaFechamento(cartaoSel, anoSel, mesSel)) {
           let y = anoSel, m = mesSel + 1
           if (m > 12) { m = 1; y += 1 }
           mesRef = `${y}-${String(m).padStart(2, '0')}`

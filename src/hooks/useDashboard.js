@@ -4,7 +4,7 @@ import { getDiasRestantesNoMes, toDateString } from '../utils/dateHelpers'
 import { getDespesasFixas, getClientes, getCartoes, createLancamento, deleteLancamento, updateLancamento } from '../services/database'
 import { getCategoriaLabel } from '../constants/categorias'
 import { format, addDays, getDaysInMonth } from 'date-fns'
-import { despesaAparecemNoMes } from '../utils/cicloFatura'
+import { despesaAparecemNoMes, getDiaFechamento } from '../utils/cicloFatura'
 
 function getLastDayOfMes(mes) {
   const [year, month] = mes.split('-').map(Number)
@@ -109,9 +109,12 @@ export function useDashboard(mes) {
         if (forma_pagamento?.startsWith('cartao:')) {
           const cartaoId = forma_pagamento.replace('cartao:', '')
           const cartao = cartoesData.find(c => c.id === cartaoId)
-          if (cartao?.dia_fechamento && dia > cartao.dia_fechamento) {
-            m -= 1
-            if (m < 0) { m = 11; y -= 1 }
+          // A compra é do mês anterior; compara com o fechamento daquele mês
+          const prevM = m === 0 ? 11 : m - 1
+          const prevY = m === 0 ? y - 1 : y
+          if (cartao?.dia_fechamento && dia > getDiaFechamento(cartao, prevY, prevM + 1)) {
+            m = prevM
+            y = prevY
           }
         }
         return new Date(y, m, dia)

@@ -9,7 +9,7 @@ import StatCard from '../components/UI/StatCard'
 import { getCartoes, createCartao, updateCartao, deleteCartao, getDespesasFixas } from '../services/database'
 import { formatCurrency } from '../utils/formatters'
 import { useMes } from '../contexts/MesContext'
-import { calcParcelaNoMes, despesaEncerrada } from '../utils/cicloFatura'
+import { calcParcelaNoMes, despesaEncerrada, getDiaFechamento } from '../utils/cicloFatura'
 
 const CONTEXTO_OPTIONS = [
   { value: 'ambos', label: 'Todos' },
@@ -40,7 +40,7 @@ function getDespesasDoCartaoNoMes(despesas, cartao, mesSelecionado, cartoes) {
         let createdMonth = created.getMonth() + 1
         let createdYear = created.getFullYear()
         // Se dia > fechamento, cai no mês seguinte
-        if (cartao.dia_fechamento && createdDay > cartao.dia_fechamento) {
+        if (cartao.dia_fechamento && createdDay > getDiaFechamento(cartao, createdYear, createdMonth)) {
           createdMonth += 1
           if (createdMonth > 12) { createdMonth = 1; createdYear += 1 }
         }
